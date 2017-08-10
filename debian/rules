@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	./autogen.sh
+	dh_auto_configure -- \
+		--disable-silent-rules \
+		--libdir=/usr/lib/$(DEB_HOST_MULTIARCH)

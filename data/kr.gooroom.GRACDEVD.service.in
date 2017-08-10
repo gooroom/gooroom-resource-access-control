@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=kr.gooroom.GRACDEVD
+Exec=@libexecdir@/grac-device-daemon
+User=root
+SystemdService=grac-device-daemon.service

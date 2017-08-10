@@ -1,0 +1,13 @@
+[Unit]
+Description=GRAC Device Service
+#Requries=
+
+[Service]
+Type=dbus
+BusName=kr.gooroom.GRACDEVD
+ExecStart=@libexecdir@/grac-device-daemon
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+#Also=
+WantedBy=multi-user.target

@@ -1,0 +1,4 @@
+usr/include/libgrac-browser/*.h
+usr/lib/*/libgrac-browser.so
+usr/lib/*/pkgconfig/libgrac-browser.pc
+

@@ -1,0 +1,96 @@
+dnl gooroom-resource-access-control - gooroom OS resource access control system.
+dnl
+
+dnl ***************************
+dnl *** Version information ***
+dnl ***************************
+m4_define([grac_verinfo], [0:0:0])
+m4_define([grac_version_api_major], [1])
+m4_define([grac_version_major], [0])
+m4_define([grac_version_minor], [0])
+m4_define([grac_version_micro], [0])
+m4_define([grac_version_build], [r@REVISION@])
+m4_define([grac_version_tag], [git])
+m4_define([grac_version], [grac_version_major().grac_version_minor().grac_version_micro()ifelse(grac_version_tag(), [git], [grac_version_tag()-grac_version_build()], [grac_version_tag()])])
+
+dnl ***************************
+dnl *** Initialize autoconf ***
+dnl ***************************
+AC_INIT([gooroom-resource-access-control], [grac_version], [http://gooroom.kr/], [gooroom-resource-access-control])
+AC_PREREQ([2.60])
+AC_CONFIG_MACRO_DIR([m4])
+AC_CANONICAL_TARGET()
+
+dnl ***************************
+dnl *** Initialize automake ***
+dnl ***************************
+AM_INIT_AUTOMAKE([1.9 dist-bzip2 tar-ustar no-dist-gzip])
+AC_CONFIG_HEADERS([config.h])
+AM_MAINTAINER_MODE()
+
+dnl **************************
+dnl *** Libtool versioning ***
+dnl **************************
+GRAC_VERINFO=grac_verinfo()
+AC_SUBST([GRAC_VERINFO])
+
+dnl ********************************
+dnl *** Check for basic programs ***
+dnl ********************************
+AC_PROG_CC()
+AC_PROG_LD()
+AC_PROG_INSTALL()
+LT_PREREQ([2.2.6])
+LT_INIT([disable-static])
+IT_PROG_INTLTOOL([0.35.0])
+AM_PROG_CC_C_O()
+
+GETTEXT_PACKAGE=gooroom-resource-access-control
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE", [Gettext package])
+
+dnl **********************************
+dnl *** Check for standard headers ***
+dnl **********************************
+AC_HEADER_STDC()
+AC_CHECK_HEADERS([math.h])
+
+dnl ******************************
+dnl *** Check for math library ***
+dnl ******************************
+AC_CHECK_LIB([m], [sin])
+
+dnl ******************************
+dnl *** Check for i18n support ***
+dnl ******************************
+XDT_I18N([@LINGUAS@])
+
+dnl ***********************************
+dnl *** Check for required packages ***
+dnl ***********************************
+XDT_CHECK_PACKAGE([GOBJECT], [gobject-2.0])
+XDT_CHECK_PACKAGE([GLIB], [glib-2.0])
+XDT_CHECK_PACKAGE([GIO_UNIX], [gio-unix-2.0])
+dnl XDT_CHECK_PACKAGE([LIBOOBS], [liboobs-1])
+dnl XDT_CHECK_PACKAGE([GTK], [gtk+-3.0])
+dnl XDT_CHECK_PACKAGE([POLKIT], [polkit-gobject-1])
+dnl XDT_CHECK_PACKAGE([LIBXML], [libxml-2.0])
+
+dnl ***********************************
+dnl *** Check for debugging support ***
+dnl ***********************************
+XDT_FEATURE_DEBUG()
+
+AC_CONFIG_FILES([
+Makefile
+libgrac-common/Makefile
+libgrac-device/Makefile
+libgrac-browser/Makefile
+data/Makefile
+grac-device-daemon/Makefile
+grac-exec-browser/Makefile
+po/Makefile.in
+])
+AC_OUTPUT
+
+

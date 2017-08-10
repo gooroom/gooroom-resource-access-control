@@ -1,0 +1,68 @@
+Source: gooroom-resource-access-control
+Section: misc
+Priority: optional
+Maintainer: gooroom <gooroom@gooroom.kr>
+Build-Depends: debhelper (>= 9), autoconf, automake, liboobs-1-dev, libglib2.0-dev,
+  xfce4-dev-tools, intltool, libtool, libgtk-3-dev, libpolkit-gobject-1-dev, libxml2-dev,
+  libacl1-dev, libcups2-dev, libselinux1-dev, libjson-c-dev, libcurl4-openssl-dev
+Standards-Version: 3.9.5
+
+Package: grac-device-daemon
+Architecture: any
+Depends: libgrac-device,
+		libgrac-common,
+		${misc:Depends}
+Description: grac device daemon 
+ This is a daemon to control the access to each devices on Gooroom OS. For example, network, USB, Bluetooth device.
+
+Package: grac-exec-browser
+Architecture: any
+Depends: libgrac-browser,
+		libgrac-common,
+		${misc:Depends}
+Description: grac-exec-browser
+ This is a launcher for the gooroom browser,
+
+Package: libgrac-common
+Architecture: any
+Depends: ${misc:Depends}
+Description: libgrac-common
+ This is a common library binary of the grac control system.
+
+Package: libgrac-common-dev
+Architecture: any
+Depends: libgrac-common,
+		${misc:Depends}
+Description: libgrac-common-dev
+ This is a common library for developing application on the grac control system.
+
+Package: libgrac-device
+Architecture: any
+Depends: libgrac-common,
+		${misc:Depends}
+Description: libgrac-device
+ This is a device-control library binary of the grac control system.
+
+Package: libgrac-device-dev
+Architecture: any
+Depends: libgrac-device,
+		libgrac-common-dev,
+		${misc:Depends}
+Description: libgrac-device-dev
+ This is a device-control library for developing application on the grac control system.
+
+Package: libgrac-browser
+Architecture: any
+Depends: libgrac-common,
+		${misc:Depends}
+Description: libgrac-browser
+ This is a browser-control library binary of the grac control system.
+
+Package: libgrac-browser-dev
+Architecture: any
+Depends: libgrac-browser,
+		libgrac-common-dev,
+		${misc:Depends}
+Description: libgrac-browser-dev
+ This is a browser-control library for developing application on the grac control system.
+

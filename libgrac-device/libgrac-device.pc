@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=/usr/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: libgrac-device
+Description: Device Access Control library for gooroom OS
+Requires: glib-2.0 gobject-2.0 
+Version: 0.1.0
+Libs: -L${libdir} -lgrac-common -lgrac-device
+Cflags: -I${includedir}/libgrac-common -I${includedir}/libgrac-device
