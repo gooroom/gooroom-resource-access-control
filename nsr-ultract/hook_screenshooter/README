@@ -1,0 +1,12 @@
+# Compile
+gcc `pkg-config gtk+-2.0 --cflags` hooker.c -o hooker.so -shared -ldl -fPIC
+
+# Export
+export LD_PRELOAD=./hooker.so
+
+# ld Preload Configuration
+echo /home/ultract/gooroom-resource-access-control/hook_screenshooter/hooker.so >> /etc/ld.so.preload
+
+# Notice
+A manner by ld preload need to be set after finishing boot & xwindow running.
+

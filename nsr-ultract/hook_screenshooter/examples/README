@@ -1,0 +1,2 @@
+# Compile .so file
+gcc example.c -o example.so -shared -ldl -fPIC
