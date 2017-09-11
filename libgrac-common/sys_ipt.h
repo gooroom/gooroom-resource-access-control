@@ -41,20 +41,24 @@ gboolean	sys_ipt_rule_set_protocol_name(sys_ipt_rule *rule, char *proto_name);  
 // set_port() is  valid for TCP or UDP
 // error if no protocol is specified
 //  if port is -1, the end of valid port number
-gboolean	sys_ipt_rule_set_port (sys_ipt_rule *rule, int port);
-gboolean	sys_ipt_rule_set_port2(sys_ipt_rule *rule, int from_port, int to_port);
-gboolean	sys_ipt_rule_set_port_name (sys_ipt_rule *rule, gchar *name);
-gboolean	sys_ipt_rule_set_port_name2(sys_ipt_rule *rule, gchar *from_name, gchar *to_name);
+//gboolean	sys_ipt_rule_set_port (sys_ipt_rule *rule, int port);
+//gboolean	sys_ipt_rule_set_port2(sys_ipt_rule *rule, int from_port, int to_port);
+//gboolean	sys_ipt_rule_set_port_name (sys_ipt_rule *rule, gchar *name);
+//gboolean	sys_ipt_rule_set_port_name2(sys_ipt_rule *rule, gchar *from_name, gchar *to_name);
+//gboolean	sys_ipt_rule_set_port_str(sys_ipt_rule *rule, gchar *port_str);	// 80,  80-90,  80:90
 
-gboolean	sys_ipt_rule_set_port_str(sys_ipt_rule *rule, gchar *port_str);	// 80,  80-90,  80:90
+void			sys_ipt_rule_clear_src_port(sys_ipt_rule *rule);
+void			sys_ipt_rule_clear_dst_port(sys_ipt_rule *rule);
+gboolean	sys_ipt_rule_add_src_port_str (sys_ipt_rule *rule, gchar *port_str);   // single or range
+gboolean	sys_ipt_rule_add_dst_port_str (sys_ipt_rule *rule, gchar *port_str);   // single or range
 
 gboolean	sys_ipt_rule_set_addr (sys_ipt_rule *rule, guint8 addr[4]);
 gboolean	sys_ipt_rule_set_addr6(sys_ipt_rule *rule, guint16 addr[8]);
 gboolean	sys_ipt_rule_set_addr_str (sys_ipt_rule *rule, gchar *addr_str);
 gboolean	sys_ipt_rule_set_addr6_str(sys_ipt_rule *rule, gchar *addr_str);
 
-gboolean	sys_ipt_rule_set_ipset   (sys_ipt_rule *rule, gchar* setname);
-gboolean	sys_ipt_rule_set_ipset6  (sys_ipt_rule *rule, gchar* setname);
+//gboolean	sys_ipt_rule_set_ipset   (sys_ipt_rule *rule, gchar* setname);
+//gboolean	sys_ipt_rule_set_ipset6  (sys_ipt_rule *rule, gchar* setname);
 
 gboolean	sys_ipt_rule_set_mask    (sys_ipt_rule *rule, guchar mask);
 
@@ -74,5 +78,7 @@ gboolean	sys_ipt_append_all_drop_rule();
 gboolean	sys_ipt_insert_all_accept_rule();
 gboolean	sys_ipt_append_all_accept_rule();
 
+gboolean	sys_ipt_set_log(gboolean log_on, char *header);
+gboolean	sys_ipt_set_policy(gboolean allow);
 
 #endif /* _SYS_IPT_H_ */

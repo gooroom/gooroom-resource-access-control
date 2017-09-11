@@ -12,13 +12,23 @@
 
 const gint	grac_config_max_length_path();
 const gint  grac_config_max_length_username();
-const gint  grac_config_max_length_packet();
-const gint  grac_config_max_length_url();
 
-const gchar*	grac_config_data_base_directory(gboolean end_mark);		// end_mark "/"
-const gchar*	grac_config_path_access();
-const gchar*	grac_config_path_url_list();
+const gchar*	grac_config_dir_grac_data();
 
-const gchar*	grac_config_path_browser_app();
+const gchar*	grac_config_path_grac_rules(char* login_name);
+const gchar*	grac_config_path_default_grac_rules();
+const gchar*	grac_config_path_user_grac_rules();
+const gchar*	grac_config_path_udev_rules();
+const gchar*	grac_config_path_udev_map();
+
+const gchar*	grac_config_path_hook_screenshooter_so();
+const gchar*	grac_config_path_hook_screenshooter_conf();
+
+const gchar*	grac_config_path_hook_clipboard_so();
+const gchar*	grac_config_path_hook_clipboard_conf();
+
+const gchar*	grac_config_path_ld_so_preload();
+const gchar*	grac_config_dir_ld_so_preload();
+
 
 #endif /* GRAC_CONFIG_H_ */

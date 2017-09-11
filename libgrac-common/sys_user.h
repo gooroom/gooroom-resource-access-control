@@ -51,7 +51,8 @@ gboolean sys_user_get_home_dir_by_name(char *name, char *dir, int size);
 
 gboolean sys_user_get_login_name_by_api(char *name, int size);
 gboolean sys_user_get_login_name_by_wcmd(char *name, int size);
-//gboolean sys_user_get_login_name(char *name, int size);
+
+gboolean sys_user_get_login_name(char *name, int size);
 
 
 #endif /* _SYS_USER_H_ */

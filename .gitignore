@@ -42,13 +42,6 @@ grac-device-daemon/*.o
 grac-device-daemon/.deps/
 grac-device-daemon/.libs/
 
-grac-exec-browser/Makefile
-grac-exec-browser/Makefile.in
-grac-exec-browser/grac-exec-browser
-grac-exec-browser/*.o
-grac-exec-browser/.deps/
-grac-exec-browser/.libs/
-
 libgrac-common/Makefile
 libgrac-common/Makefile.in
 libgrac-common/*.la
@@ -65,13 +58,21 @@ libgrac-device/*.o
 libgrac-device/.deps/
 libgrac-device/.libs/
 
-libgrac-browser/Makefile
-libgrac-browser/Makefile.in
-libgrac-browser/*.la
-libgrac-browser/*.lo
-libgrac-browser/*.o
-libgrac-browser/.deps/
-libgrac-browser/.libs/
+hook-screenshooter/Makefile
+hook-screenshooter/Makefile.in
+hook-screenshooter/*.la
+hook-screenshooter/*.lo
+hook-screenshooter/*.o
+hook-screenshooter/.deps/
+hook-screenshooter/.libs/
+
+hook-clipboard/Makefile
+hook-clipboard/Makefile.in
+hook-clipboard/*.la
+hook-clipboard/*.lo
+hook-clipboard/*.o
+hook-clipboard/.deps/
+hook-clipboard/.libs/
 
 m4/
 po/Makefile
@@ -80,6 +81,7 @@ po/POTFILES
 po/stamp-it
 po/*.gmo
 po/.intl*
+others/
 
 data/grac-device-daemon.service
 data/kr.gooroom.GRACDEVD.service
@@ -97,14 +99,10 @@ workspace/RemoteSystemsTempFiles/
 workspace/grac-bin/
 workspace/grac-device-daemon/Debug/
 workspace/grac-device-daemon/Release/
-workspace/grac-exec-browser/Debug/
-workspace/grac-exec-browser/Release/
 workspace/libgrac-common/Debug/
 workspace/libgrac-common/Release/
 workspace/libgrac-device/Debug/
 workspace/libgrac-device/Release/
-workspace/libgrac-browser/Debug/
-workspace/libgrac-browser/Release/
 workspace/test/Debug/
 workspace/test/Release/
 workspace/test-c/Debug/

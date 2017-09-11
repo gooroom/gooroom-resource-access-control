@@ -19,6 +19,8 @@
 
 int main(int argc, char *argv[])
 {
+	printf("%s %d %s\n", __FILE__, __LINE__, __FUNCTION__);
+
 	int	val[7], n, i;
 	char *data;
 
@@ -56,7 +58,6 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 		return 1;
 
-	printf("%s %d %s\n", __FILE__, __LINE__, __FUNCTION__);
 
 
 	struct addrinfo hints;

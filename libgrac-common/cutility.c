@@ -92,7 +92,7 @@ void c_strrtrim(char *str, int size)
   @param [in]	max 문자열의 최대 허용 길이
   @return int	문자열 길이
 */
-int c_strlen(char *str, int max)
+int c_strlen(const char *str, int max)
 {
 	int	n = 0;
 
@@ -136,7 +136,7 @@ char* c_strcpy(char *dest, char *src, int size)
   @return int	 비교 결과 : -1 (s1 < s2),   0 (s1 == s2),  1 (s1 > s2)
   @warning	NULL인 경우를 함수 호출전에 검토하여 별도로 처리하면 기존의 strcmp()와 동일하다.
 */
-int  c_strcmp(char *s1, char *s2, int size, int both_null)
+int  c_strcmp(const char *s1, const char *s2, int size, int both_null)
 {
 	if (s1 == NULL && s2 == NULL)
 		return both_null;
@@ -167,7 +167,7 @@ char* c_strdup(char *src, int max)
 	return dest;
 }
 
-int   c_strmatch(char *s1, char *s2)
+int   c_strmatch(const char *s1, const char *s2)
 {
 	if (s1 == NULL || s2 == NULL)
 		return 0;
@@ -187,7 +187,7 @@ int   c_strmatch(char *s1, char *s2)
 	return 1;
 }
 
-int   c_strimatch(char *s1, char *s2)
+int   c_strimatch(const char *s1, const char *s2)
 {
 	if (s1 == NULL || s2 == NULL)
 		return 0;
@@ -252,13 +252,35 @@ char*	c_strstr (char *src, char* str, int size)		// if not found, return NULL
 	int len1, len2;
 
 	len1 = c_strlen(src, size-1);
-	len2 = c_strlen(str, size-1);
+	len2 = c_strlen(str, size+1);
 
 	if (len1 > 0 && len2 > 0) {
 		int	i;
 
 		for (i=0; i<= len1-len2; i++) {
-			if (memcmp(src+i, str, len2) == 0) {
+			if (c_memcmp(src+i, str, len2, -1) == 0) {
+				find = src + i;
+				break;
+			}
+		}
+	}
+	return find;
+
+}
+
+char*	c_stristr (char *src, char* str, int size)		// if not found, return NULL
+{
+	char *find = NULL;
+	int len1, len2;
+
+	len1 = c_strlen(src, size-1);
+	len2 = c_strlen(str, size+1);
+
+	if (len1 > 0 && len2 > 0) {
+		int	i;
+
+		for (i=0; i<= len1-len2; i++) {
+			if (c_memicmp(src+i, str, len2, -1) == 0) {
 				find = src + i;
 				break;
 			}
@@ -275,12 +297,12 @@ char*	c_strrstr(char *src, char* str, int size)		// if not found, return NULL
 	int len1, len2;
 
 	len1 = c_strlen(src, size-1);
-	len2 = c_strlen(str, size-1);
+	len2 = c_strlen(str, size+1);
 
 	if (len1 > 0 && len2 > 0) {
 		int	i;
 		for (i=len1-len2; i>=0; i--) {
-			if (memcmp(src+i, str, len2) == 0) {
+			if (c_memcmp(src+i, str, len2, -1) == 0) {
 				find = src + i;
 				break;
 			}
@@ -288,7 +310,27 @@ char*	c_strrstr(char *src, char* str, int size)		// if not found, return NULL
 	}
 
 	return find;
+}
 
+char*	c_strristr(char *src, char* str, int size)		// if not found, return NULL
+{
+	char *find = NULL;
+	int len1, len2;
+
+	len1 = c_strlen(src, size-1);
+	len2 = c_strlen(str, size+1);
+
+	if (len1 > 0 && len2 > 0) {
+		int	i;
+		for (i=len1-len2; i>=0; i--) {
+			if (c_memicmp(src+i, str, len2, -1) == 0) {
+				find = src + i;
+				break;
+			}
+		}
+	}
+
+	return find;
 }
 
 void	c_strcat (char *dest, char* src, int size)
@@ -327,6 +369,32 @@ int 	c_memcmp(void *buf1, void* buf2, int len, int ret_both_null)
 	return memcmp(buf1, buf2, len);
 
 }
+
+int 	c_memicmp(void *buf1, void* buf2, int len, int ret_both_null)
+{
+	if (buf1 == NULL && buf2 == NULL)
+		return ret_both_null;
+
+	if (buf1 == NULL)
+		return -1;
+	if (buf2 == NULL)
+		return 1;
+
+	int i;
+	char *b1 = buf1;
+	char *b2 = buf2;
+	for (i=0; i<len; i++) {
+		int ch1 = toupper(b1[i]);
+		int ch2 = toupper(b2[i]);
+		if (ch1 < ch2)
+			return -1;
+		if (ch1 > ch2)
+			return 1;
+	}
+
+	return 0;
+}
+
 
 /**
   @brief  calloc과 동일 기능
@@ -414,18 +482,17 @@ int	c_get_number(char *str, int size,  int* value)
 }
 
 /**
-  @brief  문자열내에서 공백문자로 기준으로 문자열 또는 특수문자를 분리한다.
+  @brief  문자열내에서 공백문자로 기준으로 문자열 또는 구분문자를 분리한다.
   @details
        주어진 문자열 처음부터 뒷부분으로 진행되며 아래 항목이 구해지면 결과를 돌려준다\n.
-   	   파라메터  delemeter를 제외한 문자로 구성, 공백문자로 구분)\n
-   	   단  delmeter는  단일 문자로 구성
+   	   공백문자와 delemeter로 구분되고  delemeter를 제외한 문자로 구성, \n
+   	    또는  delmeter에 정의된 문자인 경우는 단일 문자로 구성
   @param [in]		buf		문자열을 분리한 소스 문자열 (string)
   @param [in]		bsize	버퍼 크기 (string 종료문자 0 포함)
   @param [in]		delemeter 단어구분 기호
   @param [out]	word	분리된 문자열을 담을 버퍼 주소
   @param [in]		wsize	결과를 담을 버퍼 크기 (string 종료문자 0 포함)
   @return	int	변환에 사용된 버퍼 길이
-  @warning	현재 conf 파일 처리용으로 개발되었으나 특수문자를 외부에서 지정할 수 있게 개선필요
 */
 int	c_get_word  (char *buf, int bsize, char* delemeter, char *word, int wsize)
 {

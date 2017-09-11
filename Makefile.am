@@ -3,11 +3,11 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 SUBDIRS =	\
 	libgrac-common	\
 	libgrac-device	\
-	libgrac-browser	\
 	grac-device-daemon	\
 	data \
-	grac-exec-browser	\
-	po
+	po	\
+	hook-clipboard	\
+	hook-screenshooter
 
 .PHONY: ChangeLog
 

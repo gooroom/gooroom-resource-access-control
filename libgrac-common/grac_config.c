@@ -32,18 +32,28 @@
 #include <limits.h>
 
 struct _GracConfig {
-	gint max_path;
+	gint  max_path;
 	gint	max_username;
-	gint	max_url;
-	gint	max_packet;
 
-	gchar	*data_base_dir;
-	gchar	*data_base_dir_mark;
+	gchar	*dir_grac_data;
 
-	gchar	*path_access;
-	gchar	*path_url_list;
+	gchar	*dir_grac_rule;
 
-	gchar *path_browser_app;
+	gchar	*path_default_grac_rule;
+	gchar	*path_user_grac_rule;
+
+	gchar	*path_grac_udev_map;
+
+	gchar	*dir_udev_rules;
+	gchar	*path_udev_rules;
+
+	gchar	*path_hook_screenshooter_so;
+	gchar	*path_hook_screenshooter_conf;
+	gchar	*path_hook_clipboard_so;
+	gchar	*path_hook_clipboard_conf;
+
+	gchar	*path_ld_so_preload;
+	gchar	*dir_ld_so_preload;
 };
 
 /*
@@ -54,15 +64,28 @@ struct _GracConfig {
 static struct _GracConfig GracConfig = {
 	.max_path = PATH_MAX,
 	.max_username = NAME_MAX,
-	.max_url = 2048,
-	.max_packet = 4096,
 
-	.data_base_dir      = "/etc/gooroom",
-	.data_base_dir_mark = "/etc/gooroom/",
-	.path_access        = "/etc/gooroom/grac-access.json",
-	.path_url_list      = "/etc/gooroom/grac-url-list.json",
+	.dir_grac_data = "/etc/gooroom/grac.d",
 
-	.path_browser_app = "/usr/bin/gooroom-browser"
+	.dir_grac_rule = "/etc/gooroom/grac.d",
+
+	.path_user_grac_rule    = "/etc/gooroom/grac.d/user.rules",
+	.path_default_grac_rule = "/etc/gooroom/grac.d/default.rules",
+	.path_grac_udev_map     = "/etc/gooroom/grac.d/grac-udev-rules.map",
+
+	.dir_udev_rules = "/etc/udev/rules.d",
+	.path_udev_rules     = "/etc/udev/rules.d/grac-os.rules",
+//	.path_udev_rules     = "/etc/gooroom/grac-os.rules", 	//임시 테스트  목적
+
+	.path_hook_screenshooter_so   = "/usr/lib/x86_64-linux-gnu/libhook-screenshooter.so",
+	.path_hook_screenshooter_conf = "/etc/gooroom/grac.d/hook-screenshooter.conf",
+
+	.path_hook_clipboard_so   = "/usr/lib/x86_64-linux-gnu/libhook-clipboard.so",
+	.path_hook_clipboard_conf = "/etc/gooroom/grac.d/hook-clipboard.conf",
+
+	.path_ld_so_preload = "/etc/ld.so.preload",
+	.dir_ld_so_preload = "/etc"
+
 };
 
 
@@ -118,44 +141,104 @@ const gint  grac_config_max_length_username()
 	return GracConfig.max_username;
 }
 
-const gint  grac_config_max_length_packet()
+const gchar*	grac_config_dir_grac_data()
 {
-	return GracConfig.max_packet;
+	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_data);
+
+	return GracConfig.dir_grac_data;
 }
 
-const gint  grac_config_max_length_url()
+const char*	grac_config_path_grac_rules(char* login_name)
 {
-	return GracConfig.max_url;
-}
+	if (access(GracConfig.dir_grac_rule, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_rule);
 
-const gchar*	grac_config_data_base_directory(gboolean end_mark)
-{
-	if (access(GracConfig.data_base_dir, F_OK) != 0)
-		_make_directory_tree(GracConfig.data_base_dir);
+	const char *path;
+	int uid;
 
-	if (end_mark)
-		return GracConfig.data_base_dir_mark;
+	if (c_strlen(login_name, 256) <= 0)
+		uid = -1;
 	else
-		return GracConfig.data_base_dir;
+		uid = sys_user_get_uid_from_name(login_name);
+
+	if (uid < 0) {
+		path = GracConfig.path_default_grac_rule;
+	}
+	else {
+		path = GracConfig.path_user_grac_rule;
+	}
+
+	return path;
 }
 
-const char*	grac_config_path_access()
+const char*	grac_config_path_user_grac_rules()
 {
-	if (access(GracConfig.data_base_dir, F_OK) != 0)
-		_make_directory_tree(GracConfig.data_base_dir);
+	if (access(GracConfig.dir_grac_rule, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_rule);
 
-	return GracConfig.path_access;
+	return GracConfig.path_user_grac_rule;
 }
 
-const char*	grac_config_path_url_list()
+const char*	grac_config_path_default_grac_rules()
 {
-	if (access(GracConfig.data_base_dir, F_OK) != 0)
-		_make_directory_tree(GracConfig.data_base_dir);
+	if (access(GracConfig.dir_grac_rule, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_rule);
 
-	return GracConfig.path_url_list;
+	return GracConfig.path_default_grac_rule;
 }
 
-const gchar*	grac_config_path_browser_app()
+const char*	grac_config_path_udev_map()
 {
-	return GracConfig.path_browser_app;
+	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_data);
+
+	return GracConfig.path_grac_udev_map;
 }
+
+const char*	grac_config_path_udev_rules()
+{
+	if (access(GracConfig.dir_udev_rules, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_udev_rules);
+
+	return GracConfig.path_udev_rules;
+}
+
+const gchar*	grac_config_path_hook_screenshooter_so()
+{
+	return GracConfig.path_hook_screenshooter_so;
+}
+
+const gchar*	grac_config_path_hook_screenshooter_conf()
+{
+	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_data);
+
+	return GracConfig.path_hook_screenshooter_conf;
+}
+
+const gchar*	grac_config_path_hook_clipboard_so()
+{
+	return GracConfig.path_hook_clipboard_so;
+}
+
+const gchar*	grac_config_path_hook_clipboard_conf()
+{
+	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_data);
+
+	return GracConfig.path_hook_clipboard_conf;
+}
+
+const gchar*	grac_config_path_ld_so_preload()
+{
+	return GracConfig.path_ld_so_preload;
+
+}
+
+const gchar*	grac_config_dir_ld_so_preload()
+{
+	return GracConfig.dir_ld_so_preload;
+}
+
+

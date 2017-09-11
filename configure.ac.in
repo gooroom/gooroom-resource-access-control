@@ -71,10 +71,12 @@ dnl ***********************************
 XDT_CHECK_PACKAGE([GOBJECT], [gobject-2.0])
 XDT_CHECK_PACKAGE([GLIB], [glib-2.0])
 XDT_CHECK_PACKAGE([GIO_UNIX], [gio-unix-2.0])
-dnl XDT_CHECK_PACKAGE([LIBOOBS], [liboobs-1])
-dnl XDT_CHECK_PACKAGE([GTK], [gtk+-3.0])
+XDT_CHECK_PACKAGE([LIBOOBS], [liboobs-1])
+XDT_CHECK_PACKAGE([GTK], [gtk+-3.0])
+XDT_CHECK_PACKAGE([GTK2], [gtk+-2.0])
 dnl XDT_CHECK_PACKAGE([POLKIT], [polkit-gobject-1])
 dnl XDT_CHECK_PACKAGE([LIBXML], [libxml-2.0])
+XDT_CHECK_PACKAGE([UIM], [uim])
 
 dnl ***********************************
 dnl *** Check for debugging support ***
@@ -85,11 +87,11 @@ AC_CONFIG_FILES([
 Makefile
 libgrac-common/Makefile
 libgrac-device/Makefile
-libgrac-browser/Makefile
 data/Makefile
 grac-device-daemon/Makefile
-grac-exec-browser/Makefile
 po/Makefile.in
+hook-clipboard/Makefile
+hook-screenshooter/Makefile
 ])
 AC_OUTPUT
 

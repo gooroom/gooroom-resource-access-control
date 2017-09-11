@@ -623,15 +623,13 @@ gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 	return getB;
 }
 
-/*
 gboolean sys_user_get_login_name(char *name, int size)
 {
 	gboolean done;
 
 	done = sys_user_get_login_name_by_api(name, size);
 	if (done == FALSE)
-		done = sys_user_get_login_name_by_cmd(name, size);
+		done = sys_user_get_login_name_by_wcmd(name, size);
 
 	return done;
 }
-*/

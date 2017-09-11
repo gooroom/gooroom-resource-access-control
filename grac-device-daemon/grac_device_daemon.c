@@ -31,7 +31,7 @@
  */
 
 #include "grac_device_daemon.h"
-#include "grac_access.h"
+#include "grac_rule.h"
 #include "grac_config.h"
 #include "grm_log.h"
 #include "cutility.h"
@@ -54,7 +54,7 @@ static GMainLoop *loop;
 // daemon 제어용 변수
 struct _DaemonCtrl {
 
-	GracAccess	*grac_access_data;
+	GracRule	*grac_rule;
 
 } DaemonCtrl
 = {
@@ -77,11 +77,28 @@ static gboolean init_proc()
 	gboolean ret = TRUE;
 	memset(&DaemonCtrl, 0, sizeof(DaemonCtrl));
 
-	DaemonCtrl.grac_access_data = grac_access_alloc();
-	if (DaemonCtrl.grac_access_data == NULL) {
+	DaemonCtrl.grac_rule = grac_rule_alloc();
+	if (DaemonCtrl.grac_rule == NULL) {
 		grm_log_error("init_porc(): can't alloc grac_access");
 		ret = FALSE;
 	}
+
+	if (ret) {
+		char *path;
+
+//	path = grac_config_path_user_grac_rules();
+//	if (path)
+//		unlink(path);
+
+		path = grac_config_path_udev_rules();
+		if (path)
+			unlink(path);
+
+		path = grac_config_path_ld_so_preload();
+		if (path)
+			unlink(path);
+	}
+
 
 	return ret;
 }
@@ -90,7 +107,7 @@ static gboolean init_proc()
 //   - 버퍼 해제
 static void	term_proc()
 {
-	grac_access_free(&DaemonCtrl.grac_access_data);
+	grac_rule_free(&DaemonCtrl.grac_rule);
 }
 
 /**
@@ -106,66 +123,145 @@ void stop_daemon()
 
 G_LOCK_DEFINE_STATIC (load_apply_lock);
 
+
+static gboolean load_grac_rule_file(char *path, gboolean default_rule)
+{
+	gboolean done = FALSE;
+
+	if (default_rule == FALSE) {
+			; // check if valid file
+	}
+
+	// load
+	grac_rule_clear(DaemonCtrl.grac_rule);
+
+	if (access(path, F_OK) == 0) {
+		done = grac_rule_load(DaemonCtrl.grac_rule, path);
+		if (done == FALSE) {
+			grm_log_error("load_grac_rule_file()  : load error");
+		}
+	}
+
+	return done;
+}
+
+// 정책파일 무시, 모든 권한 부여
+static gboolean apply_admin_rule()
+{
+	gboolean done;
+
+	done = grac_rule_apply_allow_all(DaemonCtrl.grac_rule);
+
+	return done;
+}
+
+// 특별히 추가적으로 할 일 없음
+static gboolean apply_guest_rule()
+{
+	gboolean done;
+
+	grm_log_debug("apply_guest_rule()");
+	done = grac_rule_apply(DaemonCtrl.grac_rule);
+	if (done == FALSE)
+		grm_log_error("apply_guest_rule() : apply error");
+
+	return done;
+}
+
+// 정책파일 사용, 권한 부여
+static gboolean apply_grac_rule()
+{
+	gboolean done;
+
+	grm_log_debug("apply_grac_rule()");
+	done = grac_rule_apply(DaemonCtrl.grac_rule);
+	if (done == FALSE)
+		grm_log_error("apply_grac_rule() : apply error");
+
+	return done;
+}
+
 static gboolean load_data_and_apply()
 {
 	gboolean done = FALSE;
-	char 	username[1024], *puser;
+	char 	username[1024];
+	int		uid;
+	gboolean res, admin = FALSE;
+	gboolean default_rule = FALSE;
 
 	G_LOCK (load_apply_lock);
 
-grm_log_debug("load_data_and_apply() : 11111");
+grm_log_debug("load_data_and_apply() : start");
 
-	gboolean res, admin = FALSE;
-	res = sys_user_get_login_name_by_api(username, sizeof(username));
+	// 로그인 사용자 확인
+	res = sys_user_get_login_name(username, sizeof(username));
 	if (res == FALSE) {
 		grm_log_error("load_data_and_apply() : can't get login name : assume guest");
-		puser = NULL;
+		admin = FALSE;
+		uid = -1;
+		default_rule = TRUE;
 	}
 	else {
 		if (sys_user_is_in_group(username, "adm"))
 			admin = TRUE;
 		else if (sys_user_is_in_group(username, "sudo"))
 			admin = TRUE;
-		puser = username;
+		else
+			admin = FALSE;
+		uid = sys_user_get_uid_from_name(username);
+		if (uid < 0)
+			default_rule = TRUE;
+		else
+			default_rule = FALSE;
 	}
-grm_log_debug("load_data_and_apply() : 2222");
 
-
-	grac_access_clear(DaemonCtrl.grac_access_data);
-
-	char *path = (char*)grac_config_path_access();
-	if (access(path, F_OK) == 0) {
-		done = grac_access_load(DaemonCtrl.grac_access_data, path);
-		if (done == FALSE) {
-			grm_log_error("load_data_and_apply()  : load error");
+	// check rule file
+	const char *path = NULL;
+	if (uid >= 0) {
+		path = grac_config_path_grac_rules(username);
+		if (path != NULL) {
+			grm_log_error("load_data_and_apply() : invalid user [%s]", username);
+			if (access(path, F_OK) != 0) {
+				grm_log_error("load_data_and_apply() : not found  grac rule for %s", username);
+				path = NULL;
+			}
 		}
 	}
-	else {
-		if (admin)
-			grac_access_set_default_of_admin(DaemonCtrl.grac_access_data);
-		else
-			grac_access_set_default_of_guest(DaemonCtrl.grac_access_data);
-		done = TRUE;
-	}
-grm_log_debug("load_data_and_apply() : 33333");
-
-	if (done) {
-		res = grac_access_apply(DaemonCtrl.grac_access_data);
-		if (res == FALSE)
-			grm_log_error("load_data_and_apply()  : apply error");
-		done &= res;
-grm_log_debug("load_data_and_apply()  : 33333 - 2");
-
-//		res = grac_access_apply_by_user(DaemonCtrl.grac_access_data, puser);
-//		if (res == FALSE)
-//			grm_log_error("load_data_and_apply()  : apply by user error");
-//		done &= res;
+	if (path == NULL) {
+		path = grac_config_path_grac_rules(NULL);
+		if (access(path, F_OK) != 0) {
+			grm_log_error("load_data_and_apply() : not found  grac rule for default");
+			path = NULL;
+		}
 	}
 
-grm_log_debug("load_data_and_apply() : 4444");
+	grac_rule_clear(DaemonCtrl.grac_rule);
+
+	if (path != NULL) {
+		res = load_grac_rule_file((char*)path, default_rule);
+		if (res == FALSE) {
+			grm_log_error("load_data_and_apply() : invalid grac rule file [%s]", path);
+			grac_rule_set_default_of_guest(DaemonCtrl.grac_rule);
+			done = apply_guest_rule();	// 정책파일 오류, 최소 권한 부여
+		}
+		else {
+			done = apply_grac_rule();
+		}
+	}
+	else { // 정책파일 없음
+		if (admin == TRUE) {
+			grac_rule_set_default_of_admin(DaemonCtrl.grac_rule);
+			done = apply_admin_rule();	// 모든 권한 부여
+		}
+		else {
+			grac_rule_set_default_of_guest(DaemonCtrl.grac_rule);
+			done = apply_guest_rule();	// 최소 권한 부여
+		}
+	}
+
 	G_UNLOCK (load_apply_lock);
 
-grm_log_debug("load_data_and_apply() : 5555");
+	grm_log_debug("load_data_and_apply() : end");
 	return done;
 }
 
@@ -188,8 +284,10 @@ on_bus_acquired (GDBusConnection  *connection,
 		goto STOP;
 	}
 
-	//  load and apply
-	load_data_and_apply();
+	// 외부에서 요청시에만 접근정책 적용
+	// 이시점에서는 아무것도 수행하지 않는다
+	// load and apply
+	// load_data_and_apply();
 
 STOP:
 	if (res == EXIT_FAILURE)
@@ -230,7 +328,7 @@ static gboolean on_signal_reload (gpointer data)
 
 	load_data_and_apply();
 
-	return G_SOURCE_REMOVE;
+	return G_SOURCE_CONTINUE;
 }
 
 /**

@@ -24,8 +24,10 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 
-#include "grac_access.h"
-
+#include "grac_rule.h"
+#include "grac_resource.h"
+#include "cutility.h"
+#include "sys_user.h"
 
 void test1()
 {
@@ -71,11 +73,11 @@ void test1()
 
 void test2()
 {
-	GracAccess	*grac_access = grac_access_alloc();
+	GracRule	*grac_rule = grac_rule_alloc();
 
-	grac_access_load(grac_access, NULL);
+	grac_rule_load(grac_rule, NULL);
 
-	grac_access_apply(grac_access);
+//	grac_rule_apply(grac_access);
 
 //	GracAccess *access = grac_access_get_access(grac_access);
 /*
@@ -89,20 +91,77 @@ void test2()
 	}
 
 */
-	grac_access_free(&grac_access);
+	grac_rule_free(&grac_rule);
 }
 
-#include <libudev.h>
+//#include <libudev.h>
 
-void test()
+void test_resource()
 {
+	char	*res_name;
+	int		res_id;
+	char *perm_name;
 
+	res_name = grac_resource_find_first_resource();
+	while (res_name) {
+		res_id = grac_resource_get_resource_id(res_name);
+		printf("%-10s\t--> ", res_name);
+		perm_name = grac_resource_find_first_permission(res_id);
+		while (perm_name) {
+			printf("%s\t", perm_name);
+			perm_name = grac_resource_find_next_permission();
+		}
+		printf("\n");
+		res_name = grac_resource_find_next_resource();
+	}
+}
+
+#include <libnotify/notify.h>
+
+void notify(char *msg)
+{
+	notify_init("GRAC warining");
+	NotifyNotification *noti = notify_notification_new("Hello", msg, "this is a test");
+	notify_notification_show(noti, NULL);
+	g_object_unref(G_OBJECT(noti));
+	notify_uninit();
+}
+
+void t_notify()
+{
+	char buf[1024];
+
+	while (1) {
+		if (fgets(buf, sizeof(buf), stdin) == NULL)
+			break;
+		if (strlen(buf) <= 1)
+			break;
+		notify(buf);
+	}
 }
 
 int main()
 {
-	test();
+	char name[1024];
+	gboolean done;
+
+	done = sys_user_get_login_name_by_api(name, sizeof(name));
+
+	printf("%d: %s\n", (int)done, name);
+
+	char tmp_file[1024];
+	c_strcpy(tmp_file, "/tmp/grac_tmp_XXXXXX", sizeof(tmp_file));
+
+	int res;
+	res = mkstemp(tmp_file);
+	printf("%s : %d\n", tmp_file, res);
+
+	c_strcpy(tmp_file, "/123/456/xyz/grac_tmp_XXXXXX", sizeof(tmp_file));
+	res = mkstemp(tmp_file);
+	printf("%s : %d\n", tmp_file, res);
+
 
 	return EXIT_SUCCESS;
 }
+
 

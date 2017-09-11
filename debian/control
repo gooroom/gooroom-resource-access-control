@@ -11,17 +11,11 @@ Package: grac-device-daemon
 Architecture: any
 Depends: libgrac-device,
 		libgrac-common,
+		hook-clipboard,
+		hook-screenshooter,
 		${misc:Depends}
 Description: grac device daemon 
  This is a daemon to control the access to each devices on Gooroom OS. For example, network, USB, Bluetooth device.
-
-Package: grac-exec-browser
-Architecture: any
-Depends: libgrac-browser,
-		libgrac-common,
-		${misc:Depends}
-Description: grac-exec-browser
- This is a launcher for the gooroom browser,
 
 Package: libgrac-common
 Architecture: any
@@ -51,18 +45,15 @@ Depends: libgrac-device,
 Description: libgrac-device-dev
  This is a device-control library for developing application on the grac control system.
 
-Package: libgrac-browser
+Package: hook-screenshooter
 Architecture: any
-Depends: libgrac-common,
-		${misc:Depends}
-Description: libgrac-browser
- This is a browser-control library binary of the grac control system.
+Depends: ${misc:Depends}
+Description: hook-screenshooter
+ This is a hooking module for the grac control system.
 
-Package: libgrac-browser-dev
+Package: hook-clipboard
 Architecture: any
-Depends: libgrac-browser,
-		libgrac-common-dev,
-		${misc:Depends}
-Description: libgrac-browser-dev
- This is a browser-control library for developing application on the grac control system.
+Depends: ${misc:Depends}
+Description: hook-clipboard
+ This is a hooking module for the grac control system.
 
