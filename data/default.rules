@@ -1,0 +1,54 @@
+{
+    "network" : {
+	"state" : "disallow",
+	"rules" :
+	    [
+		{
+		    "ipaddress" : "192.68.9.1",
+		    "direction" : "all",
+		    "protocol" : [ "icmp", "tcp", "udp" ],
+		    "src-port" : [ "telnet", "ftp" ],
+		    "dst-port" : [ "21-23" ],
+		    "state" : "allow"
+		},
+		{
+		    "ipaddress" : "192.68.9.2",
+		    "direction" : "inbound",
+		    "protocol" : [ "tcp", "udp" ],
+		    "src-port" : [ "telnet", "ftp" ],
+		    "dst-port" : [ "21", "24", "99" ],
+		    "state" : "allow"
+		},
+		{
+		    "ipaddress" : "192.68.9.3",
+		    "direction" : "outbound",
+		    "protocol" : [ "icmp", "tcp", "udp" ],
+		    "src-port" : [ "telnet", "ftp" ],
+		    "dst-port" : [ "21-23" ],
+		    "state" : "disallow"
+		}
+	    ]
+    },
+
+    "usb-memory" : "allow",
+
+    "bluetooth" : {
+	"state" : "allow",
+	"mac-address" : ["12:34:56:78:9A:BC", "12:34:56:78:65:43" ]
+    },
+
+    "cd-dvd" : "disallow",
+    "printer" : "disallow",
+
+    "screen-capture" : "allow",
+    "clipboard" : "disallow",
+
+    "camera" : "disallow", 
+    "microphone" : "disallow", 
+    "sound" : "disallow", 
+    "keyboard" : "disallow", 
+    "mouse" : "disallow", 
+    "wireless" : "disallow" 
+
+}
+

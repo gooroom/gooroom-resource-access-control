@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+rm /etc/ld.so.preload
+
+rm /etc/udev/rules.d/grac-os.rules
+
+rm /etc/gooroom/grac.d/user.rules
+rm /etc/gooroom/grac.d/hook-screenshooter.conf
+rm /etc/gooroom/grac.d/hook-clipboard.conf
+
+
+
