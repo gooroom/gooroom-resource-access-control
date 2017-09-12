@@ -1,6 +1,5 @@
-gooroom-resource-access-control (0.0.0) UNRELEASED; urgency=medium
+gooroom-resource-access-control (0.1.0) UNRELEASED; urgency=medium
 
   * Initial release. (Closes: #XXXXXX)
-  * 
 
- -- yang <yang@localhost>  Fri, 28 Jul 2017 19:19:26 +0900
+ -- yang <yang@gooorom.kr>  Fri, 28 Jul 2017 19:19:26 +0900
