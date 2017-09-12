@@ -7,6 +7,10 @@ gracdefault_DATA = default.rules
 gracmapdir   = /etc/gooroom/grac.d
 gracmap_DATA = grac-udev-rules.map
 
+#gracscriptdir   = /usr/bin
+#gracscript_DATA = grac-usb.sh
+bin_SCRIPTS = grac-usb.sh
+
 servicedir       = $(datadir)/dbus-1/system-services
 service_in_files = kr.gooroom.GRACDEVD.service.in
 service_DATA     = $(service_in_files:.service.in=.service)
@@ -32,3 +36,6 @@ EXTRA_DIST = 			\
 DISTCLEANFILES = $(service_DATA)
 
 CLEANFILES = grac-device-daemon.service
+
+grac-usb.sh : Makefile
+	chmod a+x grac-usb.sh

@@ -40,7 +40,7 @@ struct _GracRuleUdev
 	int		line_count;
 };
 
-#define GRAC_RULE_MAP_KEY	"[grac-rule]"
+#define GRAC_RULE_MAP_KEY	"[grac_rule]"
 
 // (1) map file syntax --> use a comment line
 // # [grac-rule] resource permission

@@ -10,7 +10,7 @@
 # CDROM & DVD Disable
 #
 # by cdrom_id
-# [grac-rule] cd-dvd	disallow
+# [grac_rule] cd_dvd	disallow
 ACTION=="add", KERNEL=="sr[0-9]*", ENV{ID_CDROM}=="1", RUN+="cdrom_id --eject-media $devnode"
 # authorized variable
 ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../../authorized'"
@@ -19,7 +19,7 @@ ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN="/bin/sh -c 'echo 0 >/sys/
 #
 # USB & SD-CARD Block Device to Enable/Disable
 #
-# [grac-rule] usb-memory	disallow
+# [grac_rule] usb_memory	disallow
 # USB HDD by eject
 #ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
 #

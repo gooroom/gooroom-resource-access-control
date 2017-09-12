@@ -83,6 +83,7 @@ po/*.gmo
 po/.intl*
 others/
 
+data/.deps/
 data/grac-device-daemon.service
 data/kr.gooroom.GRACDEVD.service
 data/Makefile

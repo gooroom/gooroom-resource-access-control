@@ -215,7 +215,7 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 				grm_log_debug("grac_rule.c : invalid format for <network/rules> : %s", key);
 			}
 		}
-		else if (c_strmatch(key, "src-port")) {
+		else if (c_strmatch(key, "src_port")) {
 			char *port_str;
 			jtype = json_object_get_type(val);
 			if (jtype == json_type_array) {
@@ -235,7 +235,7 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 				grm_log_debug("grac_rule.c : invalid format for <network/rules> : %s", key);
 			}
 		}
-		else if (c_strmatch(key, "dst-port")) {
+		else if (c_strmatch(key, "dst_port")) {
 			char *port_str;
 			jtype = json_object_get_type(val);
 			if (jtype == json_type_array) {
@@ -376,7 +376,7 @@ gboolean _grac_rule_load_bluetooth_json(GracRule *rule, json_object *jobj)
 				done = FALSE;
 			}
 		}
-		else if (c_strmatch(key, "mac-address")) {
+		else if (c_strmatch(key, "mac_address")) {
 			jtype = json_object_get_type(val);
 			if (jtype == json_type_string) {
 				char *mac = (char*)json_object_get_string(val);

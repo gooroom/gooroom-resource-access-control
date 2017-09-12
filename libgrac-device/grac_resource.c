@@ -57,15 +57,15 @@ static struct _GracNameIdMap GracResourceInfo[]
 //	{ "usb",				GRAC_RESOURCE_USB					},
 		{ "keyboard",		GRAC_RESOURCE_KEYBOARD	 	},
 		{ "mouse",			GRAC_RESOURCE_MOUSE				},
-		{ "usb-memory", GRAC_RESOURCE_USB_MEMORY	},
-		{ "cd-dvd", 		GRAC_RESOURCE_CD_DVD			},
-		{ "screen-capture", GRAC_RESOURCE_S_CAPTURE	},
+		{ "usb_memory", GRAC_RESOURCE_USB_MEMORY	},
+		{ "cd_dvd", 		GRAC_RESOURCE_CD_DVD			},
+		{ "screen_capture", GRAC_RESOURCE_S_CAPTURE	},
 		{ "clipboard",	GRAC_RESOURCE_CLIPBOARD	},
 		{ "microphone",	GRAC_RESOURCE_MICROPHONE	},
 		{ "sound",			GRAC_RESOURCE_SOUND			 	},
 		{ "camera",			GRAC_RESOURCE_CAMERA			},
 		{ "wireless",		GRAC_RESOURCE_WIRELESS		},
-		{ "external-lan-card",	GRAC_RESOURCE_EXT_LAN },
+		{ "external_lan_card",	GRAC_RESOURCE_EXT_LAN },
 		{ "etc",				GRAC_RESOURCE_OTHERS			},
 		{ NULL, -1 }
 };
@@ -102,8 +102,8 @@ static struct _GracNameIdMap GracPemissionInfo[]
 = {
 		{ "disallow", 	GRAC_PERMISSION_DISALLOW  },
 		{ "allow",			GRAC_PERMISSION_ALLOW			},
-		{ "read-only", 	GRAC_PERMISSION_READONLY  },
-		{ "read-write",	GRAC_PERMISSION_READWRITE },
+		{ "read_only", 	GRAC_PERMISSION_READONLY  },
+		{ "read_write",	GRAC_PERMISSION_READWRITE },
 		{ NULL, -1 }
 };
 

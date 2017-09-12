@@ -1,54 +1,18 @@
 {
-    "network" : {
-	"state" : "disallow",
-	"rules" :
-	    [
-		{
-		    "ipaddress" : "192.68.9.1",
-		    "direction" : "all",
-		    "protocol" : [ "icmp", "tcp", "udp" ],
-		    "src-port" : [ "telnet", "ftp" ],
-		    "dst-port" : [ "21-23" ],
-		    "state" : "allow"
-		},
-		{
-		    "ipaddress" : "192.68.9.2",
-		    "direction" : "inbound",
-		    "protocol" : [ "tcp", "udp" ],
-		    "src-port" : [ "telnet", "ftp" ],
-		    "dst-port" : [ "21", "24", "99" ],
-		    "state" : "allow"
-		},
-		{
-		    "ipaddress" : "192.68.9.3",
-		    "direction" : "outbound",
-		    "protocol" : [ "icmp", "tcp", "udp" ],
-		    "src-port" : [ "telnet", "ftp" ],
-		    "dst-port" : [ "21-23" ],
-		    "state" : "disallow"
-		}
-	    ]
-    },
+	"network" : {
+		"state" : "allow",
+     	},
 
-    "usb-memory" : "allow",
+   "usb_memory" : "disallow",
 
-    "bluetooth" : {
-	"state" : "allow",
-	"mac-address" : ["12:34:56:78:9A:BC", "12:34:56:78:65:43" ]
-    },
+   "bluetooth" : {
+		"state" : "disallow",
+	 },
 
-    "cd-dvd" : "disallow",
+    "cd_dvd" : "disallow",
     "printer" : "disallow",
 
-    "screen-capture" : "allow",
+    "screen_capture" : "disallow",
     "clipboard" : "disallow",
-
-    "camera" : "disallow", 
-    "microphone" : "disallow", 
-    "sound" : "disallow", 
-    "keyboard" : "disallow", 
-    "mouse" : "disallow", 
-    "wireless" : "disallow" 
-
 }
 

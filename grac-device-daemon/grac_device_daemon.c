@@ -220,7 +220,6 @@ grm_log_debug("load_data_and_apply() : start");
 	if (uid >= 0) {
 		path = grac_config_path_grac_rules(username);
 		if (path != NULL) {
-			grm_log_error("load_data_and_apply() : invalid user [%s]", username);
 			if (access(path, F_OK) != 0) {
 				grm_log_error("load_data_and_apply() : not found  grac rule for %s", username);
 				path = NULL;
@@ -249,14 +248,14 @@ grm_log_debug("load_data_and_apply() : start");
 		}
 	}
 	else { // 정책파일 없음
-		if (admin == TRUE) {
-			grac_rule_set_default_of_admin(DaemonCtrl.grac_rule);
-			done = apply_admin_rule();	// 모든 권한 부여
-		}
-		else {
+//	if (admin == TRUE) {
+//			grac_rule_set_default_of_admin(DaemonCtrl.grac_rule);
+//			done = apply_admin_rule();	// 모든 권한 부여
+//		}
+//	else {
 			grac_rule_set_default_of_guest(DaemonCtrl.grac_rule);
 			done = apply_guest_rule();	// 최소 권한 부여
-		}
+//		}
 	}
 
 	G_UNLOCK (load_apply_lock);
