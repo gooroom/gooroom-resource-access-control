@@ -24,8 +24,7 @@ grac_device_daemon_LDADD =	\
 	$(GLIB_LIBS)		\
 	$(GIO_UNIX_LIBS)	\
 	-lacl		\
-	-lcups	\
-	-lcrypt	\
+	-lcups		\
 	-ljson-c	\
 	-lgrmpycaller	\
 	$(top_builddir)/libgrac-common/libgrac-common.la	\
