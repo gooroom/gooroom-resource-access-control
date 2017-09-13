@@ -47,7 +47,7 @@
 #include <glib-unix.h>
 #include <gio/gio.h>
 
-#define BUF_SIZE 2048
+#include <grmpycaller.h>
 
 static GMainLoop *loop;
 
@@ -84,7 +84,7 @@ static gboolean init_proc()
 	}
 
 	if (ret) {
-		char *path;
+		const char *path;
 
 //	path = grac_config_path_user_grac_rules();
 //	if (path)
@@ -124,28 +124,8 @@ void stop_daemon()
 G_LOCK_DEFINE_STATIC (load_apply_lock);
 
 
-static gboolean load_grac_rule_file(char *path, gboolean default_rule)
-{
-	gboolean done = FALSE;
-
-	if (default_rule == FALSE) {
-			; // check if valid file
-	}
-
-	// load
-	grac_rule_clear(DaemonCtrl.grac_rule);
-
-	if (access(path, F_OK) == 0) {
-		done = grac_rule_load(DaemonCtrl.grac_rule, path);
-		if (done == FALSE) {
-			grm_log_error("load_grac_rule_file()  : load error");
-		}
-	}
-
-	return done;
-}
-
 // 정책파일 무시, 모든 권한 부여
+/*
 static gboolean apply_admin_rule()
 {
 	gboolean done;
@@ -154,6 +134,7 @@ static gboolean apply_admin_rule()
 
 	return done;
 }
+*/
 
 // 특별히 추가적으로 할 일 없음
 static gboolean apply_guest_rule()
@@ -181,17 +162,64 @@ static gboolean apply_grac_rule()
 	return done;
 }
 
-static gboolean load_data_and_apply()
+static gboolean verify_grac_rule_file(char* path)
 {
 	gboolean done = FALSE;
+	char	task[2048];
+	char	*task_format;
+	char	*result;
+
+	task_format = "{\"task_name\":\"verify_signature\", \"file_name\":\"%s\"}";
+	snprintf(task, sizeof(task), task_format, path);
+
+	result = do_task(task);
+	if (result) {
+		// check result
+		if (c_strstr(result, "\"SUCCESS\"", 1024)) {
+			done = TRUE;
+		}
+		else {
+			char *ptr, *msg = NULL;
+			ptr = c_strstr(result, "\"FAIL\"", 1024);
+			if (ptr) {
+				ptr += c_strlen("\"FAIL\"", 256);
+				ptr = c_strstr(ptr, "\"message\"", 1024);
+				if (ptr)
+					ptr += c_strlen("\"message\"", 256);
+				if (ptr) {
+					char *p;
+					p = c_strchr(ptr+1, '\"', 1024);
+					if (p)
+						msg = c_strdup(p+1, 1024);
+					if (msg) {
+						p = c_strrchr(msg, '\"', 1024);
+						if (p)
+							*p = 0;
+					}
+				}
+			}
+			if (msg)
+				grm_log_error("%s() : fail from do_task() : %s", __FUNCTION__, msg);
+			else
+				grm_log_error("%s() : fail from do_task()", __FUNCTION__);
+		}
+		free(result);
+	}
+	else {
+		grm_log_error("%s() : no reply from do_task()", __FUNCTION__);
+	}
+
+	return done;
+}
+
+static const char *get_rule_path(int *user_rule)
+{
+	// user name check
+/*
 	char 	username[1024];
 	int		uid;
 	gboolean res, admin = FALSE;
 	gboolean default_rule = FALSE;
-
-	G_LOCK (load_apply_lock);
-
-grm_log_debug("load_data_and_apply() : start");
 
 	// 로그인 사용자 확인
 	res = sys_user_get_login_name(username, sizeof(username));
@@ -214,34 +242,68 @@ grm_log_debug("load_data_and_apply() : start");
 		else
 			default_rule = FALSE;
 	}
+*/
 
-	// check rule file
 	const char *path = NULL;
-	if (uid >= 0) {
-		path = grac_config_path_grac_rules(username);
-		if (path != NULL) {
+	*user_rule = -1;
+
+	path = grac_config_path_user_grac_rules();
+	if (path) {
+		if (access(path, F_OK) != 0) {
+			grm_log_warning("%s() : not found the user rule", __FUNCTION__);
+			path = NULL;
+		}
+		else {
+			*user_rule = 1;
+		}
+	}
+
+	if (path == NULL) {
+		path = grac_config_path_default_grac_rules();
+		if (path) {
 			if (access(path, F_OK) != 0) {
-				grm_log_error("load_data_and_apply() : not found  grac rule for %s", username);
+				grm_log_error("%s() : not found the default rule", __FUNCTION__);
 				path = NULL;
+			}
+			else {
+				*user_rule = 0;
 			}
 		}
 	}
-	if (path == NULL) {
-		path = grac_config_path_grac_rules(NULL);
-		if (access(path, F_OK) != 0) {
-			grm_log_error("load_data_and_apply() : not found  grac rule for default");
-			path = NULL;
+
+	return path;
+}
+
+
+static gboolean load_data_and_apply()
+{
+	gboolean done = FALSE;
+	const char	*rule_path;
+	int		user_rule;
+
+	G_LOCK (load_apply_lock);
+
+grm_log_debug("load_data_and_apply() : start");
+
+	rule_path = get_rule_path(&user_rule);
+
+	if (rule_path && user_rule == 1) {
+		gboolean res = verify_grac_rule_file((char*)rule_path);
+		if (res == FALSE) {
+			grm_log_error("load_data_and_apply() : not verified grac rule file [%s]", rule_path);
+			rule_path = NULL;
 		}
 	}
 
 	grac_rule_clear(DaemonCtrl.grac_rule);
 
-	if (path != NULL) {
-		res = load_grac_rule_file((char*)path, default_rule);
+	if (rule_path != NULL) {
+		gboolean res;
+		res = grac_rule_load(DaemonCtrl.grac_rule, (gchar*)rule_path);
 		if (res == FALSE) {
-			grm_log_error("load_data_and_apply() : invalid grac rule file [%s]", path);
+			grm_log_error("%s() : load rule error : %s", __FUNCTION__, rule_path);
 			grac_rule_set_default_of_guest(DaemonCtrl.grac_rule);
-			done = apply_guest_rule();	// 정책파일 오류, 최소 권한 부여
+			done = apply_guest_rule();	// 정책파일 오류,  최소 권한 부여
 		}
 		else {
 			done = apply_grac_rule();

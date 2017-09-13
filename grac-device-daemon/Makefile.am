@@ -1,5 +1,6 @@
 AM_CPPFLAGS =			\
 	-I$(top_srcdir)		\
+	-I/usr/include/gooroom/libgrmpycaller	\
 	-I../libgrac-common	\
 	-I../libgrac-device	
 
@@ -26,6 +27,7 @@ grac_device_daemon_LDADD =	\
 	-lcups	\
 	-lcrypt	\
 	-ljson-c	\
+	-lgrmpycaller	\
 	$(top_builddir)/libgrac-common/libgrac-common.la	\
 	$(top_builddir)/libgrac-device/libgrac-device.la
 

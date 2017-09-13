@@ -831,11 +831,22 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 	sys_ipt_set_log(TRUE, "*** Gooroom Grac ***");
 
 	// no data
-	if (rule == NULL || rule->network_count == 0) {
+	if (rule == NULL) {
 		// set deny
 		done &= sys_ipt_clear_all();
 		done &= sys_ipt_set_policy(FALSE);
-		done &= sys_ipt_insert_all_drop_rule();
+//	done &= sys_ipt_insert_all_drop_rule();
+		return done;
+	}
+
+	// set only default
+	if (rule->network_count == 0) {
+		done &= sys_ipt_clear_all();
+		perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_NETWORK);
+		if (perm_id == GRAC_PERMISSION_ALLOW)
+			done &= sys_ipt_set_policy(TRUE);
+		else
+			done &= sys_ipt_set_policy(FALSE);
 		return done;
 	}
 

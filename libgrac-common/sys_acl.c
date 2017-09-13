@@ -171,8 +171,9 @@ static acl_entry_t _acl_find_entry(acl_t acl, acl_tag_t tag, id_t qaul)
         	continue;
         		}
 
-        if (tag != entryTag)
-        			continue;
+        if (tag != entryTag) {
+        	continue;
+        		}
 
 				if (tag == ACL_USER) {
 						uidp = acl_get_qualifier(entry);

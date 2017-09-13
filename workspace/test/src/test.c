@@ -145,6 +145,8 @@ int main()
 	char name[1024];
 	gboolean done;
 
+/*
+
 	done = sys_user_get_login_name_by_api(name, sizeof(name));
 
 	printf("%d: %s\n", (int)done, name);
@@ -159,7 +161,9 @@ int main()
 	c_strcpy(tmp_file, "/123/456/xyz/grac_tmp_XXXXXX", sizeof(tmp_file));
 	res = mkstemp(tmp_file);
 	printf("%s : %d\n", tmp_file, res);
+*/
 
+	t_notify();
 
 	return EXIT_SUCCESS;
 }

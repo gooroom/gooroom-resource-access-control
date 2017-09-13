@@ -1,10 +1,23 @@
 #!/bin/sh
 set -e
 
-rm /etc/ld.so.preload
+if [ -e /etc/ld.so.preload ]; then
+  rm /etc/ld.so.preload
+fi
 
-rm /etc/udev/rules.d/grac-os.rules
+if [ -e /etc/udev/rules.d/grac-os.rules ]; then
+  rm /etc/udev/rules.d/grac-os.rules
+fi
 
-rm /etc/gooroom/grac.d/user.rules
-rm /etc/gooroom/grac.d/hook-screenshooter.conf
-rm /etc/gooroom/grac.d/hook-clipboard.conf
+if [ -e /etc/gooroom/grac.d/user.rules ]; then
+  rm /etc/gooroom/grac.d/user.rules
+fi
+
+if [ -e /etc/gooroom/grac.d/hook-screenshooter.conf ]; then
+  rm /etc/gooroom/grac.d/hook-screenshooter.conf
+fi 
+
+if [ -e /etc/gooroom/grac.d/hook-clipboard.conf ]; then
+  rm /etc/gooroom/grac.d/hook-clipboard.conf
+fi
+

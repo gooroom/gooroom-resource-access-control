@@ -8,8 +8,7 @@
 
 #include <uim/uim.h>
 
-//static unsigned char *conf_path="/home/ultract/gooroom-resource-access-control/hook_clipboard/hooker.conf";
-static unsigned char *conf_path="/etc/gooroom/hook_clipboard.conf";
+static unsigned char *conf_path="/etc/gooroom/grac.d/hook-clipboard.conf";
 
 static unsigned char *alert_msg_copy="Clipboard(copy) is disallowed!!";
 static unsigned char *alert_msg_paste="Clipboard(paste) is disallowed!!";

@@ -11,8 +11,21 @@
 #include <X11/Xlib.h>
 #include <X11/extensions/XShm.h>
 
-//static unsigned char *conf_path="/home/ultract/gooroom-resource-access-control/hook_screenshooter/hooker.conf";
-static unsigned char *conf_path="/etc/gooroom/hook_screenshooter.conf";
+/*
+#include <libnotify/notify.h>
+
+static void notify(char *msg)
+{
+
+	notify_init("GRAC warining");
+	NotifyNotification *noti = notify_notification_new("Warning", msg, NULL);
+	notify_notification_show(noti, NULL);
+	g_object_unref(G_OBJECT(noti));
+	notify_uninit();
+}
+*/
+
+static unsigned char *conf_path="/etc/gooroom/grac.d/hook-screenshooter.conf";
 
 //static unsigned char *alert_msg="Screen Capture is disallowed!!";
 #define alert_msg "Screen Capture is disallowed!!"
@@ -46,6 +59,8 @@ GdkPixbuf *gdk_pixbuf_get_from_drawable (GdkPixbuf   *dest,
 	fclose(confp);
 
 	if(status != 0){
+//		notify(alert_msg);
+
 		dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, alert_msg);
 		gtk_dialog_run(GTK_DIALOG(dialog));
 		gtk_widget_destroy(dialog);
