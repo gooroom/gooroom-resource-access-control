@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+if [ -e /etc/ld.so.preload ]; then
+  rm /etc/ld.so.preload
+fi
+
+if [ -e /etc/gooroom/grac.d/hook-screenshooter.conf ]; then
+  rm /etc/gooroom/grac.d/hook-screenshooter.conf
+fi 
+
+
+
