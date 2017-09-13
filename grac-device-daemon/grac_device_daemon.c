@@ -179,7 +179,9 @@ static gboolean verify_grac_rule_file(char* path)
 			done = TRUE;
 		}
 		else {
-			char *ptr, *msg = NULL;
+			char 	*msg = NULL;
+/*
+			char	*ptr;
 			ptr = c_strstr(result, "\"FAIL\"", 1024);
 			if (ptr) {
 				ptr += c_strlen("\"FAIL\"", 256);
@@ -198,6 +200,8 @@ static gboolean verify_grac_rule_file(char* path)
 					}
 				}
 			}
+*/
+			msg = result;
 			if (msg)
 				grm_log_error("%s() : fail from do_task() : %s", __FUNCTION__, msg);
 			else

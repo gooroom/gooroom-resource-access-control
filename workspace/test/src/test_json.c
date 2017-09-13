@@ -11,6 +11,7 @@
 #include <glib.h>
 #include <string.h>
 
+#if 0
 #include <json-c/json.h>
 
 //json_object_is_type
@@ -111,3 +112,4 @@ void test_json()
 	data = "{ \"Test\" : {\"data1\" : \"aaa\", \"data2\" : [\"bbb1\", \"bbb2\", { \"bbb-obj\" : 999 }, [111, 222, 333]]}}";
 	json_dump(data);
 }
+#endif
