@@ -14,6 +14,7 @@ Depends: libgrac-device,
 		libgrac-common,
 		hook-clipboard,
 		hook-screenshooter,
+		gooroom-security-utils,
 		${misc:Depends}
 Description: grac device daemon 
  This is a daemon to control the access to each devices on Gooroom OS. For example, network, USB, Bluetooth device.
