@@ -1,6 +1,7 @@
 etc/dbus-1/system.d/*
 lib/systemd/system/*
 usr/lib/*/grac-device-daemon
+usr/bin/*
 
 etc/gooroom/grac.d/default.rules
 etc/gooroom/grac.d/grac-udev-rules.map
