@@ -27,6 +27,7 @@ const gchar*	grac_config_path_hook_screenshooter_conf();
 const gchar*	grac_config_path_hook_clipboard_so();
 const gchar*	grac_config_path_hook_clipboard_conf();
 
+const gchar*	grac_config_file_ld_so_preload();
 const gchar*	grac_config_path_ld_so_preload();
 const gchar*	grac_config_dir_ld_so_preload();
 

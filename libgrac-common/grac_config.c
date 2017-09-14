@@ -52,6 +52,7 @@ struct _GracConfig {
 	gchar	*path_hook_clipboard_so;
 	gchar	*path_hook_clipboard_conf;
 
+	gchar	*file_ld_so_preload;
 	gchar	*path_ld_so_preload;
 	gchar	*dir_ld_so_preload;
 };
@@ -83,6 +84,7 @@ static struct _GracConfig GracConfig = {
 	.path_hook_clipboard_so   = "/usr/lib/x86_64-linux-gnu/libhook-clipboard.so",
 	.path_hook_clipboard_conf = "/etc/gooroom/grac.d/hook-clipboard.conf",
 
+	.file_ld_so_preload = "ld.so.preload",
 	.path_ld_so_preload = "/etc/ld.so.preload",
 	.dir_ld_so_preload = "/etc"
 
@@ -241,4 +243,8 @@ const gchar*	grac_config_dir_ld_so_preload()
 	return GracConfig.dir_ld_so_preload;
 }
 
+const gchar*	grac_config_file_ld_so_preload()
+{
+	return GracConfig.file_ld_so_preload;
+}
 

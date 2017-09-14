@@ -53,6 +53,7 @@ gboolean sys_user_get_login_name_by_api(char *name, int size);
 gboolean sys_user_get_login_name_by_wcmd(char *name, int size);
 
 gboolean sys_user_get_login_name(char *name, int size);
+int			 sys_user_get_login_uid();
 
 
 #endif /* _SYS_USER_H_ */

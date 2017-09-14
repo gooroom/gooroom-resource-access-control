@@ -17,6 +17,7 @@
 #include "grac_config.h"
 #include "grm_log.h"
 #include "cutility.h"
+#include "sys_user.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,16 +26,26 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <limits.h>
+#include <string.h>
 
 static gboolean _create_ld_so_preload()
 {
 	gboolean done = TRUE;
 	const char* hook_clip_path;
 	const char* hook_screen_path;
-	const char* preload_path;
+	const char* preload_link;
+	char	preload_target[2048];
+	int		uid;
 
-	preload_path = grac_config_path_ld_so_preload();
-	if (preload_path == NULL) {
+	uid = sys_user_get_login_uid();
+	if (uid < 0) {
+		grm_log_error("%s(): can't get login name", __FUNCTION__);
+		return FALSE;
+	}
+	snprintf(preload_target, sizeof(preload_target), "/var/run/user/%d/%s", uid, grac_config_file_ld_so_preload());
+
+	preload_link = grac_config_path_ld_so_preload();
+	if (preload_link == NULL) {
 		grm_log_error("%s(): undefined preload path", __FUNCTION__);
 		return FALSE;
 	}
@@ -56,7 +67,7 @@ static gboolean _create_ld_so_preload()
 	gboolean exist_screen_path = FALSE;
 	char	last_char = '\n';
 
-	fp = fopen(preload_path, "r");
+	fp = fopen(preload_target, "r");
 	if (fp != NULL) {
 		int n;
 		while (1) {
@@ -77,7 +88,7 @@ static gboolean _create_ld_so_preload()
 	}
 
 	if (exist_clip_path == FALSE || exist_screen_path == FALSE) {
-		fp = fopen(preload_path, "a");
+		fp = fopen(preload_target, "a");
 		if (fp != NULL) {
 			if (last_char != '\n')
 				fprintf(fp, "\n");
@@ -88,7 +99,17 @@ static gboolean _create_ld_so_preload()
 			fclose(fp);
 		}
 		else {
-			grm_log_error("%s(): can't open to add the hook module [%s]", __FUNCTION__, preload_path);
+			grm_log_error("%s(): can't open to add the hook module [%s]", __FUNCTION__, preload_target);
+			done = FALSE;
+		}
+	}
+
+	if (done) {
+		int res;
+		unlink(preload_link);
+		res = symlink(preload_target, preload_link);
+		if (res != 0) {
+			grm_log_error("%s(): can't make link : %s", __FUNCTION__, strerror(errno) );
 			done = FALSE;
 		}
 	}

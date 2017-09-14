@@ -32,6 +32,7 @@
 
 #include "sys_user.h"
 #include "cutility.h"
+#include "grm_log.h"
 
 static guint _get_id_range(char *key)
 {
@@ -524,24 +525,24 @@ gboolean sys_user_get_login_name_by_api(char *name, int size)
 
 gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 {
-	//char	*func = "sys_user_get_login_name_by_cmd()";
+	char	*func = (char*)__FUNCTION__;
 	FILE	*fp;
 	char  *cmd = "w -h -s";
 
 	fp = popen(cmd, "r");
 	if (fp == NULL) {
-			//grm_log_debug("%s : can't run - %s", func, cmd);
+			grm_log_error("%s : can't run - %s", func, cmd);
 			return FALSE;
 	}
 
 	int fd = fileno(fp);
 	if (fd == -1) {
-		//grm_log_debug("%s : fileno() : %s", func, strerror(errno));
+		grm_log_error("%s : fileno() : %s", func, strerror(errno));
 		pclose(fp);
 		return FALSE;
 	}
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
-		//grm_log_debug("%s : fcntl() : not set NONBLOCK: %s", func, strerror(errno));
+		grm_log_error("%s : fcntl() : not set NONBLOCK: %s", func, strerror(errno));
 		pclose(fp);
 		return FALSE;
 	}
@@ -584,11 +585,12 @@ gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 								buf[i] = 0;
 
 								// check
-								char *p1, *p2 = NULL;
+								char *p1;	//*p2 = NULL;
 								p1 = strstr(buf, ":0");
-								if (p1)
-									p2 = strstr(p1+2, ":0");
-								if (p1 && p2 && p1[2] <= 0x20 && p2[2] <= 0x20) {
+//							if (p1)
+//								p2 = strstr(p1+2, ":0");
+//							if (p1 && p2 && p1[2] <= 0x20 && p2[2] <= 0x20) {
+								if (p1 && p1[2] <= 0x20) {
 									int r_idx = 0;
 									while (r_idx < size-1) {
 										name[r_idx] = buf[r_idx];
@@ -617,6 +619,9 @@ gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 		}
 	} // while
 
+	if (getB) {
+		grm_log_debug("%s : get login name : %s", func, name);
+	}
 
 	pclose(fp);
 
@@ -632,4 +637,20 @@ gboolean sys_user_get_login_name(char *name, int size)
 		done = sys_user_get_login_name_by_wcmd(name, size);
 
 	return done;
+}
+
+int sys_user_get_login_uid()
+{
+	int 	uid = -1;
+	char	user[1024];
+
+	if (sys_user_get_login_name(user, sizeof(user)) ) {
+		uid = sys_user_get_uid_from_name(user);
+grm_log_debug("%s : login name : %d %d", __FUNCTION__, user, uid);
+	}
+else {
+	grm_log_debug("%s : can;t get login name", __FUNCTION__);
+}
+
+	return uid;
 }
