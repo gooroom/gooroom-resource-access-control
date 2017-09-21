@@ -19,7 +19,8 @@ const gchar*	grac_config_path_grac_rules(char* login_name);
 const gchar*	grac_config_path_default_grac_rules();
 const gchar*	grac_config_path_user_grac_rules();
 const gchar*	grac_config_path_udev_rules();
-const gchar*	grac_config_path_udev_map();
+const gchar*	grac_config_path_udev_map_org();
+const gchar*	grac_config_path_udev_map_local();
 
 const gchar*	grac_config_path_hook_screenshooter_so();
 const gchar*	grac_config_path_hook_screenshooter_conf();

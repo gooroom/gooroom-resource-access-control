@@ -164,5 +164,15 @@
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_config.h</locationURI>
 		</link>
+		<link>
+			<name>src/grac_map.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_map.c</locationURI>
+		</link>
+		<link>
+			<name>src/grac_map.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_map.h</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>

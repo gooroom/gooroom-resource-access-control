@@ -23,6 +23,7 @@
 #include <grp.h>
 #include <errno.h>
 #include <string.h>
+#include <limits.h>
 
 #include "sys_etc.h"
 #include "grm_log.h"
@@ -167,7 +168,7 @@ gboolean sys_run_cmd_get_output(gchar *cmd, char *caller, char *out, int size)
 					grm_log_debug("%s : %s () - no data : stop", caller, func);
 					break;
 				}
-				usleep(100*1000);
+				usleep(10*1000);
 			}
 			else {
 				break;
@@ -219,8 +220,8 @@ gboolean sys_run_cmd_get_output(gchar *cmd, char *caller, char *out, int size)
 
 	pclose(fp);
 
-	grm_log_debug("*** end of %s : %s : %s result : %d", caller, func, cmd, (int)done);
-	return TRUE;
+//	grm_log_debug("*** end of %s : %s : %s result : %d", caller, func, cmd, (int)done);
+	return done;
 }
 
 /**

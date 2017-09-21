@@ -42,7 +42,8 @@ struct _GracConfig {
 	gchar	*path_default_grac_rule;
 	gchar	*path_user_grac_rule;
 
-	gchar	*path_grac_udev_map;
+	gchar	*path_grac_udev_map_org;
+	gchar	*path_grac_udev_map_local;
 
 	gchar	*dir_udev_rules;
 	gchar	*path_udev_rules;
@@ -72,16 +73,16 @@ static struct _GracConfig GracConfig = {
 
 	.path_user_grac_rule    = "/etc/gooroom/grac.d/user.rules",
 	.path_default_grac_rule = "/etc/gooroom/grac.d/default.rules",
-	.path_grac_udev_map     = "/etc/gooroom/grac.d/grac-udev-rules.map",
+	.path_grac_udev_map_org   = "/etc/gooroom/grac.d/grac-udev-rules.map",
+	.path_grac_udev_map_local = "/etc/gooroom/grac.d/grac-udev-rules.map.local",
 
 	.dir_udev_rules = "/etc/udev/rules.d",
 	.path_udev_rules     = "/etc/udev/rules.d/grac-os.rules",
-//	.path_udev_rules     = "/etc/gooroom/grac-os.rules", 	//임시 테스트  목적
 
-	.path_hook_screenshooter_so   = "/usr/lib/x86_64-linux-gnu/libhook-screenshooter.so",
+	.path_hook_screenshooter_so   = "/usr/lib/x86_64-linux-gnu/libhook-screenshooter.so.0",
 	.path_hook_screenshooter_conf = "/etc/gooroom/grac.d/hook-screenshooter.conf",
 
-	.path_hook_clipboard_so   = "/usr/lib/x86_64-linux-gnu/libhook-clipboard.so",
+	.path_hook_clipboard_so   = "/usr/lib/x86_64-linux-gnu/libhook-clipboard.so.0",
 	.path_hook_clipboard_conf = "/etc/gooroom/grac.d/hook-clipboard.conf",
 
 	.file_ld_so_preload = "ld.so.preload",
@@ -190,12 +191,20 @@ const char*	grac_config_path_default_grac_rules()
 	return GracConfig.path_default_grac_rule;
 }
 
-const char*	grac_config_path_udev_map()
+const char*	grac_config_path_udev_map_org()
 {
 	if (access(GracConfig.dir_grac_data, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_data);
 
-	return GracConfig.path_grac_udev_map;
+	return GracConfig.path_grac_udev_map_org;
+}
+
+const char*	grac_config_path_udev_map_local()
+{
+	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+		_make_directory_tree(GracConfig.dir_grac_data);
+
+	return GracConfig.path_grac_udev_map_local;
 }
 
 const char*	grac_config_path_udev_rules()

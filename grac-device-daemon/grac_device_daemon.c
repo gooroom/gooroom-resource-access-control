@@ -33,14 +33,20 @@
 #include "grac_device_daemon.h"
 #include "grac_rule.h"
 #include "grac_config.h"
+#include "grac_adjust_udev_rule.h"
 #include "grm_log.h"
 #include "cutility.h"
 
 #include "sys_user.h"
 
+#include <stdio.h>
 #include <unistd.h>
+#include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #include <glib.h>
 #include <glib-object.h>
@@ -278,6 +284,47 @@ static const char *get_rule_path(int *user_rule)
 	return path;
 }
 
+static gboolean adjust_udev_rule_map_file()
+{
+	gboolean done;
+	char*	map_org;
+	char*	map_local;
+	struct stat st_org;
+	struct stat st_local;
+	int		res;
+
+
+	map_org = (char*)grac_config_path_udev_map_org();
+	map_local = (char*)grac_config_path_udev_map_local();
+
+	res = stat(map_org, &st_org);
+	if (res != 0) {
+		grm_log_error("%s() : %s : %s", __FUNCTION__, map_org, strerror(errno));
+		return FALSE;
+	}
+
+	res = stat(map_local, &st_local);
+	if (res == 0) {
+		if (st_local.st_mtim.tv_sec > st_org.st_mtim.tv_sec)
+			return TRUE;
+		if (st_local.st_mtim.tv_sec == st_org.st_mtim.tv_sec &&
+				st_local.st_mtim.tv_nsec > st_org.st_mtim.tv_nsec)
+			return TRUE;
+	}
+	else {
+		if (errno != ENOENT) {
+			grm_log_error("%s() : %s : %s", __FUNCTION__, map_org, strerror(errno));
+			return FALSE;
+		}
+	}
+
+	done = grac_adjust_udev_rule_file(map_org, map_local);
+	if (done == FALSE)
+		grm_log_error("%s() : adjust map error", __FUNCTION__);
+
+	return done;
+}
+
 
 static gboolean load_data_and_apply()
 {
@@ -287,14 +334,17 @@ static gboolean load_data_and_apply()
 
 	G_LOCK (load_apply_lock);
 
-grm_log_debug("load_data_and_apply() : start");
+	grm_log_debug("load_data_and_apply() : start");
+
+	if (adjust_udev_rule_map_file() == FALSE)
+		grm_log_error("%s() : can't adjust map file", __FUNCTION__);
 
 	rule_path = get_rule_path(&user_rule);
 
 	if (rule_path && user_rule == 1) {
 		gboolean res = verify_grac_rule_file((char*)rule_path);
 		if (res == FALSE) {
-			grm_log_error("load_data_and_apply() : not verified grac rule file [%s]", rule_path);
+			grm_log_error("%s() : not verified grac rule file [%s]", __FUNCTION__, rule_path);
 			rule_path = NULL;
 		}
 	}

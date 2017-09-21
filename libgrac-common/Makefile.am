@@ -18,7 +18,8 @@ libgrac_common_headers =		\
 	sys_etc.h	\
 	cutility.h		\
 	grm_log.h	\
-	grac_config.h
+	grac_config.h	\
+	grac_map.h
 
 libgrac_common_sources =		\
 	cutility.c		\
@@ -33,7 +34,8 @@ libgrac_common_sources =		\
 	sys_file.c	\
 	sys_etc.c	\
 	grm_log.c	\
-	grac_config.c
+	grac_config.c	\
+	grac_map.c
 
 libgrac_common_includedir = $(includedir)/libgrac-common
 

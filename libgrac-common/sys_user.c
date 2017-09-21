@@ -31,6 +31,7 @@
 #include <crypt.h>
 
 #include "sys_user.h"
+#include "sys_etc.h"
 #include "cutility.h"
 #include "grm_log.h"
 
@@ -585,12 +586,9 @@ gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 								buf[i] = 0;
 
 								// check
-								char *p1;	//*p2 = NULL;
-								p1 = strstr(buf, ":0");
-//							if (p1)
-//								p2 = strstr(p1+2, ":0");
-//							if (p1 && p2 && p1[2] <= 0x20 && p2[2] <= 0x20) {
-								if (p1 && p1[2] <= 0x20) {
+								char *p;
+								p = strstr(buf, ":0");
+								if (p && p[2] <= 0x20) {
 									int r_idx = 0;
 									while (r_idx < size-1) {
 										name[r_idx] = buf[r_idx];
@@ -628,6 +626,35 @@ gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 	return getB;
 }
 
+gboolean sys_user_get_login_name_by_users_cmd(char *name, int size)
+{
+	gboolean done;
+	char	output[2048];
+	char	*cmd;
+
+	cmd = "users";
+	done =  sys_run_cmd_get_output(cmd, "daemon", output, sizeof(output));
+	if (done == FALSE) {
+		grm_log_error("commamd running error : %s", cmd);
+		return FALSE;
+	}
+
+	int idx;
+	for (idx=0; idx < sizeof(output); idx++) {
+		if (output[idx] == 0)
+			break;
+		if (output[idx] == '\n') {
+			output[idx] = 0;
+			break;
+		}
+	}
+
+	c_strtrim(output, sizeof(output));
+	c_strcpy(name, output, size);
+
+	return done;
+}
+
 gboolean sys_user_get_login_name(char *name, int size)
 {
 	gboolean done;
@@ -635,6 +662,8 @@ gboolean sys_user_get_login_name(char *name, int size)
 	done = sys_user_get_login_name_by_api(name, size);
 	if (done == FALSE)
 		done = sys_user_get_login_name_by_wcmd(name, size);
+	if (done == FALSE)
+		done = sys_user_get_login_name_by_users_cmd(name, size);
 
 	return done;
 }
@@ -646,11 +675,12 @@ int sys_user_get_login_uid()
 
 	if (sys_user_get_login_name(user, sizeof(user)) ) {
 		uid = sys_user_get_uid_from_name(user);
-grm_log_debug("%s : login name : %d %d", __FUNCTION__, user, uid);
+		if (uid < 0)
+			grm_log_debug("%s : login name : %d %d", __FUNCTION__, user, uid);
 	}
-else {
-	grm_log_debug("%s : can;t get login name", __FUNCTION__);
-}
+	else {
+		grm_log_debug("%s : can't get login name", __FUNCTION__);
+	}
 
 	return uid;
 }

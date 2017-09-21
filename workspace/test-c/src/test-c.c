@@ -17,12 +17,27 @@
 #include <sys/stat.h>
 #include <string.h>
 
-int main(int argc, char *argv[])
-{
-	printf("%s %d %s\n", __FILE__, __LINE__, __FUNCTION__);
 
+void tmp_file()
+{
+	char tmp_file[1024];
+	strncpy(tmp_file, "/tmp/grac_tmp_XXXXXX", sizeof(tmp_file));
+
+	int res;
+	res = mkstemp(tmp_file);
+	printf("%s : %d\n", tmp_file, res);
+
+	strncpy(tmp_file, "/123/456/xyz/grac_tmp_XXXXXX", sizeof(tmp_file));
+	res = mkstemp(tmp_file);
+	printf("%s : %d\n", tmp_file, res);
+
+}
+
+void t_scanf()
+{
 	int	val[7], n, i;
 	char *data;
+	char *form;
 
 	data = "12:34";
 	n = sscanf(data,  "%x:%x", &val[0], &val[1], &val[2]);
@@ -54,12 +69,23 @@ int main(int argc, char *argv[])
 	for (i=0; i<n; i++) printf("%x ", val[i]);
 	printf("\n");
 
+	data = "NAME=\"sr0\" TYPE=\"rom\" RM=\"1\" RO=\"0\" MOUNTPOINT=\"\" HOTPLUG=\"1\" SUBSYSTEMS=\"block:scsi:pci\"";
+	form = "NAME=\"%s\" TYPE=%s RM=%d RO=%d MOUNTPOINT=%s HOTPLUG=%d SUBSYSTEMS=%s";
 
-	if (argc < 2)
-		return 1;
+	char	name[256];
+	char	type[256];
+	char	mount[256];
+	char	subsys[256];
+	int	  ro, rm, hot;
 
+	n = sscanf(data, form, name, type, &rm, &ro, mount, &hot, subsys);
+	printf("%d\n", n);
+	printf("%s\n", name);
 
+}
 
+void t_addrinfo(char *addr)
+{
 	struct addrinfo hints;
 	struct addrinfo *res;
 	struct sockaddr_in* sin;
@@ -72,7 +98,7 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	int err = getaddrinfo(argv[1], NULL, NULL, &res);
+	int err = getaddrinfo(addr, NULL, NULL, &res);
 	printf("result : %d\n", err);
 
 	if (err == 0) {
@@ -94,6 +120,26 @@ int main(int argc, char *argv[])
 			printf("\n");
 		}
 	}
+}
+
+
+struct _main {
+	int	m1;
+	struct _sub1 {
+		int	s1;
+	} sub;
+	struct _sub2 {
+		int	s2;
+	} ;
+};
+
+int main(int argc, char *argv[])
+{
+//	printf("%s %d %s\n", __FILE__, __LINE__, __FUNCTION__);
+
+
+	printf("%d\n", sizeof(struct _main));
+	printf("%d\n", sizeof(struct .sub1));
 
 	return EXIT_SUCCESS;
 }

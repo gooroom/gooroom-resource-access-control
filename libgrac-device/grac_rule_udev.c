@@ -359,11 +359,158 @@ static void _out_udev_rule_file_header(FILE *fp)
 	}
 }
 
-static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, const char *rules_file)
+// ATTRS{address}=="00:15:83:d0:ef:25"
+static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
+{
+	gboolean res = FALSE;
+	char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
+	char	*addr_key = "ATTRS{address}==\"";
+	char	*ptr1;
+	char	*ptr2;
+	int		n, ch;
+
+	if (c_strstr(buf, subsystem, bsize) == NULL)
+		return FALSE;
+
+	ptr1 = c_strstr(buf, addr_key, bsize);
+	if (ptr1 == NULL)
+		return FALSE;
+
+	n = c_strlen(addr_key, 256);
+	ptr1 += n;
+	ptr2 = ptr1;
+	while (1) {
+		ch = *ptr2;
+		if (ch == '\"')
+			break;
+		if (ch == 0)
+			break;
+		ptr2++;
+	}
+
+	if (ch != '\"')
+		return FALSE;
+
+	int	save_ch;
+	save_ch = *(ptr1-1);
+	*(ptr1-1) = 0;		// end mark on location of '\"'
+	ptr2++;				    // move loaction after '\"'
+	snprintf(format, fsize, "%s%s%s", buf, "\"%s\"", ptr2);
+	*(ptr1-1) = save_ch;
+
+	res = FALSE;
+	n = c_strlen(format, fsize);
+	if (n > 0 && n < fsize) {
+		if (format[n-1] != '\n') {
+			if (n < fsize-1) {
+				format[n] = '\n';
+				format[n+1] = 0;
+				res = TRUE;
+			}
+		}
+		else {
+			res = TRUE;
+		}
+	}
+
+	return res;
+}
+
+
+// ATTRS를 제거한다.
+// ATTRS{address}=="00:15:83:d0:ef:25"
+static gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
+{
+	gboolean res = FALSE;
+	char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
+	char	*addr_key = "ATTRS{address}==\"";
+	char	*ptr1;
+	char	*ptr2;
+	int		n, ch;
+
+	if (c_strstr(buf, subsystem, bsize) == NULL)
+		return FALSE;
+
+	// ATTRS가 없으므로 전체가 유효하다.
+	ptr1 = c_strstr(buf, addr_key, bsize);
+	if (ptr1 == NULL) {
+		n = c_strlen(buf, fsize);
+		if (n < fsize-1) {
+			c_strcpy(format, buf, fsize);
+			return TRUE;
+		}
+		else {
+			return FALSE;
+		}
+	}
+
+	n = c_strlen(addr_key, 256);
+
+	ptr2 = ptr1 + n;
+	while (1) {
+		ch = *ptr2;
+		if (ch == '\"')
+			break;
+		if (ch == 0)
+			break;
+		ptr2++;
+	}
+
+	if (ch != '\"')
+		return FALSE;
+
+	ptr2++;
+	while (1) {
+		ch = *ptr2;
+		if (ch == ',') {
+			ptr2++;
+			break;
+		}
+		if (ch == 0)
+			break;
+		if (ch > 0x20)
+			break;
+		ptr2++;
+	}
+
+	if (ch != 0 && ch != ',')
+		return FALSE;
+
+	int	save_ch;
+	save_ch = *ptr1;
+	*ptr1 = 0;
+	if (ch == 0)
+		snprintf(format, fsize, "%s", buf);
+	else if (*ptr2 <= 0x20)
+		snprintf(format, fsize, "%s%s", buf, ptr2);
+	else
+		snprintf(format, fsize, "%s %s", buf, ptr2);
+	*ptr1 = save_ch;
+
+	res = FALSE;
+	n = c_strlen(format, fsize);
+	if (n > 0 && n < fsize) {
+		if (format[n-1] != '\n') {
+			if (n < fsize-1) {
+				format[n] = '\n';
+				format[n+1] = 0;
+				res = TRUE;
+			}
+		}
+		else {
+			res = TRUE;
+		}
+	}
+
+	return res;
+}
+
+static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rule, const char *rules_file)
 {
 	FILE	*in_fp;
 	FILE	*out_fp;
 	char	buf[2048];
+	char	out_format[2048];
 
 	if (udev_rule == NULL || rules_file == NULL)
 		return FALSE;
@@ -381,26 +528,49 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, const char *rules_
 
 	_out_udev_rule_file_header(out_fp);
 
-	int idx;
+	int rule_idx;
 	int	seq, out;
 
-	for (idx=0; idx<udev_rule->line_count; idx++) {
+	for (rule_idx=0; rule_idx<udev_rule->line_count; rule_idx++) {
 		if (fgets(buf, sizeof(buf), in_fp) == NULL)
 				break;
 
-		seq = udev_rule->line_status[idx] & 0x3fff;
-		if (udev_rule->line_status[idx] & 0x8000)
+		seq = udev_rule->line_status[rule_idx] & 0x3fff;
+		if (udev_rule->line_status[rule_idx] & 0x8000)
 			out = 1;
 		else
 			out = 0;
 
-		if (out)
-			grm_log_debug("*[%04x][%d][%d]-%s", udev_rule->line_status[idx], out, seq, buf);
-		else
-			grm_log_debug(" [%04x][%d][%d]-%s", udev_rule->line_status[idx], out, seq, buf);
-
-		if (out)
-			fprintf(out_fp, "%s", buf);
+		if (out) {
+			grm_log_debug("+ [%04x][%d][%d]-%s", udev_rule->line_status[rule_idx], out, seq, buf);
+			if (_check_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format)) ) {
+				grm_log_debug("<<");
+				int count;
+				count = grac_rule_bluetooth_mac_count(grac_rule);
+				if (count == 0) {	// MAC 주소 지정 부분을 제거한다 -> 모든  bluetooh가  대상이 된다
+					_delete_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format));
+					fprintf(out_fp, out_format);
+					grm_log_debug(out_format);
+				}
+				else {
+					int		mac_idx;
+					char	mac_addr[256];
+					for (mac_idx=0; mac_idx < count; mac_idx++) {
+						grac_rule_bluetooth_mac_get_addr(grac_rule, mac_idx, mac_addr, sizeof(mac_addr));
+						fprintf(out_fp, out_format, mac_addr);
+						grm_log_debug(out_format, mac_addr);
+					}
+				}
+				grm_log_debug(">>");
+			}
+			else {
+				fprintf(out_fp, "%s", buf);
+				grm_log_debug("+ [%04x][%d][%d]-%s", udev_rule->line_status[rule_idx], out, seq, buf);
+			}
+		}
+		else {
+			grm_log_debug("- [%04x][%d][%d]-%s", udev_rule->line_status[rule_idx], out, seq, buf);
+		}
 	}
 
 	fclose(in_fp);
@@ -442,7 +612,7 @@ gboolean grac_rule_udev_make_rules(GracRuleUdev *udev_rule, GracRule* grac_rule,
 		return FALSE;
 	}
 
-	done = _make_udev_rule_file(udev_rule, udev_rule_path);
+	done = _make_udev_rule_file(udev_rule, grac_rule, udev_rule_path);
 	if (done == FALSE) {
 		grm_log_error("grac_rule_udev_make_rules() : can't make udev rules file\n");
 		return FALSE;

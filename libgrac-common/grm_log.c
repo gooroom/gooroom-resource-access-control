@@ -173,7 +173,6 @@ static void _do_file_log(char *msg)
 	}
 }
 
-#ifdef GRM_SUPPORT_SYSLOG
 static void _do_sys_log(GrmLogLevel level, char *message)
 {
 	static gboolean log_opened = FALSE;
@@ -217,14 +216,13 @@ static void _do_sys_log(GrmLogLevel level, char *message)
 
 	// closelog();  // calling is optional
 }
-#endif
 
 static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 {
 	G_LOCK (grm_log_lock);
 
-	static gboolean version_out = FALSE;
-	static char*    log_version = "****** libgrac version 2016.12.01 (001) *****";
+//	static gboolean version_out = FALSE;
+//	static char*    log_version = "****** libgrac version 2016.12.01 (001) *****";
 	gchar *kind_str;
 	gchar *message;
 
@@ -270,14 +268,14 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 		message = g_strdup_vprintf (new_format, var_args);
 	}
 
-	if (message != NULL) {
+//	if (version_out == FALSE) {
+//		_do_sys_log(level, log_version);
+//		_do_file_log(log_version);
+//		version_out = TRUE;
+//		}
 
-		if (version_out == FALSE) {
-			//_do_sys_log(level, log_version);
-			_do_file_log(log_version);
-			version_out = TRUE;
-		}
-		//_do_sys_log (level, message);
+	if (message != NULL) {
+		_do_sys_log (level, message);
 		_do_file_log(message);
 
 		g_free (message);

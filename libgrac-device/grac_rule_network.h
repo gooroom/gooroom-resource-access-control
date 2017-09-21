@@ -43,14 +43,15 @@ int			 grac_rule_network_get_mac(GracRuleNetwork *rule, char **mac);
 
 gboolean grac_rule_network_add_protocol(GracRuleNetwork *rule, char *protocol);
 int			 grac_rule_network_protocol_count(GracRuleNetwork *rule);
-int			 grac_rule_network_get_protocol(GracRuleNetwork *rule, int idx, char **protocol);
+int			 grac_rule_network_get_protocol(GracRuleNetwork *rule, int proto_idx, char **protocol);
+int			 grac_rule_network_find_protocol(GracRuleNetwork *rule, char *protocol);  // return idx */
 
-gboolean grac_rule_network_add_src_port(GracRuleNetwork *rule, char *port);	// port : single or range
-int			 grac_rule_network_src_port_count(GracRuleNetwork *rule);
-int			 grac_rule_network_get_src_port(GracRuleNetwork *rule, int idx, char **port); // port : single or range
+gboolean grac_rule_network_add_src_port(GracRuleNetwork *rule, int ptoto_idx, char *port);	// port : single or range
+int			 grac_rule_network_src_port_count(GracRuleNetwork *rule, int ptoto_idx);
+int			 grac_rule_network_get_src_port(GracRuleNetwork *rule, int ptoto_idx, int port_idx, char **port); // port : single or range
 
-gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, char *port);	// port : single or range
-int			 grac_rule_network_dst_port_count(GracRuleNetwork *rule);
-int			 grac_rule_network_get_dst_port(GracRuleNetwork *rule, int idx, char **port); // port : single or range
+gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, int ptoto_idx, char *port);	// port : single or range
+int			 grac_rule_network_dst_port_count(GracRuleNetwork *rule, int ptoto_idx);
+int			 grac_rule_network_get_dst_port(GracRuleNetwork *rule, int ptoto_idx, int port_idx, char **port); // port : single or range
 
 #endif /* _GRAC_RULE_NETWORK_H_ */

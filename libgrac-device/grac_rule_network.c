@@ -31,7 +31,18 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-typedef struct _GracRuleNetwork GracRuleNetwork;
+typedef struct _GracRuleNetwork  GracRuleNetwork;
+typedef struct _GracRuleProtocol GracRuleProtocol;
+
+struct _GracRuleProtocol {
+	gchar		  *protocol_name;
+	GPtrArray *src_port_array;			// char*, single or range "00"  or "00-10"
+	gint		   src_port_count;
+
+	GPtrArray *dst_port_array;			// char*, single or range "00"  or "00-10"
+	gint		   dst_port_count;
+};
+
 
 struct _GracRuleNetwork {
 	struct _perm {
@@ -53,16 +64,57 @@ struct _GracRuleNetwork {
 		gboolean set;		// FALSE: not setting
 	} dir;
 
-	GPtrArray *protocol_array;	// char*
-	gint		   protocol_count;
-
-	GPtrArray *src_port_array;			// char*, single or range "00"  or "00-10"
-	gint		   src_port_count;
-
-	GPtrArray *dst_port_array;			// char*, single or range "00"  or "00-10"
-	gint		   dst_port_count;
+	GPtrArray *protocols_array;	// struct protocol*
+	gint		   protocols_count;
 };
 
+GracRuleProtocol* grac_rule_protocol_alloc()
+{
+	GracRuleProtocol* rule = malloc(sizeof(GracRuleProtocol));
+	if (rule) {
+		c_memset(rule, 0, sizeof(GracRuleProtocol));
+	}
+	return rule;
+}
+
+void grac_rule_protocol_clear(GracRuleProtocol *protocol)
+{
+	if (protocol) {
+		c_free(&protocol->protocol_name);
+		if (protocol->src_port_array) {
+			int	i;
+			for (i=0; i < protocol->src_port_count; i++) {
+				char *port = g_ptr_array_index (protocol->src_port_array, i);
+				c_free(&port);
+			}
+			g_ptr_array_free(protocol->src_port_array, TRUE);
+			protocol->src_port_count = 0;
+		}
+
+		if (protocol->dst_port_array) {
+			int	i;
+			for (i=0; i < protocol->dst_port_count; i++) {
+				char *port = g_ptr_array_index (protocol->dst_port_array, i);
+				c_free(&port);
+			}
+			g_ptr_array_free(protocol->dst_port_array, TRUE);
+			protocol->dst_port_count = 0;
+		}
+		memset(protocol, 0, sizeof(GracRuleProtocol));
+	}
+}
+
+void grac_rule_protocol_free(GracRuleProtocol **pRule)
+{
+	if (pRule) {
+		GracRuleProtocol* rule = *pRule;
+		if (rule) {
+			grac_rule_protocol_clear(rule);
+			free(rule);
+		}
+		*pRule = NULL;
+	}
+}
 
 GracRuleNetwork* grac_rule_network_alloc()
 {
@@ -93,34 +145,14 @@ void grac_rule_network_clear(GracRuleNetwork *rule)
 
 		c_free(&rule->mac_addr_str);
 
-		if (rule->protocol_array) {
-			int	i;
-			for (i=0; i < rule->protocol_count; i++) {
-				char *protocol = g_ptr_array_index (rule->protocol_array, i);
-				c_free(&protocol);
+		if (rule->protocols_array) {
+			int	pidx;
+			for (pidx=0; pidx < rule->protocols_count; pidx++) {
+				GracRuleProtocol* protocol = g_ptr_array_index (rule->protocols_array, pidx);
+				grac_rule_protocol_free(&protocol);
 			}
-			g_ptr_array_free(rule->protocol_array, TRUE);
-			rule->protocol_count = 0;
-		}
-
-		if (rule->src_port_array) {
-			int	i;
-			for (i=0; i < rule->src_port_count; i++) {
-				char *port = g_ptr_array_index (rule->src_port_array, i);
-				c_free(&port);
-			}
-			g_ptr_array_free(rule->src_port_array, TRUE);
-			rule->src_port_count = 0;
-		}
-
-		if (rule->dst_port_array) {
-			int	i;
-			for (i=0; i < rule->dst_port_count; i++) {
-				char *port = g_ptr_array_index (rule->dst_port_array, i);
-				c_free(&port);
-			}
-			g_ptr_array_free(rule->dst_port_array, TRUE);
-			rule->dst_port_count = 0;
+			g_ptr_array_free(rule->protocols_array, TRUE);
+			rule->protocols_count = 0;
 		}
 
 		c_memset(rule, 0, sizeof(GracRuleNetwork));
@@ -360,22 +392,29 @@ gboolean grac_rule_network_add_protocol(GracRuleNetwork *rule, char *protocol)
 
 	if (rule && protocol) {
 
-		if (rule->protocol_array == NULL) {
-			rule->protocol_array = g_ptr_array_new();
-			if (rule->protocol_array == NULL) {
+		if (rule->protocols_array == NULL) {
+			rule->protocols_array = g_ptr_array_new();
+			if (rule->protocols_array == NULL) {
 				grm_log_error("grac_rule_network.c : can't alloc protocol array of rule");
 				return FALSE;
 			}
 		}
 
-		gchar *add_protocol = c_strdup(protocol, 256);
+		GracRuleProtocol*	add_protocol = grac_rule_protocol_alloc();
 		if (add_protocol == NULL) {
 			grm_log_error("grac_rule_network.c : can't alloc to add protocol");
 		}
 		else {
-			g_ptr_array_add(rule->protocol_array, add_protocol);
-			rule->protocol_count++;
-			done = TRUE;
+			add_protocol->protocol_name = c_strdup(protocol, 256);
+			if (add_protocol->protocol_name == NULL) {
+				grm_log_error("grac_rule_network.c : can't alloc to add protocol");
+				grac_rule_protocol_free(&add_protocol);
+			}
+			else {
+				g_ptr_array_add(rule->protocols_array, add_protocol);
+				rule->protocols_count++;
+				done = TRUE;
+			}
 		}
 	}
 
@@ -386,24 +425,26 @@ int			 grac_rule_network_protocol_count(GracRuleNetwork *rule)
 {
 	int	count = 0;
 	if (rule)
-		count = rule->protocol_count;
+		count = rule->protocols_count;
 	return count;
 }
 
-int			 grac_rule_network_get_protocol(GracRuleNetwork *rule, int idx, char **protocol)
+int			 grac_rule_network_get_protocol(GracRuleNetwork *rule, int idx, char **protocol_name)
 {
 	int res = -1;
 
-	if (rule && protocol) {
-		if (idx >= 0 && idx < rule->protocol_count) {
-			char *set_protocol = g_ptr_array_index (rule->protocol_array, idx);
-			if (c_strlen(set_protocol, 256) > 0) {
-				*protocol = set_protocol;
-				res = 1;
-			}
-			else {
-				*protocol = NULL;
-				res = 0;
+	if (rule && protocol_name) {
+		if (idx >= 0 && idx < rule->protocols_count) {
+			GracRuleProtocol *proto = g_ptr_array_index (rule->protocols_array, idx);
+			if (proto) {
+				if (c_strlen(proto->protocol_name, 256) > 0) {
+					*protocol_name = proto->protocol_name;
+					res = 1;
+				}
+				else {
+					*protocol_name = NULL;
+					res = 0;
+				}
 			}
 		}
 	}
@@ -411,15 +452,47 @@ int			 grac_rule_network_get_protocol(GracRuleNetwork *rule, int idx, char **pro
 	return res;
 }
 
-gboolean grac_rule_network_add_src_port(GracRuleNetwork *rule, char *port)
+int grac_rule_network_find_protocol(GracRuleNetwork *rule, char *protocol_name)
+{
+	int found = -1;
+
+	if (rule && protocol_name) {
+		int idx;
+		for (idx=0; idx < rule->protocols_count; idx++) {
+			GracRuleProtocol *proto = g_ptr_array_index (rule->protocols_array, idx);
+			if (proto) {
+				if (c_strmatch(proto->protocol_name, protocol_name)) {
+					found = idx;
+					break;
+				}
+			}
+		}
+	}
+
+	return found;
+}
+
+
+gboolean grac_rule_network_add_src_port(GracRuleNetwork *rule, int protocol_idx, char *port)
 {
 	gboolean done = FALSE;
 
 	if (rule && port) {
 
-		if (rule->src_port_array == NULL) {
-			rule->src_port_array = g_ptr_array_new();
-			if (rule->src_port_array == NULL) {
+		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
+			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			return FALSE;
+		}
+
+		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
+		if (protocol == NULL) {
+			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			return FALSE;
+		}
+
+		if (protocol->src_port_array == NULL) {
+			protocol->src_port_array = g_ptr_array_new();
+			if (protocol->src_port_array == NULL) {
 				grm_log_error("grac_rule_network.c : can't alloc port array of rule");
 				return FALSE;
 			}
@@ -430,8 +503,8 @@ gboolean grac_rule_network_add_src_port(GracRuleNetwork *rule, char *port)
 			grm_log_error("grac_rule_network.c : can't alloc to add port");
 		}
 		else {
-			g_ptr_array_add(rule->src_port_array, add_port);
-			rule->src_port_count++;
+			g_ptr_array_add(protocol->src_port_array, add_port);
+			protocol->src_port_count++;
 			done = TRUE;
 		}
 	}
@@ -439,21 +512,46 @@ gboolean grac_rule_network_add_src_port(GracRuleNetwork *rule, char *port)
 	return done;
 }
 
-int	grac_rule_network_src_port_count(GracRuleNetwork *rule)
+int	grac_rule_network_src_port_count(GracRuleNetwork *rule, int protocol_idx)
 {
 	int	count = 0;
-	if (rule)
-		count = rule->src_port_count;
+
+	if (rule) {
+		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
+			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			return 0;
+		}
+
+		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
+		if (protocol == NULL) {
+			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			return 0;
+		}
+
+		count = protocol->src_port_count;
+	}
+
 	return count;
 }
 
-int grac_rule_network_get_src_port(GracRuleNetwork *rule, int idx, char **port)
+int grac_rule_network_get_src_port(GracRuleNetwork *rule, int protocol_idx,  int idx, char **port)
 {
 	int res = -1;
 
 	if (rule && port) {
-		if (idx >= 0 && idx < rule->src_port_count) {
-			char *set_port = g_ptr_array_index (rule->src_port_array, idx);
+		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
+			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			return res;
+		}
+
+		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
+		if (protocol == NULL) {
+			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			return res;
+		}
+
+		if (idx >= 0 && idx < protocol->src_port_count) {
+			char *set_port = g_ptr_array_index (protocol->src_port_array, idx);
 			if (c_strlen(set_port, 256) > 0) {
 				*port = set_port;
 				res = 1;
@@ -468,15 +566,25 @@ int grac_rule_network_get_src_port(GracRuleNetwork *rule, int idx, char **port)
 	return res;
 }
 
-gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, char *port)
+gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, int protocol_idx, char *port)
 {
 	gboolean done = FALSE;
 
 	if (rule && port) {
+		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
+			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			return FALSE;
+		}
 
-		if (rule->dst_port_array == NULL) {
-			rule->dst_port_array = g_ptr_array_new();
-			if (rule->dst_port_array == NULL) {
+		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
+		if (protocol == NULL) {
+			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			return FALSE;
+		}
+
+		if (protocol->dst_port_array == NULL) {
+			protocol->dst_port_array = g_ptr_array_new();
+			if (protocol->dst_port_array == NULL) {
 				grm_log_error("grac_rule_network.c : can't alloc port array of rule");
 				return FALSE;
 			}
@@ -487,8 +595,8 @@ gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, char *port)
 			grm_log_error("grac_rule_network.c : can't alloc to add port");
 		}
 		else {
-			g_ptr_array_add(rule->dst_port_array, add_port);
-			rule->dst_port_count++;
+			g_ptr_array_add(protocol->dst_port_array, add_port);
+			protocol->dst_port_count++;
 			done = TRUE;
 		}
 	}
@@ -496,21 +604,46 @@ gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, char *port)
 	return done;
 }
 
-int	grac_rule_network_dst_port_count(GracRuleNetwork *rule)
+int	grac_rule_network_dst_port_count(GracRuleNetwork *rule, int protocol_idx)
 {
 	int	count = 0;
-	if (rule)
-		count = rule->dst_port_count;
+
+	if (rule) {
+		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
+			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			return 0;
+		}
+
+		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
+		if (protocol == NULL) {
+			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			return 0;
+		}
+
+		count = protocol->dst_port_count;
+	}
+
 	return count;
 }
 
-int grac_rule_network_get_dst_port(GracRuleNetwork *rule, int idx, char **port)
+int grac_rule_network_get_dst_port(GracRuleNetwork *rule, int protocol_idx, int idx, char **port)
 {
 	int res = -1;
 
 	if (rule && port) {
-		if (idx >= 0 && idx < rule->dst_port_count) {
-			char *set_port = g_ptr_array_index (rule->dst_port_array, idx);
+		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
+			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			return res;
+		}
+
+		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
+		if (protocol == NULL) {
+			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			return res;
+		}
+
+		if (idx >= 0 && idx < protocol->dst_port_count) {
+			char *set_port = g_ptr_array_index (protocol->dst_port_array, idx);
 			if (c_strlen(set_port, 256) > 0) {
 				*port = set_port;
 				res = 1;

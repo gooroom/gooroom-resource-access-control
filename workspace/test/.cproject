@@ -49,6 +49,7 @@
 									<listOptionValue builtIn="false" value="gio-2.0"/>
 									<listOptionValue builtIn="false" value="gdk_pixbuf-2.0"/>
 									<listOptionValue builtIn="false" value="notify"/>
+									<listOptionValue builtIn="false" value="json-c"/>
 								</option>
 								<option id="gnu.c.link.option.paths.925625839" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libgrac-common/Debug}&quot;"/>
@@ -143,4 +144,5 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>
