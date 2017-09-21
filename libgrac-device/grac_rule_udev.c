@@ -549,7 +549,7 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 				count = grac_rule_bluetooth_mac_count(grac_rule);
 				if (count == 0) {	// MAC 주소 지정 부분을 제거한다 -> 모든  bluetooh가  대상이 된다
 					_delete_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format));
-					fprintf(out_fp, out_format);
+					fprintf(out_fp, "%s", out_format);
 					grm_log_debug(out_format);
 				}
 				else {

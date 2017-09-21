@@ -1,7 +1,7 @@
 AM_CPPFLAGS = 					\
 	-I$(top_srcdir)				\
 	-I../libgrac-common	\
-	$(PLATFORM_CFLAGS)
+	$(PLATFORM_CFLAGS)	
 
 lib_LTLIBRARIES = 	\
 	libgrac-device.la
@@ -37,7 +37,7 @@ libgrac_device_la_CFLAGS = 			\
 	$(LIBOOBS_CFLAGS)		\
 	$(GOBJECT_CFLAGS)		\
 	$(PLATFORM_CFLAGS)		\
-	$(LIBXML_CFLAGS)
+	$(LIBXML_CFLAGS)	
 
 libgrac_device_la_LDFLAGS =			\
 	-no-undefined			\
