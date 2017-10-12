@@ -18,7 +18,10 @@ const gchar*	grac_config_dir_grac_data();
 const gchar*	grac_config_path_grac_rules(char* login_name);
 const gchar*	grac_config_path_default_grac_rules();
 const gchar*	grac_config_path_user_grac_rules();
+
+const gchar*	grac_config_file_udev_rules();
 const gchar*	grac_config_path_udev_rules();
+
 const gchar*	grac_config_path_udev_map_org();
 const gchar*	grac_config_path_udev_map_local();
 
@@ -31,6 +34,11 @@ const gchar*	grac_config_path_hook_clipboard_conf();
 const gchar*	grac_config_file_ld_so_preload();
 const gchar*	grac_config_path_ld_so_preload();
 const gchar*	grac_config_dir_ld_so_preload();
+
+
+const gchar*	grac_config_path_recover_info();
+
+int	grac_config_network_printer_port();
 
 
 #endif /* GRAC_CONFIG_H_ */

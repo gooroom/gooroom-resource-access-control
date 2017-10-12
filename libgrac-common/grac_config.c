@@ -47,6 +47,7 @@ struct _GracConfig {
 
 	gchar	*dir_udev_rules;
 	gchar	*path_udev_rules;
+	gchar	*file_udev_rules;
 
 	gchar	*path_hook_screenshooter_so;
 	gchar	*path_hook_screenshooter_conf;
@@ -56,6 +57,8 @@ struct _GracConfig {
 	gchar	*file_ld_so_preload;
 	gchar	*path_ld_so_preload;
 	gchar	*dir_ld_so_preload;
+
+	gchar	*path_recover_info;
 };
 
 /*
@@ -78,6 +81,7 @@ static struct _GracConfig GracConfig = {
 
 	.dir_udev_rules = "/etc/udev/rules.d",
 	.path_udev_rules     = "/etc/udev/rules.d/grac-os.rules",
+	.file_udev_rules     = "grac-os.rules",
 
 	.path_hook_screenshooter_so   = "/usr/lib/x86_64-linux-gnu/libhook-screenshooter.so.0",
 	.path_hook_screenshooter_conf = "/etc/gooroom/grac.d/hook-screenshooter.conf",
@@ -87,7 +91,9 @@ static struct _GracConfig GracConfig = {
 
 	.file_ld_so_preload = "ld.so.preload",
 	.path_ld_so_preload = "/etc/ld.so.preload",
-	.dir_ld_so_preload = "/etc"
+	.dir_ld_so_preload = "/etc",
+
+	.path_recover_info = "/etc/gooroom/grac.d/recover.udev"
 
 };
 
@@ -215,6 +221,11 @@ const char*	grac_config_path_udev_rules()
 	return GracConfig.path_udev_rules;
 }
 
+const char*	grac_config_file_udev_rules()
+{
+	return GracConfig.file_udev_rules;
+}
+
 const gchar*	grac_config_path_hook_screenshooter_so()
 {
 	return GracConfig.path_hook_screenshooter_so;
@@ -257,3 +268,12 @@ const gchar*	grac_config_file_ld_so_preload()
 	return GracConfig.file_ld_so_preload;
 }
 
+int	grac_config_network_printer_port()
+{
+	return 515;
+}
+
+const gchar*	grac_config_path_recover_info()
+{
+	return GracConfig.path_recover_info;
+}

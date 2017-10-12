@@ -1,0 +1,99 @@
+{
+	"network" : {
+		"state" : "allow",
+		"rules" : [
+			{
+				"ipaddress" : "192.1.0.201",
+				"state" : "disallow",
+				"direction" : "all",
+				"ports" : [
+					{
+						"protocol" : "icmp",
+						"src_port" : [ "12", "34"]
+					},
+					{
+						"protocol" : "tcp",
+						"src_port" : [ "100", "110"],
+						"dst_port" : [ "101", "111", "112", "113" ]
+					},
+					{
+						"protocol" : "udp",
+						"src_port" : [ "200", "210", "220" ],
+						"dst_port" : [ "201"]
+					}
+				]
+			},
+			{
+				"ipaddress" : "192.1.0.202",
+				"state" : "disallow",
+				"direction" : "inbound",
+				"ports" : [
+					{
+						"protocol" : "icmp",
+						"src_port" : [ "12", "34"]
+					},
+					{
+						"protocol" : "tcp",
+						"src_port" : [ "100", "110"],
+						"dst_port" : [ "101", "111", "112", "113" ]
+					},
+					{
+						"protocol" : "udp",
+						"src_port" : [ "200", "210", "220" ],
+						"dst_port" : [ "201"]
+					}
+				]
+			},
+			{
+				"ipaddress" : "192.1.0.203",
+				"state" : "disallow",
+				"direction" : "outbound",
+				"ports" : [
+					{
+						"protocol" : "icmp",
+						"src_port" : [ "12", "34"]
+					},
+					{
+						"protocol" : "tcp",
+						"src_port" : [ "100", "110"],
+						"dst_port" : [ "101", "111", "112", "113" ]
+					},
+					{
+						"protocol" : "udp",
+						"src_port" : [ "200", "210", "220" ],
+						"dst_port" : [ "201"]
+					}
+				]
+			},
+			{
+				"ipaddress" : "192.1.0.204",
+				"state" : "disallow",
+				"direction" : "outbound"
+			},
+			{
+				"ipaddress" : "192.1.0.204",
+				"state" : "disallow",
+				"direction" : "outbound",
+				"ports" : [
+					{
+						"protocol" : "tcp"
+					}
+				]
+			}
+
+		]
+     	},
+
+   "usb_memory" : "disallow",
+
+   "bluetooth" : {
+		"state" : "disallow",
+	 },
+
+    "cd_dvd" : "disallow",
+    "printer" : "disallow",
+
+    "screen_capture" : "disallow",
+    "clipboard" : "disallow",
+}
+

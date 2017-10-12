@@ -38,6 +38,7 @@
 #include "cutility.h"
 
 #include "sys_user.h"
+#include "sys_etc.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -325,6 +326,78 @@ static gboolean adjust_udev_rule_map_file()
 	return done;
 }
 
+static gboolean recover_applied_device()
+{
+	gboolean done = TRUE;
+	const char *path;
+
+	grm_log_debug("%s() : start", __FUNCTION__);
+
+	path = grac_config_path_recover_info();
+	if (path == NULL) {
+		grm_log_debug("%s() : end : no file name", __FUNCTION__);
+		return TRUE;
+	}
+
+	FILE	*fp;
+	char	buf[1024];
+	gboolean rescan = TRUE;
+	gboolean trigger = TRUE;
+
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		grm_log_debug("%s() : end : no file", __FUNCTION__);
+		return TRUE;
+	}
+
+	// todo : 정밀 검토
+	while (1) {
+		if (fgets(buf, sizeof(buf), fp) == NULL)
+			break;
+	}
+	fclose(fp);
+	unlink(path);
+
+	gboolean res;
+	char	*cmd;
+
+	// delete the created udev rule
+	// 복구를 위한 udev rule 필요시 이 지점에서 생성
+	path = grac_config_path_udev_rules();
+	if (path != NULL)
+		unlink(path);
+
+	// rescan
+	if (rescan) {
+		cmd = "echo 1 > /sys/bus/pci/rescan";
+		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		if (res == FALSE)
+			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+		done &= res;
+	}
+
+	// trigger
+	if (trigger) {
+		cmd = "udevadm control --reload";
+		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		if (res == FALSE)
+			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+		done &= res;
+
+		cmd = "udevadm trigger -c add";
+		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		if (res == FALSE)
+			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+		done &= res;
+	}
+
+	// 복구를 위한 udev rule 생성된 경우 이 지점에서 삭제
+
+	grm_log_debug("%s() : end", __FUNCTION__);
+
+	return done;
+}
+
 
 static gboolean load_data_and_apply()
 {
@@ -333,6 +406,8 @@ static gboolean load_data_and_apply()
 	int		user_rule;
 
 	G_LOCK (load_apply_lock);
+
+	grm_log_info("Apply grac-rule");
 
 	grm_log_debug("load_data_and_apply() : start");
 
@@ -348,6 +423,10 @@ static gboolean load_data_and_apply()
 			rule_path = NULL;
 		}
 	}
+
+	// 2017.10.12
+	if (recover_applied_device() == FALSE)
+		grm_log_error("%s() : can't recover devices", __FUNCTION__);
 
 	grac_rule_clear(DaemonCtrl.grac_rule);
 

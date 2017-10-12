@@ -359,12 +359,12 @@ static void _out_udev_rule_file_header(FILE *fp)
 	}
 }
 
-// ATTRS{address}=="00:15:83:d0:ef:25"
+// ATTR{uniq}=="00:15:83:d0:ef:25"
 static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
 {
 	gboolean res = FALSE;
 	char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
-	char	*addr_key = "ATTRS{address}==\"";
+	char	*addr_key = "ATTRS{uniq}==\"";
 	char	*ptr1;
 	char	*ptr2;
 	int		n, ch;
@@ -417,13 +417,13 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 }
 
 
-// ATTRS를 제거한다.
-// ATTRS{address}=="00:15:83:d0:ef:25"
-static gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
+// ATTR를 제거한다.
+// ATTR{uniq}=="00:15:83:d0:ef:25"
+gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
 {
 	gboolean res = FALSE;
 	char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
-	char	*addr_key = "ATTRS{address}==\"";
+	char	*addr_key = "ATTR{uniq}==\"";
 	char	*ptr1;
 	char	*ptr2;
 	int		n, ch;
@@ -529,28 +529,28 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 	_out_udev_rule_file_header(out_fp);
 
 	int rule_idx;
-	int	seq, out;
+	int	out;
+	//int	seq;
 
 	for (rule_idx=0; rule_idx<udev_rule->line_count; rule_idx++) {
 		if (fgets(buf, sizeof(buf), in_fp) == NULL)
 				break;
 
-		seq = udev_rule->line_status[rule_idx] & 0x3fff;
+		//seq = udev_rule->line_status[rule_idx] & 0x3fff;
 		if (udev_rule->line_status[rule_idx] & 0x8000)
 			out = 1;
 		else
 			out = 0;
 
 		if (out) {
-			grm_log_debug("+ [%04x][%d][%d]-%s", udev_rule->line_status[rule_idx], out, seq, buf);
 			if (_check_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format)) ) {
-				grm_log_debug("<<");
 				int count;
 				count = grac_rule_bluetooth_mac_count(grac_rule);
 				if (count == 0) {	// MAC 주소 지정 부분을 제거한다 -> 모든  bluetooh가  대상이 된다
-					_delete_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format));
-					fprintf(out_fp, "%s", out_format);
-					grm_log_debug(out_format);
+					;
+					// bluetooth 전체 장치를 위한 rule은 별도로 있다고 가정
+					// _delete_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format));
+					//printf(out_fp, "%s", out_format);
 				}
 				else {
 					int		mac_idx;
@@ -558,18 +558,12 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 					for (mac_idx=0; mac_idx < count; mac_idx++) {
 						grac_rule_bluetooth_mac_get_addr(grac_rule, mac_idx, mac_addr, sizeof(mac_addr));
 						fprintf(out_fp, out_format, mac_addr);
-						grm_log_debug(out_format, mac_addr);
 					}
 				}
-				grm_log_debug(">>");
 			}
 			else {
 				fprintf(out_fp, "%s", buf);
-				grm_log_debug("+ [%04x][%d][%d]-%s", udev_rule->line_status[rule_idx], out, seq, buf);
 			}
-		}
-		else {
-			grm_log_debug("- [%04x][%d][%d]-%s", udev_rule->line_status[rule_idx], out, seq, buf);
 		}
 	}
 

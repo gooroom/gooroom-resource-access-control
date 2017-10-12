@@ -25,6 +25,8 @@
 #include "grm_log.h"
 #include "cutility.h"
 #include "sys_ipt.h"
+#include "sys_user.h"
+#include "sys_etc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -745,6 +747,8 @@ gboolean grac_rule_load (GracRule *data, gchar* path)
 	return done;
 }
 
+
+
 static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rule)
 {
 	char *func = "_grac_network_apply_one()";
@@ -1011,10 +1015,20 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 {
 	gboolean done = FALSE;
 	const char *map_path;
-	const char *udev_path;
 	char	tmp_file[1024];
 	int		res;
+	char	udev_rule_target[2048];
+	int		uid;
 
+	uid = sys_user_get_login_uid();
+	if (uid < 0) {
+		grm_log_error("%s(): can't get login name", __FUNCTION__);
+		return FALSE;
+	}
+	snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%d/%s", uid, grac_config_file_udev_rules());
+
+	snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%d/grac_tmp_udev", uid);
+/*
 	c_strcpy(tmp_file, "/tmp/grac_tmp_XXXXXX", sizeof(tmp_file));
 	res = mkstemp(tmp_file);
 	if (res == -1) {
@@ -1022,11 +1036,11 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		tmp_path = grac_config_dir_grac_data();
 		snprintf(tmp_file, sizeof(tmp_file), "/%s/grac_tmp_udev", tmp_path);
 	}
+*/
 
 	map_path = grac_config_path_udev_map_local();
-	udev_path = grac_config_path_udev_rules();
 
-	if (map_path && udev_path) {
+	if (map_path) {
 		gboolean made;
 		GracRuleUdev *udev_rule;
 		udev_rule = grac_rule_udev_alloc(map_path);
@@ -1034,11 +1048,11 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 			made = grac_rule_udev_make_rules(udev_rule, rule, tmp_file);
 			if (made) {
 				int n;
-				unlink(udev_path);
-				n = rename(tmp_file, udev_path);
+				unlink(udev_rule_target);
+				n = rename(tmp_file, udev_rule_target);
 				if (n == -1) {
 					done = FALSE;
-					grm_log_error("%s() : rename error : tmp --> rule", __FUNCTION__);
+					grm_log_error("%s() : rename error : %s --> %s : %s", __FUNCTION__, tmp_file, udev_rule_target, strerror(errno));
 				}
 			}
 			else {
@@ -1049,6 +1063,40 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		}
 		grac_rule_udev_free(&udev_rule);
 	}
+
+	char *udev_path_link = (char*)grac_config_path_udev_rules();
+	if (udev_path_link == NULL) {
+		done = FALSE;
+	}
+	else {
+		if (done == TRUE) {
+			unlink(udev_path_link);
+			res = symlink(udev_rule_target, udev_path_link);
+			if (res != 0) {
+				grm_log_error("%s(): can't make link : %s", __FUNCTION__, strerror(errno) );
+				done = FALSE;
+			}
+		}
+	}
+
+
+	if (done) {
+		gboolean res;
+		char	*cmd;
+
+		cmd = "udevadm control --reload";
+		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		if (res == FALSE)
+			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+		done &= res;
+
+		cmd = "udevadm trigger -c add";
+		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		if (res == FALSE)
+			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+		done &= res;
+	}
+
 
 	return done;
 }
@@ -1080,6 +1128,36 @@ static gboolean _grac_rule_apply_hook(GracRule *rule)
 	return done;
 }
 
+// iptables -I OUTPUT -p tcp --dport 515 -j DROP
+static gboolean _grac_rule_disallow_network_printer(GracRule *rule, int port)
+{
+	gboolean done = FALSE;
+
+	if (rule == NULL)
+		return FALSE;
+
+	sys_ipt_rule *ipt = sys_ipt_rule_alloc();
+
+	if (ipt) {
+		done = TRUE;
+		char	port_str[32];
+
+		snprintf(port_str, sizeof(port_str), "%u", port);
+
+		done &= sys_ipt_rule_set_target  (ipt, SYS_IPT_TARGET_DROP);
+		done &= sys_ipt_rule_set_chain   (ipt, SYS_IPT_CHAIN_B_OUTPUT);
+		done &= sys_ipt_rule_set_protocol(ipt, SYS_IPT_PROTOCOL_TCP);
+		done &= sys_ipt_rule_add_dst_port_str(ipt, port_str);
+
+		done &= sys_ipt_insert_rule(ipt);
+
+		sys_ipt_rule_free(&ipt);
+	}
+
+	return done;
+}
+
+
 // 추가 설정
 static gboolean _grac_rule_apply_extra(GracRule *rule)
 {
@@ -1099,6 +1177,11 @@ static gboolean _grac_rule_apply_extra(GracRule *rule)
 		case GRAC_RESOURCE_BLUETOOTH :
 			if (perm_id >= 0) {
 				; // udev rule + MAC
+			}
+			break;
+		case GRAC_RESOURCE_PRINTER :
+			if (perm_id == GRAC_PERMISSION_DISALLOW) {
+				_grac_rule_disallow_network_printer(rule, grac_config_network_printer_port());
 			}
 			break;
 		case GRAC_RESOURCE_OTHERS :	// ignore

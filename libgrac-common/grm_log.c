@@ -222,7 +222,7 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 	G_LOCK (grm_log_lock);
 
 //	static gboolean version_out = FALSE;
-//	static char*    log_version = "****** libgrac version 2016.12.01 (001) *****";
+//	static char*    log_version = "****** libgrac version 2017.10.01 (001) *****";
 	gchar *kind_str;
 	gchar *message;
 
