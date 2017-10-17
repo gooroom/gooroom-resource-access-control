@@ -1090,7 +1090,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 
-		cmd = "udevadm trigger -c add";
+		cmd = "udevadm trigger -s block -s bluetooth -s usb -s net -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
 			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);

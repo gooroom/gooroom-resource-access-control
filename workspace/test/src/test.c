@@ -32,6 +32,27 @@
 #include "sys_etc.h"
 
 
+static void test()
+{
+	const char	*rule_path;
+
+	rule_path = grac_config_path_default_grac_rules();
+
+	GracRule *grac_rule = grac_rule_alloc();
+	if (rule_path != NULL) {
+		gboolean res;
+		res = grac_rule_load(grac_rule, (gchar*)rule_path);
+		if (res == FALSE) {
+			printf("%s() : load rule error : %s", __FUNCTION__, rule_path);
+			return;
+		}
+		else {
+			grac_rule_apply(grac_rule);
+		}
+	}
+
+}
+
 int main()
 {
 /*
@@ -44,7 +65,7 @@ int main()
 
 */
 
-	test_udev_map_cnv();
+	test();
 
 	return EXIT_SUCCESS;
 }

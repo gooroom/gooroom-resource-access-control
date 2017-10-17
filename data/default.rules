@@ -1,18 +1,18 @@
 {
 	"network" : {
-		"state" : "allow",
+		"state" : "allow"
      	},
 
    "usb_memory" : "disallow",
 
    "bluetooth" : {
-		"state" : "disallow",
+		"state" : "disallow"
 	 },
 
     "cd_dvd" : "disallow",
     "printer" : "disallow",
 
     "screen_capture" : "disallow",
-    "clipboard" : "disallow",
+    "clipboard" : "disallow"
 }
 

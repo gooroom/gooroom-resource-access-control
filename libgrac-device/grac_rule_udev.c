@@ -363,18 +363,30 @@ static void _out_udev_rule_file_header(FILE *fp)
 static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
 {
 	gboolean res = FALSE;
-	char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
-	char	*addr_key = "ATTRS{uniq}==\"";
+	//char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
+	char	*addr_key;
+	char	*addr_key1 = "ATTR{uniq}==\"";
+	char	*addr_key2 = "ATTRS{uniq}==\"";
 	char	*ptr1;
 	char	*ptr2;
 	int		n, ch;
 
-	if (c_strstr(buf, subsystem, bsize) == NULL)
-		return FALSE;
+	//if (c_strstr(buf, subsystem, bsize) == NULL)
+	//	return FALSE;
 
-	ptr1 = c_strstr(buf, addr_key, bsize);
-	if (ptr1 == NULL)
-		return FALSE;
+	ptr1 = c_strstr(buf, addr_key1, bsize);
+	if (ptr1 != NULL) {
+		addr_key = addr_key1;
+	}
+	else {
+		ptr1 = c_strstr(buf, addr_key2, bsize);
+		if (ptr1 != NULL) {
+			addr_key = addr_key2;
+		}
+		else {
+			return FALSE;
+		}
+	}
 
 	n = c_strlen(addr_key, 256);
 	ptr1 += n;
@@ -395,8 +407,65 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 	save_ch = *(ptr1-1);
 	*(ptr1-1) = 0;		// end mark on location of '\"'
 	ptr2++;				    // move loaction after '\"'
-	snprintf(format, fsize, "%s%s%s", buf, "\"%s\"", ptr2);
+
+	int fidx, i;
+	fidx = 0;
+
+	n = c_strlen(buf, fsize);
+	for (i=0; i<n; i++) {
+		if (buf[i] == '%') {
+			if (fidx < fsize-2) {
+				format[fidx++] = '%';
+				format[fidx++] = '%';
+			}
+			else {
+				break;
+			}
+		}
+		else {
+			if (fidx < fsize-1) {
+				format[fidx++] = buf[i];
+			}
+			else {
+				break;
+			}
+		}
+	}
+	format[fidx] = 0;
+	if (i != n || buf[i] != 0) {
+		*(ptr1-1) = save_ch;
+		return FALSE;
+	}
 	*(ptr1-1) = save_ch;
+
+
+	c_strcat(format, "\"%s\"", fsize);
+	fidx = c_strlen(format, fsize);
+
+	n = c_strlen(ptr2, fsize);
+	for (i=0; i<n; i++) {
+		if (ptr2[i] == '%') {
+			if (fidx < fsize-2) {
+				format[fidx++] = '%';
+				format[fidx++] = '%';
+			}
+			else {
+				break;
+			}
+		}
+		else {
+			if (fidx < fsize-1) {
+				format[fidx++] = ptr2[i];
+			}
+			else {
+				break;
+			}
+		}
+	}
+	format[fidx] = 0;
+	if (i != n || ptr2[i] != 0) {
+		return FALSE;
+	}
 
 	res = FALSE;
 	n = c_strlen(format, fsize);
@@ -422,17 +491,28 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
 {
 	gboolean res = FALSE;
-	char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
-	char	*addr_key = "ATTR{uniq}==\"";
+	//char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
+	char	*addr_key;
+	char	*addr_key1 = "ATTR{uniq}==\"";
+	char	*addr_key2 = "ATTRS{uniq}==\"";
 	char	*ptr1;
 	char	*ptr2;
 	int		n, ch;
 
-	if (c_strstr(buf, subsystem, bsize) == NULL)
-		return FALSE;
+//	if (c_strstr(buf, subsystem, bsize) == NULL)
+//		return FALSE;
 
 	// ATTRS가 없으므로 전체가 유효하다.
-	ptr1 = c_strstr(buf, addr_key, bsize);
+	ptr1 = c_strstr(buf, addr_key1, bsize);
+	if (ptr1 != NULL) {
+		addr_key = addr_key1;
+	}
+	else {
+		ptr1 = c_strstr(buf, addr_key2, bsize);
+		if (ptr1 != NULL) {
+			addr_key = addr_key2;
+		}
+	}
 	if (ptr1 == NULL) {
 		n = c_strlen(buf, fsize);
 		if (n < fsize-1) {
@@ -502,8 +582,53 @@ gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsi
 		}
 	}
 
+	// adjust %%
+	if (res == TRUE) {
+		int i, cnt;
+		n = c_strlen(format, fsize);
+		cnt = 0;
+		for (i=0; i<n; i++) {
+			if (format[i] == '%')
+				cnt++;
+		}
+		if (cnt > 0) {
+			if (cnt + n > fsize-1) {
+				res = FALSE;
+			}
+			else {
+				for (i=n; i>=0; i--) {
+					if (format[i] == '%') {
+						format[i+cnt] = '%';
+						format[i+cnt-1] = '%';
+						cnt--;
+					}
+					else {
+						format[i+cnt] = format[i];
+					}
+					if (cnt == 0)
+						break;
+				}
+			}
+		}
+	}
+
 	return res;
 }
+
+static void _adjust_mac_addr(char *mac_addr)
+{
+	int	i, n, ch;
+
+	n = c_strlen(mac_addr, 256);
+	for (i=0; i<n; i++) {
+		ch = mac_addr[i];
+		if (ch == '.')
+			mac_addr[i] = ':';
+		else
+			mac_addr[i] = tolower(ch);
+	}
+}
+
 
 static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rule, const char *rules_file)
 {
@@ -557,6 +682,7 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 					char	mac_addr[256];
 					for (mac_idx=0; mac_idx < count; mac_idx++) {
 						grac_rule_bluetooth_mac_get_addr(grac_rule, mac_idx, mac_addr, sizeof(mac_addr));
+						_adjust_mac_addr(mac_addr);
 						fprintf(out_fp, out_format, mac_addr);
 					}
 				}

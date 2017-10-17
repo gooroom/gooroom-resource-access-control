@@ -768,7 +768,7 @@ static gboolean _make_and_run_cmd (gboolean append, int chain, sys_ipt_rule *rul
 
 	if (sys_ipt_log_on) {
 		snprintf(cmd_log, sizeof(cmd_log),
-							"%s -j LOG --log-level notice --log-prefix '%s'", cmd, sys_ipt_log_header);
+							"%s -j LOG --log-level warning --log-prefix '%s'", cmd, sys_ipt_log_header);
 	}
 
 	// target

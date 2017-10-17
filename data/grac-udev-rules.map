@@ -5,48 +5,123 @@
 # Simple Debuging : ENV{DEBUG}=%c
 #
 
-
-#
-# CDROM & DVD Disable
-#
-# by cdrom_id
-# [grac_rule] cd_dvd	disallow
-ACTION=="add", KERNEL=="sr[0-9]*", ENV{ID_CDROM}=="1", RUN+="cdrom_id --eject-media $devnode"
-# authorized variable
-ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../../authorized'"
-
-
 #
 # USB & SD-CARD Block Device to Enable/Disable
+# - eject device
 #
-# [grac_rule] usb_memory	disallow
-# USB HDD by eject
-#ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
+# [grac_rule]  usb_memory  disallow
 #
-# USB SSD & STICK, SD-CARD Disable by eject
-#ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
-#
-# USB SSD & STICK, SD-CARD Disable + GUI Message & Log Test
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[a-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/bin/bash /usr/bin/grac-usb.sh %k"
-#
-# USB SSD & STICK, SD-CARD Disable by udisk env
-#ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{UDISKS_IGNORE}="1"
-#
-# USB SSD & STICK, SD-CARD Disable + GUI Message & Log Test
-#ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{UDISKS_IGNORE}="1", RUN+="/bin/bash /usr/bin/grac-usb.sh %k"
-
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
 
 #
 # USB Block Device's Partition to Read-Only
 #
-# FAT by blockdev
-#SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs",RUN+="/sbin/blockdev --setro /dev/%k"
+# [grac_rule] usb_memory read_only
 #
 # NTFS by mount
-#ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/sh -c '/bin/mount | /bin/grep fuseblk | /bin/grep rw | /usr/bin/cut -d\  -f1'", RUN+="/bin/mount -o remount,ro %c"
+SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/usr/bin/grac-apply.sh usb_memory read_only blockdev.ntfs %k $devpath"
+SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/sbin/blockdev --setro /dev/%k"
+#
+# FAT by blockdev
+ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/sh -c '/bin/mount | /bin/grep fuseblk | /bin/grep rw | /usr/bin/cut -d\  -f1'", RUN+="/usr/bin/grac-apply.sh usb_memory read_only remount %k $devpath"
+ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/sh -c '/bin/mount | /bin/grep fuseblk | /bin/grep rw | /usr/bin/cut -d\  -f1'", RUN+="/bin/mount -o remount,ro %c"
+
+#
+# CDROM & DVD Disable
+# 	by cdrom_id
+#
+# [grac_rule] cd_dvd	disallow
+#
+ACTION=="add", KERNEL=="sr[0-9]*", ENV{ID_CDROM}=="1", RUN+="/usr/bin/grac-apply.sh cd_dvd disallow cdrom_id.$devnode %k $devpath"
+ACTION=="add", KERNEL=="sr[0-9]*", ENV{ID_CDROM}=="1", RUN+="cdrom_id --eject-media $devnode"
+#
+# authorized variable
+#ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN+="/usr/bin/grac-apply.sh cd_dvd:scsi disallow authorized %k $devpath"
+#ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../../authorized'"
+#
+# insert disk CD or DVD
+ACTION=="change", SUBSYSTEM=="block", KERNEL=="sr[0-9]*", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh cd_dvd:block disallow eject %k $devpath"
+ACTION=="change", SUBSYSTEM=="block", KERNEL=="sr[0-9]*", ENV{DEVTYPE}=="disk", RUN+="cdrom_id --eject-media $devnode"
+
+#
+# External Bluetooth Device Connection by PCI Bluetooth Receiver
+#   - keyboard
+#
+#  [grac_rule] keyboard allow bluetooth
+#
+#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_KEYBOARD}=="1", RUN+="/usr/bin/grac-apply.sh keyboard.%E{ID_BUS}:%E{SUBSYSTEM} allow nop.$attr{uniq} %k $devpath"
+#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_KEYBOARD}=="1", GOTO="bluetooth_end"
+
+#
+# External Bluetooth Device Connection by PCI Bluetooth Receiver
+#   - mouse
+#
+#  [grac_rule] mouse allow bluetooth
+#
+#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_MOUSE}=="1", RUN+="/usr/bin/grac-apply.sh mouse.%E{ID_BUS}:%E{SUBSYSTEM} allow nop.$attr{uniq} %k $devpath"
+#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_MOUSE}=="1", GOTO="bluetooth_end"
+
+#
+# External Bluetooth Device Connection by PCI Bluetooth Receiver
+#   - Whitelist for Devices
+#   - address should be replaced by actual address
+#
+#  [grac_rule] bluetooth disallow
+#
+ACTION=="add", ENV{ID_BUS}=="bluetooth", ATTRS{uniq}=="00:fb:c1:8a:71:c0", RUN+="/usr/bin/grac-apply.sh %E{ID_BUS}:%E{SUBSYSTEM} allow nop.$attr{uniq} %k $devpath"
+ACTION=="add", ENV{ID_BUS}=="bluetooth", ATTRS{uniq}=="00:fb:c1:8a:71:c0", GOTO="bluetooth_end"
+
+#
+# External Bluetooth Device Connection by PCI Bluetooth Receiver
+# Block All Devices
+#   - Notice! blocking device except while list above 
+#             grac-rule should be "ALLOW" !!!!!!
+#
+#  [grac_rule] bluetooth disallow
+#
+ACTION=="add", ENV{ID_BUS}=="bluetooth", RUN+="/usr/bin/grac-apply.sh %E{ID_BUS}:%E{SUBSYSTEM} disallow hcitool.$attr{uniq} %k $devpath"
+ACTION=="add", ENV{ID_BUS}=="bluetooth", RUN+="/usr/bin/grac-hci.sh disallow $attr{uniq}"
+
+
+LABEL="bluetooth_end"
+
+#
+# PCI Audio Controller
+#
+# [grac_rule]  sound  disallow  pci
+#
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh sound disallow rescan %k $devpath"
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
+
+#
+# PCI Wireless Lan
+#
+# [grac_rule] wireless  disallow
+#
+ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", RUN+="/usr/bin/grac-apply.sh wireless:net disallow remove %k $devpath"
+ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", RUN="/bin/sh -c 'echo 1 >/sys/\$devpath/../../remove'"
+
+#
+# USB Printer
+#
+# [grac_rule] printer  disallow
+#
+ACTION=="add", KERNEL=="lp[0-9]*", RUN+="/usr/bin/grac-apply.sh printer.usb disallow authorized.lp0 %k $devpath"
+ACTION=="add", KERNEL=="lp[0-9]*", RUN+="/bin/sh -c 'echo 0 >/sys/$devpath/../../authorized'"
+#
+#ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usblp", RUN+="/usr/bin/grac-apply.sh printer.usb disallow authorized.usblp %k $devpath"
+#ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usblp", RUN+="/bin/sh -c 'echo 0 > /sys/$devpath/authorized'"
+#
+ACTION=="add", DRIVERS=="usblp", ATTRS{bInterfaceClass}=="07", RUN+="/usr/bin/grac-apply.sh printer.usb disallow authorized.usblp.07 %k $devpath"
+ACTION=="add", DRIVERS=="usblp", ATTRS{bInterfaceClass}=="07", RUN+="/bin/sh -c 'echo 0 >/sys/$devpath/authorized'"
 
 
 
+
+#---------------------- followings are testing, do not use ----
 #
 # USB Wired Keyboard & Mouse
 #
@@ -78,70 +153,4 @@ ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[a-z]*", ENV{ID_USB_DRIVER}=="usb-
 
 #ACTION=="add", SUBSYSTEM=="bluetooth", ATTRS{address}=="00:15:83:d0:ef:25", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
 
-
-#
-# External Bluetooth Device Connection by PCI Bluetooth Receiver
-#
-# Block All Devices
-#ACTION=="add", ENV{DEVTYPE}=="link", SUBSYSTEM=="bluetooth", RUN="/usr/bin/hcitool dc $attr{address}"
-#
-# Whitelist for Devices
-#ACTION=="add", ENV{DEVTYPE}=="link", SUBSYSTEM=="bluetooth", ATTR{address}=="00:1f:20:76:a0:98", RUN="/usr/bin/hcitool dc $attr{address}"
-
-#
-# USB Printer
-#
-
-#ACTION=="add", KERNEL=="lp[0-9]*", RUN="/bin/sh -c 'echo 0 >/sys/$devpath/../../authorized'"
-
-#ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usblp", RUN="/bin/sh -c 'echo 0 > /sys/$devpath/authorized'"
-
-#ACTION=="add", DRIVERS=="usblp", ATTRS{bInterfaceClass}=="07", RUN="/bin/sh -c 'echo 0 >/sys/$devpath/authorized'"
-
-
-#
-# PCI Ethernet Controller
-#
-#ACTION=="add", ENV{PCI_CLASS}=="200[0-9]*", RUN="/bin/sh -c 'echo 1 >/sys/\$devpath/remove'"
-
-
-#
-# PCI Audio Controller
-#
-#ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN="/bin/sh -c 'echo 1 >/sys/\$devpath/remove'"
-
-
-#
-# PCI Wireless Lan
-#
-#ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", RUN="/bin/sh -c 'echo 1 >/sys/\$devpath/../../remove'"
-
-
-
-
-
-
-#############################################################################################################
-#
-# Permission(MODE) Setting at /dev/
-#
-#ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODE="0000"
-
-
-#
-# Command Execution by PROGRAM Key
-#
-#ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/mount -o remount,ro /dev/sdb1", ENV{RESULT}="%c"
-#ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/sh /etc/udev/rules.d/test.sh", ENV{RESULT}="%c", RUN+="/bin/mount -o remount,ro %c"
-
-#ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/sh -c 'for i in $(seq 1 207); do echo -n $i; done'", ENV{RESULT}="%c"
-
-#ACTION=="add", ATTR{idVendor}=="090c", ATTR{idProduct}=="*", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
-#BUS=="usb", KERNEL=="sdb", OPTIONS+="ignore_device"
-#ACTION="add", BUS=="usb", KERNEL=="sdb", OPTIONS+="ignore_device"
-#ACTION="add", KERNEL=="sdb", SUBSYSTEM=="block", OPTIONS+="ignore_device"
-#BUS=="usb", KERNEL=="sdb", SUBSYSTEM=="block", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
-#ACTION=="add", BUS=="usb", KERNEL=="loop*|nvme*|sd*|vd*|xvd*", RUN="/bin/sh -c 'echo $devpath > /tmp/test'"
-#ACTION=="add", SUBSYSTEMS=="usb", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
-#ACTION=="add", ENV{DRIVER}=="usb-storage", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
 

@@ -341,8 +341,8 @@ static gboolean recover_applied_device()
 
 	FILE	*fp;
 	char	buf[1024];
-	gboolean rescan = TRUE;
-	gboolean trigger = TRUE;
+	gboolean rescan = FALSE;
+	gboolean trigger = FALSE;
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
@@ -354,6 +354,8 @@ static gboolean recover_applied_device()
 	while (1) {
 		if (fgets(buf, sizeof(buf), fp) == NULL)
 			break;
+		if (c_stristr(buf, "rescan", sizeof(buf)))
+			rescan = TRUE;
 	}
 	fclose(fp);
 	unlink(path);
