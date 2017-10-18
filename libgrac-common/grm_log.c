@@ -254,6 +254,7 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 	}
 
 	char	new_format[1024];
+	char	sys_message[1024];
 	int		new_size;
 
 	new_size = strlen(G_AppName)+2 + strlen(kind_str)+2 + strlen(format) + 1;
@@ -266,6 +267,13 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 		else
 			sprintf(new_format, "%s: %s: %s", G_AppName, kind_str, format);
 		message = g_strdup_vprintf (new_format, var_args);
+		if (message != NULL) {
+			if (G_AppName[0] == 0)
+				snprintf(sys_message, sizeof(sys_message), "app=\"GRAC\" msg=\"%s\"", message);
+			else
+				snprintf(sys_message, sizeof(sys_message), "app=\"%s\" msg=\"%s\"", G_AppName, message);
+		}
+
 	}
 
 //	if (version_out == FALSE) {
@@ -275,7 +283,7 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 //		}
 
 	if (message != NULL) {
-		_do_sys_log (level, message);
+		_do_sys_log (level, sys_message);
 		_do_file_log(message);
 
 		g_free (message);

@@ -78,7 +78,7 @@ gboolean	sys_ipt_append_all_drop_rule();
 gboolean	sys_ipt_insert_all_accept_rule();
 gboolean	sys_ipt_append_all_accept_rule();
 
-gboolean	sys_ipt_set_log(gboolean log_on, char *header);
+gboolean	sys_ipt_set_log(gboolean log_on, char *header);   // Maximum 29 chars
 gboolean	sys_ipt_set_policy(gboolean allow);
 
 #endif /* _SYS_IPT_H_ */

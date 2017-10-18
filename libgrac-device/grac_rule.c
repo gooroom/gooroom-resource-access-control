@@ -962,7 +962,8 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 	gboolean done = TRUE;
 	int	perm_id;
 
-	sys_ipt_set_log(TRUE, "*** Gooroom Grac ***");
+	sys_ipt_set_log(TRUE, "[GRAC : Disallowed Network] ");		// Maximunm 29 chars
+                                              /* 12345678901234567890123456789 */
 
 	// no data
 	if (rule == NULL) {
@@ -1144,6 +1145,8 @@ static gboolean _grac_rule_disallow_network_printer(GracRule *rule, int port)
 
 		snprintf(port_str, sizeof(port_str), "%u", port);
 
+		sys_ipt_set_log(TRUE, "[GRAC : Disallowed Printer] ");		// Maximunm 29 chars
+                                                  /* 12345678901234567890123456789 */
 		done &= sys_ipt_rule_set_target  (ipt, SYS_IPT_TARGET_DROP);
 		done &= sys_ipt_rule_set_chain   (ipt, SYS_IPT_CHAIN_B_OUTPUT);
 		done &= sys_ipt_rule_set_protocol(ipt, SYS_IPT_PROTOCOL_TCP);
@@ -1153,6 +1156,12 @@ static gboolean _grac_rule_disallow_network_printer(GracRule *rule, int port)
 
 		sys_ipt_rule_free(&ipt);
 	}
+
+
+	grm_log_debug("log testing - debug - yang");
+	grm_log_error("log testing - error - yang");
+	grm_log_info("log testing - info - yang");
+	grm_log_warning("log testing - warning - yang");
 
 	return done;
 }

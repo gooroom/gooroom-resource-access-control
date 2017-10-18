@@ -523,7 +523,7 @@ gboolean sys_user_get_login_name_by_api(char *name, int size)
 		return FALSE;
 }
 
-
+// notice! result is only 8 characters
 gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 {
 	char	*func = (char*)__FUNCTION__;
@@ -626,6 +626,35 @@ gboolean sys_user_get_login_name_by_wcmd(char *name, int size)
 	return getB;
 }
 
+gboolean sys_user_get_login_name_by_who_cmd(char *name, int size)
+{
+	gboolean done;
+	char	output[2048];
+	char	*cmd;
+
+	cmd = "who | awk '{print $1}'";
+	done =  sys_run_cmd_get_output(cmd, "by_who_cmd", output, sizeof(output));
+	if (done == FALSE) {
+		grm_log_error("commamd running error : %s", cmd);
+		return FALSE;
+	}
+
+	int idx;
+	for (idx=0; idx < sizeof(output); idx++) {
+		if (output[idx] == 0)
+			break;
+		if (output[idx] == '\n') {
+			output[idx] = 0;
+			break;
+		}
+	}
+
+	c_strtrim(output, sizeof(output));
+	c_strcpy(name, output, size);
+
+	return done;
+}
+
 gboolean sys_user_get_login_name_by_users_cmd(char *name, int size)
 {
 	gboolean done;
@@ -633,7 +662,7 @@ gboolean sys_user_get_login_name_by_users_cmd(char *name, int size)
 	char	*cmd;
 
 	cmd = "users";
-	done =  sys_run_cmd_get_output(cmd, "daemon", output, sizeof(output));
+	done =  sys_run_cmd_get_output(cmd, "by_users_cmd", output, sizeof(output));
 	if (done == FALSE) {
 		grm_log_error("commamd running error : %s", cmd);
 		return FALSE;
@@ -661,7 +690,7 @@ gboolean sys_user_get_login_name(char *name, int size)
 
 	done = sys_user_get_login_name_by_api(name, size);
 	if (done == FALSE)
-		done = sys_user_get_login_name_by_wcmd(name, size);
+		done = sys_user_get_login_name_by_who_cmd(name, size);
 	if (done == FALSE)
 		done = sys_user_get_login_name_by_users_cmd(name, size);
 

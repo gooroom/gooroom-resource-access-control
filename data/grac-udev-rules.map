@@ -78,7 +78,6 @@ ACTION=="add", ENV{ID_BUS}=="bluetooth", ATTRS{uniq}=="00:fb:c1:8a:71:c0", GOTO=
 # External Bluetooth Device Connection by PCI Bluetooth Receiver
 # Block All Devices
 #   - Notice! blocking device except while list above 
-#             grac-rule should be "ALLOW" !!!!!!
 #
 #  [grac_rule] bluetooth disallow
 #

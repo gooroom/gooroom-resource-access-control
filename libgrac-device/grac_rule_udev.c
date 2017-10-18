@@ -29,7 +29,8 @@ typedef enum {
 	GRAC_RULE_MAP_LINE_EMPTY = 0,
 	GRAC_RULE_MAP_LINE_COMMENT,
 	GRAC_RULE_MAP_LINE_RULE,
-	GRAC_RULE_MAP_LINE_MAPINFO
+	GRAC_RULE_MAP_LINE_MAPINFO,
+	GRAC_RULE_MAP_LINE_SPECIAL
 } grac_rule_map_line_t;
 
 struct _GracRuleUdev
@@ -170,38 +171,35 @@ static gboolean	_parse_map_info_line(
 //	- syntax
 //       # $map$  resource permission [option]
 // comment line is starting from '#'
+// Notice!!!
+//   buf should be deleted leading and trailing spaces before calling this
 //
-// return -1:error 0:empty 1:normal 2:comment 3:map info
+// return -1:error 0:empty 1:normal 2:comment 3:map info 4: special(LABEL...)
 
 static int	_check_line_kind(char *buf, int buf_size)
 {
 	grac_rule_map_line_t kind = GRAC_RULE_MAP_LINE_ERROR;
-	int	idx;
 
 	if (buf) {
 
 		kind = GRAC_RULE_MAP_LINE_EMPTY;
 
-		for (idx=0; idx<buf_size; idx++) {
-			int ch;
-			ch = buf[idx] & 0x0ff;
-			if (ch == 0)
-				break;
-			if (ch > 0x20) {
-				if (ch == '#') {
-					char word[256];
-					int	len = c_get_word(buf+1, buf_size-1, NULL, word, sizeof(word));
-					if (len > 0 && c_strimatch(word, GRAC_RULE_MAP_KEY))
-						kind = GRAC_RULE_MAP_LINE_MAPINFO;
-					else
-						kind = GRAC_RULE_MAP_LINE_COMMENT;
-				}
-				else
-					kind = GRAC_RULE_MAP_LINE_RULE;
-				break;
-			}
-		} // for
-
+		int ch;
+		ch = buf[0] & 0x0ff;
+		if (ch == '#') {
+			char word[256];
+			int	len = c_get_word(buf+1, buf_size-1, NULL, word, sizeof(word));
+			if (len > 0 && c_strimatch(word, GRAC_RULE_MAP_KEY))
+				kind = GRAC_RULE_MAP_LINE_MAPINFO;
+			else
+				kind = GRAC_RULE_MAP_LINE_COMMENT;
+		}
+		else if (ch > 0x20) {
+			if (c_memcmp(buf, "LABEL=", 6, -1) == 0)
+				kind = GRAC_RULE_MAP_LINE_SPECIAL;
+			else
+				kind = GRAC_RULE_MAP_LINE_RULE;
+		}
 	}
 
 	return kind;
@@ -249,7 +247,7 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 	int 	kind;
 	int		rule_seq = 0;
 	int 	map_on = 0;
-	int		header_status = 0;	// 0: not start 1:collecting -1:end of haeder
+	int		header_status = 0;	// 0: not start 1:collecting -1:end of header
 	gboolean out_line;
 	gboolean check = FALSE;
 
@@ -264,6 +262,7 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 		if (fgets(buf, sizeof(buf), fp) == NULL)
 				break;
 
+		c_strtrim(buf, sizeof(buf));
 		kind = _check_line_kind(buf, sizeof(buf));
 
 		out_line = FALSE;
@@ -293,7 +292,9 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 			}
 		}
 
-		if (kind == GRAC_RULE_MAP_LINE_MAPINFO) {
+		if (kind == GRAC_RULE_MAP_LINE_MAPINFO ||
+ 			  kind == GRAC_RULE_MAP_LINE_SPECIAL)
+		{
 			if (map_on == 0) {
 				check = FALSE;
 				rule_seq++;
@@ -331,6 +332,18 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 				}
 			}
 		}
+		else if (kind == GRAC_RULE_MAP_LINE_SPECIAL) {
+			int prev;
+			check = TRUE;
+			for (prev=idx-1; prev>=0; prev--) {
+				int pseq = udev_rule->line_status[prev] & 0x3fff;
+				if (pseq == rule_seq || (udev_rule->line_status[prev] & 0x4000))
+					udev_rule->line_status[prev] |= 0x8000;
+				else
+					break;
+			}
+		}
+
 		if (check && map_on)
 			out_line = TRUE;
 

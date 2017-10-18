@@ -786,11 +786,17 @@ static gboolean _make_and_run_cmd (gboolean append, int chain, sys_ipt_rule *rul
 	}
 	cmd[cmd_len-1] = 0;
 
+	// actual calling the iptables command for LOG
+	if (sys_ipt_log_on && append == TRUE) {
+		gboolean res = sys_run_cmd_no_output(cmd_log, "sys_ipt(log)");
+		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", cmd_log, (int)res);
+	}
+
 	// actual calling the iptables command.
 	done = sys_run_cmd_no_output(cmd, "sys_ipt");
 	grm_log_debug("sys_ipt.c: run command [%s] : res=%d", cmd, (int)done);
 
-	if (sys_ipt_log_on) {
+	if (sys_ipt_log_on && append == FALSE) {
 		gboolean res = sys_run_cmd_no_output(cmd_log, "sys_ipt(log)");
 		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", cmd_log, (int)res);
 	}
