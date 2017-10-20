@@ -326,6 +326,67 @@ static gboolean adjust_udev_rule_map_file()
 	return done;
 }
 
+static void _recover_configurationValue(char *buf, int buf_size)
+{
+	char	*ptr;
+	int		i, n, ch, cnt;
+	char	*attr = "bConfigurationValue";
+
+	ptr = c_stristr(buf, attr, buf_size);
+	if (ptr) {
+		ptr += c_strlen(attr, 256);
+		ptr++;
+		if (*ptr >= '0' && *ptr <= '9') {
+			cnt = *ptr - '0';
+			ptr++;
+		}
+		else {
+			cnt = 0;
+		}
+
+		ptr = c_stristr(buf, "P=", buf_size);
+		if (ptr) {
+			ptr += 2;
+			char	dev_path[512];
+			for (i=0; i<sizeof(dev_path)-1; i++) {
+				ch = ptr[i] & 0x0ff;
+				if (ch <= 0x02)
+					break;
+				dev_path[i] = ch;
+			}
+			if (i>0 && dev_path[i-1] == '/')
+				i--;
+			dev_path[i] = 0;
+
+			if (cnt > 0) {
+				n = i;
+				for (i=n-1; i>=0; i--) {
+					if (dev_path[i] == '/') {
+						dev_path[i] = 0;
+						cnt--;
+						if (cnt == 0)
+							break;
+					}
+				}
+			}
+
+			n = c_strlen(dev_path, sizeof(dev_path));
+			if (n > 0) {
+				char	cmd[1024];
+				snprintf(cmd, sizeof(cmd), "echo 1 > %s/%s", dev_path, attr);
+				if (sys_run_cmd_no_output (cmd, "grac-recover") == FALSE)
+					grm_log_error("command error  : %s", cmd);
+				else
+					grm_log_info("set %s for %s", attr, dev_path);
+			}
+			else {
+				grm_log_error("invalid recover information : %s", buf);
+			}
+		}
+	}
+}
+
+
 static gboolean recover_applied_device()
 {
 	gboolean done = TRUE;
@@ -356,6 +417,7 @@ static gboolean recover_applied_device()
 			break;
 		if (c_stristr(buf, "rescan", sizeof(buf)))
 			rescan = TRUE;
+		_recover_configurationValue(buf, sizeof(buf));
 	}
 	fclose(fp);
 	unlink(path);
@@ -484,6 +546,10 @@ on_bus_acquired (GDBusConnection  *connection,
 	// 이시점에서는 아무것도 수행하지 않는다
 	// load and apply
 	// load_data_and_apply();
+
+	// 2017.10.20
+	if (recover_applied_device() == FALSE)
+		grm_log_error("%s() : can't recover devices", __FUNCTION__);
 
 STOP:
 	if (res == EXIT_FAILURE)

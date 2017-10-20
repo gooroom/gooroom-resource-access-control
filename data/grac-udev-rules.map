@@ -48,21 +48,21 @@ ACTION=="change", SUBSYSTEM=="block", KERNEL=="sr[0-9]*", ENV{DEVTYPE}=="disk", 
 
 #
 # External Bluetooth Device Connection by PCI Bluetooth Receiver
-#   - keyboard
-#
+#   - keyboard  (skip the rule for disallow bluetooth)
+#       
 #  [grac_rule] keyboard allow bluetooth
 #
-#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_KEYBOARD}=="1", RUN+="/usr/bin/grac-apply.sh keyboard.%E{ID_BUS}:%E{SUBSYSTEM} allow nop.$attr{uniq} %k $devpath"
-#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_KEYBOARD}=="1", GOTO="bluetooth_end"
+#ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_KEYBOARD}=="1", RUN+="/usr/bin/grac-apply.sh keyboard.%E{ID_BUS}:%E{SUBSYSTEM} allow nop.$attr{uniq} %k $devpath"
+#ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_KEYBOARD}=="1", GOTO="bluetooth_end"
 
 #
 # External Bluetooth Device Connection by PCI Bluetooth Receiver
-#   - mouse
+#   - mouse  (skip the rule for disallow bluetooth)
 #
 #  [grac_rule] mouse allow bluetooth
 #
-#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_MOUSE}=="1", RUN+="/usr/bin/grac-apply.sh mouse.%E{ID_BUS}:%E{SUBSYSTEM} allow nop.$attr{uniq} %k $devpath"
-#ACTION=="add", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_MOUSE}=="1", GOTO="bluetooth_end"
+#ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_MOUSE}=="1", RUN+="/usr/bin/grac-apply.sh mouse.%E{ID_BUS}:%E{SUBSYSTEM} allow nop.$attr{uniq} %k $devpath"
+#ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="bluetooth", ENV{ID_INPUT_MOUSE}=="1", GOTO="bluetooth_end"
 
 #
 # External Bluetooth Device Connection by PCI Bluetooth Receiver
@@ -96,6 +96,13 @@ ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh sound d
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
 
 #
+# same as Audio Controller (can't control mic separatley from the audio 
+# [grac_rule]  microphone disallow  pci
+#
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan %k $devpath"
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
+
+#
 # PCI Wireless Lan
 #
 # [grac_rule] wireless  disallow
@@ -118,23 +125,45 @@ ACTION=="add", DRIVERS=="usblp", ATTRS{bInterfaceClass}=="07", RUN+="/usr/bin/gr
 ACTION=="add", DRIVERS=="usblp", ATTRS{bInterfaceClass}=="07", RUN+="/bin/sh -c 'echo 0 >/sys/$devpath/authorized'"
 
 
+#
+# Camera
+#
+# [grac_rule] camera disallow 
+#
+ACTION=="add", KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ENV{ID_BUS}=="usb", RUN+="/usr/bin/grac-apply.sh camera.%E{ID_BUS}:%E{SUBSYSTEM} disallow bConfigurationValue.3 %k $devpath"
+ACTION=="add", KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ENV{ID_BUS}=="usb", RUN+="/bin/sh -c 'echo 0 > /sys$devpath/../../../bConfigurationValue'"
 
 
-#---------------------- followings are testing, do not use ----
 #
 # USB Wired Keyboard & Mouse
 #
-#ACTION=="add", SUBSYSTEM=="input", ENV{ID_INPUT_KEYBOARD}=="1", MODE="0000"
+#
+# Keyboard
+#
+# [grac_rule] keyboard disallow usb
+#
+ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="usb", ENV{ID_INPUT_KEYBOARD}=="1", RUN+="/usr/bin/grac-apply.sh keyboard.%E{ID_BUS}:%E{SUBSYSTEM} disallow bConfigurationValue.4 %k $devpath"
+ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="usb", ENV{ID_INPUT_KEYBOARD}=="1", RUN+="/bin/sh -c 'echo 0 > /sys$devpath/../../../../bConfigurationValue'"
 
-#ACTION=="add", SUBSYSTEM=="input", SUBSYSTEMS=="usb", ATTRS{authorized}=="1", ENV{PARID}="$id", RUN+="/bin/sh -c 'echo 0 >/sys/bus/usb/devices/$env{PARID}/authorized'"
+#
+# Mouse
+#
+# [grac_rule] mouse disallow usb
+#
+ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="usb", ENV{ID_INPUT_MOUSE}=="1", RUN+="/usr/bin/grac-apply.sh mouse.%E{ID_BUS}:%E{SUBSYSTEM} disallow  bConfigurationValue.4 %k $devpath"
+ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="usb", ENV{ID_INPUT_MOUSE}=="1", RUN+="/bin/sh -c 'echo 0 > /sys$devpath/../../../../bConfigurationValue'"
 
-#ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_interface", ENV{DRIVER}=="usbhid", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
 
-#ACTION=="add", SUBSYSTEM=="input", ENV{ID_BUS}=="usb", ENV{ID_INPUT_MOUSE}=="1", ENV{ID_USB_DRIVER}=="usbhid", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../../../authorized'"
+#  Followings can't be controlled, Do not use
+# internal keybaord
+# internal mouse (touchpad)
+#ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="i8042", ENV{ID_INPUT_KEYBOARD}=="1", RUN+="/usr/bin/grac-apply.sh keyboard.%E{ID_BUS}:%E{SUBSYSTEM} disallow nop %k $devpath"
+#ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="i8042", ENV{ID_INPUT_MOUSE}=="1",    RUN+="/usr/bin/grac-apply.sh mouse.%E{ID_BUS}:%E{SUBSYSTEM} disallow nop %k $devpath"
 
-#ACTION=="add", SUBSYSTEM=="input", ENV{ID_BUS}=="usb", ENV{ID_INPUT_KEY}=="1", ENV{ID_USB_DRIVER}=="usbhid", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../../../authorized'"
 
 
+
+#---------------------- followings are testing, do not use ----
 #
 # USB ethernet Device
 #
@@ -145,11 +174,8 @@ ACTION=="add", DRIVERS=="usblp", ATTRS{bInterfaceClass}=="07", RUN+="/bin/sh -c 
 # PCI Bluetooth Receiver & USB Dongle
 #
 #ACTION=="add", ATTR{bInterfaceClass}=="e0", ATTR{bInterfaceSubClass}=="01", ATTR{bInterfaceProtocol}=="01", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
-
 #ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="btusb", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
-
 #ACTION=="add", SUBSYSTEM=="bluetooth", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
-
 #ACTION=="add", SUBSYSTEM=="bluetooth", ATTRS{address}=="00:15:83:d0:ef:25", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
 
 

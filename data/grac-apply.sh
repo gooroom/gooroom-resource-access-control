@@ -19,6 +19,17 @@ METHODS="$3"
 DEVNAME="$4"
 DEVPATH="$5"
 
+
+TMP_PATH="$(realpath ${DEVPATH})"
+if [ "${TMP_PATH}" != "" ]; then
+	DEVPATH="${TMP_PATH}"
+else
+	TMP_PATH="$(realpath /sys${DEVPATH})"
+	if [ "${TMP_PATH}" != "" ]; then
+		DEVPATH="${TMP_PATH}"
+	fi
+fi
+
 RESNAME=${RESNAME^^}
 RESPERM=${RESPERM,,}
 
@@ -80,7 +91,7 @@ if [ "${RESPERM}" = "disallow" ] ; then
 fi
 
 if [ "${RESPERM}" = "read_only" ] ; then
-   MSG="가(이) 읽기 전용으로 설정되었읍니다."
+   MSG="이 읽기 전용으로 설정되었읍니다."
 	out_log  "${LOGMSG}"
 	show_msg "${RESNAME}${MSG}"
 	exit 0
