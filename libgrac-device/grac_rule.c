@@ -1094,13 +1094,21 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 
-		cmd = "udevadm trigger -s block -s bluetooth -s usb -s net -c add";
+		// no trigger for subsystem==PCI, triggering when setting rescan
+		// no need for subsystem==BUS, users should reinsert USB device
+		// resinserting USB sets bAuthorized=1 automatically
+
+		cmd = "udevadm trigger -s bluetooth -s net -c add";
+		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		if (res == FALSE)
+			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+
+		cmd = "udevadm trigger -s block -p ID_USB_DRIVER=usb-storage -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
 			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 	}
-
 
 	return done;
 }
