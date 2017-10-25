@@ -108,6 +108,8 @@ workspace/test/Debug/
 workspace/test/Release/
 workspace/test-c/Debug/
 workspace/test-c/Release/
+workspace/**/Debug/
+workspace/**/Release/
 workspace/**/html/
 workspace/**/latex/
 workspace/**/*.o

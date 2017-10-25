@@ -12,7 +12,7 @@
     "cd_dvd" : "disallow",
     "printer" : "disallow",
 
-    "screen_capture" : "disallow",
-    "clipboard" : "disallow"
+    "screen_capture" : "allow",
+    "clipboard" : "allow"
 }
 

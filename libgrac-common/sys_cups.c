@@ -219,7 +219,7 @@ gboolean sys_cups_access_init()
 /**
   @brief   cups 설정에 사용된 버퍼 해제등 마무리 작업
  */
-void sys_cups_access_end()
+void sys_cups_access_final()
 {
 	_FreePrinterList();
 
@@ -298,7 +298,7 @@ static int _cups_is_class_type(http_t *http, char *printer)
 }
 
 // 허용 혹은 거부된 사용자,그룹 목록을 일괄적으로 cups에 반영
-static gboolean _cups_apply_acees_printer(char *printer, int access)
+static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 {
 	gboolean resB = TRUE;
 	http_t	*http;
@@ -310,23 +310,26 @@ static gboolean _cups_apply_acees_printer(char *printer, int access)
 	GPtrArray *user_list;
 
 	default_user = NULL;
-	if (access == CUPS_ACCESS_ALLOW) {
+	if (allow == TRUE) {
 		user_list = g_allow_user;
-	  attr_name = "requesting-user-name-allowed";
-	  default_user = "root";		// default allow user
-	}
-	else if (access == CUPS_ACCESS_DENY) {
-		user_list = g_deny_user;
-		if (user_list == NULL || user_list->len <= 0) {	// 목록이 없는 경우
+		if (user_list == NULL || user_list->len <= 0) {	// 목록이 없는 경우,  allow all users
 			default_user = "all";
 			attr_name = "requesting-user-name-allowed";		// allow:all 로  대치 (모두 허용)
 		}
 		else {
-			attr_name = "requesting-user-name-denied";
+			default_user = "root";		// add default user "root"
+			attr_name = "requesting-user-name-allowed";
 		}
 	}
 	else {
-		return FALSE;
+		user_list = g_deny_user;
+		if (user_list == NULL || user_list->len <= 0) {	// 목록이 없는 경우, only allow root
+		  default_user = "root";
+		  attr_name = "requesting-user-name-allowed";
+		}
+		else {
+			attr_name = "requesting-user-name-denied";
+		}
 	}
 
 	// get length of user list
@@ -467,10 +470,10 @@ static gboolean _cups_apply_acees_printer(char *printer, int access)
   @details
   		cups 설정은 한 번에 해야하기 때문에 미리 목록을 만들어 놓아야한다. \n
 		목록은 sys_cups_access_add_user ()와 sys_cups_access_add_group()을 이용한다.
-  @param	[in]	access	적용 대상 (CUPS_ACCESS_DENY 혹은 CUPS_ACCESS_ALLOW)
+  @param	[in]	allow 프린터 허용 여부 (TRUE 혹은 FALSE)
   @return gboolean 성공여부
  */
-gboolean sys_cups_access_apply(int access)
+gboolean sys_cups_access_apply(gboolean allow)
 {
 	gboolean resB = TRUE;
 	int i, count;
@@ -480,7 +483,7 @@ gboolean sys_cups_access_apply(int access)
 	for (i=0; i<count; i++) {
 		printer = sys_cups_get_printer_name(i);
 		if (printer) {
-			resB &= _cups_apply_acees_printer((char*)printer, access);
+			resB &= _cups_apply_acees_printer((char*)printer, allow);
 		}
 	}
 
@@ -504,17 +507,17 @@ gboolean sys_cups_access_apply(int access)
   		cups 설정은 한 번에 해야하기 때문에 미리 목록을 만들어 놓아야한다. \n
 		목록은 sys_cups_access_add_user ()와 sys_cups_access_add_group()을 이용한다.
   @param	[in]	idx		적용할 프린터
-  @param	[in]	access	적용 대상 (CUPS_ACCESS_DENY 혹은 CUPS_ACCESS_ALLOW)
+  @param	[in]	allow 프린터 허용 여부 (TRUE 혹은 FALSE)
   @return gboolean 성공여부
  */
-gboolean sys_cups_access_apply_by_index(int idx, int access)
+gboolean sys_cups_access_apply_by_index(int idx, gboolean allow)
 {
 	gboolean resB = TRUE;
 	const char* printer;
 
 	printer = sys_cups_get_printer_name(idx);
 	if (printer) {
-		resB = _cups_apply_acees_printer((char*)printer, access);
+		resB = _cups_apply_acees_printer((char*)printer, allow);
 	}
 
 	return resB;
@@ -526,10 +529,10 @@ gboolean sys_cups_access_apply_by_index(int idx, int access)
   		cups 설정은 한 번에 해야하기 때문에 미리 목록을 만들어 놓아야한다. \n
 		목록은 sys_cups_access_add_user ()와 sys_cups_access_add_group()을 이용한다.
   @param	[in]	name	적용할 프린터 이름
-  @param	[in]	access	적용 대상 (CUPS_ACCESS_DENY 혹은 CUPS_ACCESS_ALLOW)
+  @param	[in]	allow 프린터 허용 여부 (TRUE 혹은 FALSE)
   @return gboolean 성공여부
  */
-gboolean sys_cups_access_apply_by_name(char *name, int access)
+gboolean sys_cups_access_apply_by_name(char *name, gboolean allow)
 {
 	gboolean resB = FALSE;
 	int i, count;
@@ -544,7 +547,7 @@ gboolean sys_cups_access_apply_by_name(char *name, int access)
 	for (i=0; i<count; i++) {
 		printer = sys_cups_get_printer_name(i);
 		if (printer && !strcmp(printer, name)) {
-			resB = _cups_apply_acees_printer((char*)printer, access);
+			resB = _cups_apply_acees_printer((char*)printer, allow);
 			return resB;
 		}
 	}
@@ -559,10 +562,10 @@ gboolean sys_cups_access_apply_by_name(char *name, int access)
   @details
   		cups 설정은 한 번에 해야하기 때문에 미리 목록을 만들어 놓아야한다.
   @param	[in]	user		사용자 이름
-  @param	[in]	access	프린터 허용 여부 (CUPS_ACCESS_DENY 혹은 CUPS_ACCESS_ALLOW)
+  @param	[in]	allow 프린터 허용 여부 (TRUE 혹은 FALSE)
   @return gboolean 성공여부
  */
-gboolean sys_cups_access_add_user (gchar *user, int access)
+gboolean sys_cups_access_add_user (gchar *user, gboolean allow)
 {
 	if (_init_buf() == FALSE) {
 		grm_log_error("Error: sys_cups_access_add_user: out of memory");
@@ -576,9 +579,9 @@ gboolean sys_cups_access_add_user (gchar *user, int access)
 	}
 
 	strcpy(ptr, user);
-	if (access == CUPS_ACCESS_ALLOW)
+	if (allow == TRUE)
 		g_ptr_array_add(g_allow_user, ptr);
-	else if (access == CUPS_ACCESS_DENY)
+	else
 		g_ptr_array_add(g_deny_user, ptr);
 
 	return TRUE;
@@ -589,10 +592,10 @@ gboolean sys_cups_access_add_user (gchar *user, int access)
   @details
   		cups 설정은 한 번에 해야하기 때문에 미리 목록을 만들어 놓아야한다.
   @param	[in]	group	그룹 이름
-  @param	[in]	access	프린터 허용 여부 (CUPS_ACCESS_DENY 혹은 CUPS_ACCESS_ALLOW)
+  @param	[in]	allow 프린터 허용 여부 (TRUE 혹은 FALSE)
   @return gboolean 성공여부
  */
-gboolean sys_cups_access_add_group(gchar *group, int access)
+gboolean sys_cups_access_add_group(gchar *group, gboolean allow)
 {
 	gboolean resB;
 	char	cupsGroup[256];
@@ -600,10 +603,10 @@ gboolean sys_cups_access_add_group(gchar *group, int access)
 	if (group[0] != '@') {
 		cupsGroup[0] = '@';
 		strncpy(&cupsGroup[1], group, sizeof(cupsGroup)-1);
-		resB = sys_cups_access_add_user (cupsGroup, access);
+		resB = sys_cups_access_add_user (cupsGroup, allow);
 	}
 	else {
-		resB = sys_cups_access_add_user (group, access);
+		resB = sys_cups_access_add_user (group, allow);
 	}
 
 	return resB;

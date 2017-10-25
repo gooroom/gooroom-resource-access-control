@@ -11,6 +11,7 @@ libgrac_device_headers =	\
 	grac_rule_network.h	\
 	grac_rule_udev.h		\
 	grac_rule_hook.h		\
+	grac_rule_printer_cups.h	\
 	grac_resource.h		\
 	grac_adjust_udev_rule.h
 
@@ -19,6 +20,7 @@ libgrac_device_sources =	\
 	grac_rule_network.c	\
 	grac_rule_udev.c		\
 	grac_rule_hook.c		\
+	grac_rule_printer_cups.c	\
 	grac_resource.c		\
 	grac_adjust_udev_rule.c
 

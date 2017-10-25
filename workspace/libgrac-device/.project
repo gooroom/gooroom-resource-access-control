@@ -50,6 +50,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_rule_hook.h</locationURI>
 		</link>
 		<link>
+			<name>src/grac_rule_printer_cups.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_rule_printer_cups.c</locationURI>
+		</link>
+		<link>
+			<name>src/grac_rule_printer_cups.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_rule_printer_cups.h</locationURI>
+		</link>
+		<link>
 			<name>src/grac_resource.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_resource.c</locationURI>

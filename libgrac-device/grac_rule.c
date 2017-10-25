@@ -20,6 +20,7 @@
 #include "grac_rule_network.h"
 #include "grac_rule_udev.h"
 #include "grac_rule_hook.h"
+#include "grac_rule_printer_cups.h"
 #include "grac_map.h"
 #include "grac_config.h"
 #include "grm_log.h"
@@ -1023,10 +1024,12 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 
 	uid = sys_user_get_login_uid();
 	if (uid < 0) {
-		grm_log_error("%s(): can't get login name", __FUNCTION__);
-		return FALSE;
+		grm_log_warning("%s(): can't get login name", __FUNCTION__);
+		snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%s", grac_config_file_udev_rules());
 	}
-	snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%d/%s", uid, grac_config_file_udev_rules());
+	else {
+		snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%d/%s", uid, grac_config_file_udev_rules());
+	}
 
 	snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%d/grac_tmp_udev", uid);
 /*
@@ -1160,6 +1163,40 @@ static gboolean _grac_rule_disallow_network_printer(GracRule *rule, int port)
 	return done;
 }
 
+static gboolean _grac_rule_apply_cups_printer(GracRule* rule)
+{
+	gboolean done = TRUE;
+	int			 perm_id;
+	gboolean allow;
+
+	perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_PRINTER);
+	if (perm_id == GRAC_PERMISSION_ALLOW)
+		allow = TRUE;
+	else 	// deny or error - default permission is deny.
+		allow = FALSE;
+
+	// 사용자 목록 초기화, 기타 초기 처리
+	done = grac_rule_printer_cups_init();
+	if (done == FALSE) {
+		grm_log_error("%s() : Initialize error for CUPS", __FUNCTION__);
+		return FALSE;
+	}
+
+	//
+	// 사용자  등록없이 처리 (모든 사용자를 대상으로 한다)
+	//
+
+	// CUPS에 적용 요청
+	done = grac_rule_printer_cups_apply(allow);
+	if (done == FALSE) {
+		grm_log_error("%s() : Apply error for CUPS", __FUNCTION__);
+	}
+
+	grac_rule_printer_cups_final();
+
+	return done;
+}
+
 
 // 추가 설정
 static gboolean _grac_rule_apply_extra(GracRule *rule)
@@ -1186,6 +1223,7 @@ static gboolean _grac_rule_apply_extra(GracRule *rule)
 			if (perm_id == GRAC_PERMISSION_DISALLOW) {
 				_grac_rule_disallow_network_printer(rule, grac_config_network_printer_port());
 			}
+			done &= _grac_rule_apply_cups_printer(rule);
 			break;
 		case GRAC_RESOURCE_OTHERS :	// ignore
 		case -1:										// error

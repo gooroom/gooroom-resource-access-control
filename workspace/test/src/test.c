@@ -117,8 +117,9 @@ int main()
 
 */
 
-//	test();
+	test();
 
+	/*
 	_recover_configurationValue("bConfigurationValue.3 P=/sys/a/b/c/d/e/f", 256);
 	_recover_configurationValue("bConfigurationValue.4 P=/sys/a/b/c/d/e/f", 256);
 	_recover_configurationValue("bConfigurationValue  P=/sys/a/b/c/d/e/f", 256);
@@ -126,6 +127,7 @@ int main()
 	_recover_configurationValue("R=cdrom M=bConfigurationValue.3 P=/sys/a/b/c/d/e/f", 256);
 	_recover_configurationValue("R=cdrom M=bConfigurationValue.4 P=/sys/a/b/c/d/e/f", 256);
 	_recover_configurationValue("R=cdrom M=bConfigurationValue  P=/sys/a/b/c/d/e/f", 256);
+*/
 
 	return EXIT_SUCCESS;
 }
