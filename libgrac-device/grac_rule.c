@@ -1018,7 +1018,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 	gboolean done = FALSE;
 	const char *map_path;
 	char	tmp_file[1024];
-	int		res;
+	int		result;
 	char	udev_rule_target[2048];
 	int		uid;
 
@@ -1051,10 +1051,9 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		if (udev_rule) {
 			made = grac_rule_udev_make_rules(udev_rule, rule, tmp_file);
 			if (made) {
-				int n;
 				unlink(udev_rule_target);
-				n = rename(tmp_file, udev_rule_target);
-				if (n == -1) {
+				result = rename(tmp_file, udev_rule_target);
+				if (result == -1) {
 					done = FALSE;
 					grm_log_error("%s() : rename error : %s --> %s : %s", __FUNCTION__, tmp_file, udev_rule_target, strerror(errno));
 				}
@@ -1075,8 +1074,8 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 	else {
 		if (done == TRUE) {
 			unlink(udev_path_link);
-			res = symlink(udev_rule_target, udev_path_link);
-			if (res != 0) {
+			result = symlink(udev_rule_target, udev_path_link);
+			if (result != 0) {
 				grm_log_error("%s(): can't make link : %s", __FUNCTION__, strerror(errno) );
 				done = FALSE;
 			}
@@ -1095,10 +1094,18 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		done &= res;
 
 		// no trigger for subsystem==PCI, triggering when setting rescan
-		// no need for subsystem==BUS, users should reinsert USB device
+		 {
+			char *cmd = "echo 1 > /sys/bus/pci/rescan";
+			res = sys_run_cmd_no_output (cmd, "apply-rule");
+			if (res == FALSE)
+				grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+			done &= res;
+		}
+
+		// no need for subsystem==USB, users should reinsert USB device
 		// resinserting USB sets bAuthorized=1 automatically
 
-		cmd = "udevadm trigger -s bluetooth -s net -s input -s video4linux -c add";
+		cmd = "udevadm trigger -s bluetooth -s net -s input -s video4linux -s pci -s sound -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
 			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);

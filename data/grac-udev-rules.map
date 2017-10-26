@@ -91,16 +91,27 @@ LABEL="bluetooth_end"
 # PCI Audio Controller
 #
 # [grac_rule]  sound  disallow  pci
+# [grac_rule]  microphone disallow  pci
 #
-ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh sound disallow rescan %k $devpath"
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh sound.pci disallow rescan %k $devpath"
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
+
+#
+# USB Audio Controller
+#
+# [grac_rule] sound disallow usb 
+# [grac_rule] microphone disallow  usb
+#
+ACTION=="add", SUBSYSTEM=="sound", ENV{ID_BUS}=="usb", RUN+="/usr/bin/grac-apply.sh sound.%E{ID_BUS}:%E{SUBSYSTEM} disallow bConfigurationValue.4 %k $devpath"
+ACTION=="add", SUBSYSTEM=="sound", ENV{ID_BUS}=="usb", RUN+="/bin/sh -c 'echo 0 > /sys$devpath/../../../../bConfigurationValue'"
+
 
 #
 # same as Audio Controller (can't control mic separatley from the audio 
 # [grac_rule]  microphone disallow  pci
 #
-ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan %k $devpath"
-ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
+#ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan %k $devpath"
+#ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
 
 #
 # PCI Wireless Lan
