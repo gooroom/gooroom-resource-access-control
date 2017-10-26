@@ -344,13 +344,13 @@ static void _recover_configurationValue(char *buf, int buf_size)
 			cnt = 0;
 		}
 
-		ptr = c_stristr(buf, "P=", buf_size);
+		ptr = c_stristr(buf, "D=", buf_size);
 		if (ptr) {
 			ptr += 2;
 			char	dev_path[512];
 			for (i=0; i<sizeof(dev_path)-1; i++) {
 				ch = ptr[i] & 0x0ff;
-				if (ch <= 0x02)
+				if (ch <= 0x020)
 					break;
 				dev_path[i] = ch;
 			}
@@ -404,12 +404,25 @@ static gboolean recover_applied_device()
 	char	buf[1024];
 	gboolean rescan = FALSE;
 	gboolean trigger = FALSE;
+	char	*cmd;
+	gboolean res;
 
 	fp = fopen(path, "r");
 	if (fp == NULL) {
 		grm_log_debug("%s() : end : no file", __FUNCTION__);
 		return TRUE;
 	}
+
+	// delete the created udev rule
+	// 복구를 위한 udev rule 필요시 이 지점에서 생성
+	path = grac_config_path_udev_rules();
+	if (path != NULL)
+		unlink(path);
+	cmd = "udevadm control --reload";
+	res = sys_run_cmd_no_output (cmd, "apply-rule");
+	if (res == FALSE)
+		grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+
 
 	// todo : 정밀 검토
 	while (1) {
@@ -422,14 +435,6 @@ static gboolean recover_applied_device()
 	fclose(fp);
 	unlink(path);
 
-	gboolean res;
-	char	*cmd;
-
-	// delete the created udev rule
-	// 복구를 위한 udev rule 필요시 이 지점에서 생성
-	path = grac_config_path_udev_rules();
-	if (path != NULL)
-		unlink(path);
 
 	// rescan
 	if (rescan) {

@@ -1098,7 +1098,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		// no need for subsystem==BUS, users should reinsert USB device
 		// resinserting USB sets bAuthorized=1 automatically
 
-		cmd = "udevadm trigger -s bluetooth -s net -s input -c add";
+		cmd = "udevadm trigger -s bluetooth -s net -s input -s video4linux -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
 			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);

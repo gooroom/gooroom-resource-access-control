@@ -76,7 +76,7 @@ show_msg()
 
 
 # --- save control information --
-echo  "N=${RESNAME}" "I=${INFTYPE}" "S=${SSYSTEM}" "P=${RESPERM}" "M=${METHODS}" "K=${DEVNAME}" "P=${DEVPATH}"  >> /etc/gooroom/grac.d/recover.udev
+echo  "N=${RESNAME}" "I=${INFTYPE}" "S=${SSYSTEM}" "P=${RESPERM}" "M=${METHODS}" "K=${DEVNAME}" "D=${DEVPATH}"  >> /etc/gooroom/grac.d/recover.udev
 
 
 # make log and display message
