@@ -40,7 +40,7 @@ ACTION=="add", KERNEL=="sr[0-9]*", ENV{ID_CDROM}=="1", RUN+="cdrom_id --eject-me
 #
 # authorized variable
 #ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN+="/usr/bin/grac-apply.sh cd_dvd:scsi disallow authorized %k $devpath"
-#ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../../authorized'"
+#ACTION=="add", SUBSYSTEMS=="scsi", DRIVERS=="sr", RUN+="/bin/sh -c 'echo 0 >/sys/\$devpath/../../../authorized'"
 #
 # insert disk CD or DVD
 ACTION=="change", SUBSYSTEM=="block", KERNEL=="sr[0-9]*", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh cd_dvd:block disallow eject %k $devpath"
@@ -107,8 +107,8 @@ ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devp
 #
 # [grac_rule] wireless  disallow
 #
-ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", RUN+="/usr/bin/grac-apply.sh wireless:net disallow remove %k $devpath"
-ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", RUN="/bin/sh -c 'echo 1 >/sys/\$devpath/../../remove'"
+ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", RUN+="/usr/bin/grac-apply.sh wireless:net disallow remove.rescan %k $devpath"
+ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", RUN+="/bin/sh -c 'echo 1 >/sys/\$devpath/../../remove'"
 
 #
 # USB Printer
@@ -167,15 +167,15 @@ ACTION=="add", KERNEL=="input*", ENV{ID_BUS}=="usb", ENV{ID_INPUT_MOUSE}=="1", R
 #
 # USB ethernet Device
 #
-#ACTION=="add", SUBSYSTEM=="net", ATTR{ifindex}=="[0-9]*", ATTR{iflink}=="[0-9]*", ENV{INTERFACE}=="eth[1-9]", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
+#ACTION=="add", SUBSYSTEM=="net", ATTR{ifindex}=="[0-9]*", ATTR{iflink}=="[0-9]*", ENV{INTERFACE}=="eth[1-9]", RUN+="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
 
 
 #
 # PCI Bluetooth Receiver & USB Dongle
 #
-#ACTION=="add", ATTR{bInterfaceClass}=="e0", ATTR{bInterfaceSubClass}=="01", ATTR{bInterfaceProtocol}=="01", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
-#ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="btusb", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
-#ACTION=="add", SUBSYSTEM=="bluetooth", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
-#ACTION=="add", SUBSYSTEM=="bluetooth", ATTRS{address}=="00:15:83:d0:ef:25", RUN="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
+#ACTION=="add", ATTR{bInterfaceClass}=="e0", ATTR{bInterfaceSubClass}=="01", ATTR{bInterfaceProtocol}=="01", RUN+="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
+#ACTION=="add", SUBSYSTEM=="usb", DRIVERS=="btusb", RUN+="/bin/sh -c 'echo 0 >/sys/\$devpath/authorized'"
+#ACTION=="add", SUBSYSTEM=="bluetooth", RUN+="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
+#ACTION=="add", SUBSYSTEM=="bluetooth", ATTRS{address}=="00:15:83:d0:ef:25", RUN+="/bin/sh -c 'echo 0 >/sys/\$devpath/../../authorized'"
 
 
