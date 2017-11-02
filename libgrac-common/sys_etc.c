@@ -24,6 +24,8 @@
 #include <errno.h>
 #include <string.h>
 #include <limits.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 #include "sys_etc.h"
 #include "grm_log.h"
@@ -164,11 +166,11 @@ gboolean sys_run_cmd_get_output(gchar *cmd, char *caller, char *out, int size)
 				if (nodata == 0)
 					grm_log_debug("%s : %s () - no data : retry", caller, func);
 				nodata++;
-				if (nodata > 3) {
+				if (nodata > 10) {
 					grm_log_debug("%s : %s () - no data : stop", caller, func);
 					break;
 				}
-				usleep(10*1000);
+				usleep(100*1000);
 			}
 			else {
 				break;
@@ -274,4 +276,298 @@ int sys_check_running_process(char *username, char *exec)
 
 	return res;
 }
+
+
+#define PIPE_READ  0
+#define PIPE_WRITE 1
+
+FILE* sys_popen(char *cmd, char *type, int *pid)
+{
+	pid_t child;
+	int	p_fd[2];
+
+	pipe(p_fd);
+
+	child = fork();
+	if (child == -1) {
+		grm_log_error("%s(): can't fork : %s", __FUNCTION__, cmd);
+		close(p_fd[PIPE_READ]);
+		close(p_fd[PIPE_WRITE]);
+		*pid = 0;
+		return NULL;
+	}
+
+	if (child == 0) {
+		if (c_strmatch(type, "r")) {
+			close(p_fd[PIPE_READ]);
+			dup2(p_fd[PIPE_WRITE], 1);
+		}
+		else {
+			close(p_fd[PIPE_WRITE]);
+			dup2(p_fd[PIPE_READ], 0);
+		}
+
+		setpgid(child, child);
+
+		execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
+
+		grm_log_error("%s(): can't execl : %s", __FUNCTION__, cmd);
+		exit(0);
+	}
+
+
+	FILE* fp;
+
+	if (c_strmatch(type, "r")) {
+		close(p_fd[PIPE_WRITE]);
+		fp = fdopen(p_fd[PIPE_READ], "r");
+	}
+	else {
+		close(p_fd[PIPE_READ]);
+		fp = fdopen(p_fd[PIPE_WRITE], "w");
+	}
+
+	*pid = child;
+	return fp;
+
+}
+
+gboolean sys_pclose(FILE* fp, int pid)
+{
+	gboolean done = FALSE;
+	int	stat = -1;
+	int	res;
+
+	if (pid > 0) {
+		kill (-pid, SIGKILL);
+	}
+
+	if (fp) {
+		fclose(fp);
+	}
+
+	if (pid > 0) {
+		res = waitpid(pid, &stat, 0);
+		if (res == -1) {
+			if (errno == EINTR)
+				done = TRUE;
+		}
+		else {
+			done = TRUE;
+		}
+	}
+
+	return done;
+}
+
+
+//G_LOCK_DEFINE_STATIC (run_cmd_lock);
+
+typedef struct _RunCmdCtrl {
+	gboolean stop;
+	gboolean on_thread;
+	pid_t	pid;
+	FILE	*fp;
+	int		fd;
+	char	*buf;
+	int		buf_size;
+	int		buf_len;
+	char	*cmd;
+	char	*caller;
+	char	tmp_buf[1024];
+	int		tmp_len;
+	int		tmp_size;
+} RunCmdCtrl;
+
+static void* run_cmd_thread(void *data)
+{
+	RunCmdCtrl *ctrl = (RunCmdCtrl*)data;
+	int	fd;
+	pid_t	pid;
+	int	rest, buf_size;
+
+	grm_log_debug("%s() : %s : start run_cmd_thread : pid = %d",  __FUNCTION__, ctrl->caller, getpid());
+
+	ctrl->on_thread = TRUE;
+	ctrl->stop = FALSE;
+
+	if (ctrl->buf) {
+		c_memset(ctrl->buf, 0, ctrl->buf_size);
+		buf_size = ctrl->buf_size;
+	}
+	else {
+		buf_size = 0;
+	}
+
+	ctrl->buf_len = 0;
+
+	c_memset(ctrl->tmp_buf, 0, sizeof(ctrl->tmp_buf));
+	ctrl->tmp_size = sizeof(ctrl->tmp_buf)-1;
+	ctrl->tmp_len = 0;
+
+	fd  = ctrl->fd;
+	pid = ctrl->pid;
+
+	while (ctrl->stop == FALSE) {
+			int n, read_len;
+			n = ctrl->tmp_size - ctrl->tmp_len;
+			if (n > 0) {
+				read_len = read(fd, &ctrl->tmp_buf[ctrl->tmp_len], n);
+				if (read_len == -1) {
+					if (errno == EAGAIN || errno == EWOULDBLOCK) {
+						grm_log_debug("%s() : %s - no data : retry", __FUNCTION__, ctrl->caller);
+						usleep(10*1000);
+						continue;
+					}
+					else {
+						grm_log_error("%s() : %s - read error : %s", __FUNCTION__, ctrl->caller, strerror(errno));
+						break;
+					}
+				}
+				else if (read_len == 0) {  // closed
+					break;
+				}
+			}
+
+			rest = buf_size - ctrl->buf_len - 1;
+			if (rest > 0) {
+				int copy_len = read_len;
+				if (copy_len > rest)
+					copy_len = rest;
+				c_memcpy(ctrl->buf+ctrl->buf_len, &ctrl->tmp_buf[ctrl->tmp_len], copy_len);
+				ctrl->buf_len += copy_len;
+			}
+
+			ctrl->tmp_len += read_len;
+
+			// only for logging
+			while (1) {
+				int idx = c_strchr_idx(ctrl->tmp_buf, '\n', ctrl->tmp_size);
+				if (idx == 0) {
+					idx++;
+					c_memcpy(ctrl->tmp_buf, &ctrl->tmp_buf[idx], ctrl->buf_len-idx + 1);  // including 0
+					ctrl->buf_len -= idx;
+				}
+				else if (idx > 0) {
+					ctrl->tmp_buf[idx] = 0;
+					grm_log_debug("%s : %s", ctrl->caller, ctrl->tmp_buf);
+					idx++;
+					c_memcpy(ctrl->tmp_buf, &ctrl->tmp_buf[idx], ctrl->buf_len-idx + 1);  // including 0
+					ctrl->buf_len -= idx;
+				}
+				else {
+					if (ctrl->tmp_len >= ctrl->tmp_size) {
+						grm_log_debug("%s : %s", ctrl->caller, ctrl->tmp_buf);
+						c_memset(ctrl->tmp_buf, 0, sizeof(ctrl->tmp_buf));
+						ctrl->tmp_len = 0;
+					}
+					break;
+				}
+			}  // loop for log
+	}
+
+	grm_log_debug("%s() : %s : out of thread",  __FUNCTION__, ctrl->caller);
+
+/*
+	if (ctrl->fp) {
+		 (run_cmd_lock);
+		fp = ctrl->fp;
+		pid = ctrl->pid;
+		ctrl->fp = NULL;
+		ctrl->pid = 0;
+		G_UNLOCK (run_cmd_lock);
+
+		sys_pclose(fp, pid);
+	}
+*/
+
+	ctrl->on_thread = FALSE;
+
+	grm_log_debug("%s() : %s : stop thread : pid = %d", __FUNCTION__, ctrl->caller, pid);
+
+	return NULL;
+}
+
+
+gboolean sys_run_cmd(gchar *cmd, long wait, char *logstr, char *output, int size)
+{
+	gboolean done = FALSE;
+	RunCmdCtrl ctrl;
+	pid_t	pid;
+	FILE	*fp;
+
+	if (c_strlen(cmd, 1024) > 0 ) {
+		if (c_strlen(logstr, 256) <= 0 )
+			logstr = "sys_run_cmd";
+
+		c_memset(&ctrl, 0, sizeof(ctrl));
+		ctrl.cmd = cmd;
+		ctrl.buf = output;
+		ctrl.buf_size = size;
+		ctrl.caller = logstr;
+
+
+//	fp = sys_popen(cmd, "r", &pid);
+		fp = popen(cmd, "r");
+		if (fp == NULL) {
+			grm_log_debug("%s() : %s : can't run - %s", __FUNCTION__, logstr, cmd);
+			return FALSE;
+		}
+		int fd = fileno(fp);
+		if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+			grm_log_debug("%s() : %s : fcntl() : not set NONBLOCK: %s", __FUNCTION__, logstr, strerror(errno));
+//			sys_pclose(fp, pid);
+			pclose(fp);
+			return FALSE;
+		}
+		grm_log_debug("%s() : %s : created child process  = %d",  __FUNCTION__, logstr, pid);
+
+		ctrl.fp = fp;
+		ctrl.fd = fd;
+		ctrl.pid = pid;
+
+		pthread_t thread;
+		int res = pthread_create(&thread, NULL, run_cmd_thread, (void*)&ctrl);
+		if (res != 0) {
+			grm_log_error("%s : can't create thread : %s", __FUNCTION__, cmd);
+			return FALSE;
+		}
+		done = TRUE;
+
+		while (ctrl.on_thread == FALSE);
+
+		long total = 0;
+		while (ctrl.on_thread) {
+			if (total >= wait)
+				break;
+			usleep(1000);
+			total += 1000;
+		}
+
+		grm_log_debug("%s : request stop thread : %s", __FUNCTION__, cmd);
+
+		ctrl.stop = TRUE;
+		if (fp) {
+//			G_LOCK (run_cmd_lock);
+			ctrl.fp = NULL;
+			ctrl.pid = 0;
+//			G_UNLOCK (run_cmd_lock);
+//			sys_pclose(fp, pid);
+			pclose(fp);
+		}
+
+/*
+		while (ctrl.on_thread) {
+			usleep(1000);
+		}
+*/
+	}
+
+	grm_log_debug("%s : %s : end result = %d", __FUNCTION__, cmd, (int)done);
+
+	return done;
+}
+
+
+
 

@@ -84,14 +84,14 @@ echo  "N=${RESNAME}" "I=${INFTYPE}" "S=${SSYSTEM}" "P=${RESPERM}" "M=${METHODS}"
 LOGMSG="GRAC: cause=\"${RESPERM}\" kind=\"${RESNAME}\" device=\"${DEVPATH}\""
 
 if [ "${RESPERM}" = "disallow" ] ; then
-   MSG="가(이) 차단되었읍니다."
+   MSG="가(이) 차단되었습니다."
 	out_log  "${LOGMSG}"
 	show_msg "${RESNAME}${MSG}"
 	exit 0
 fi
 
 if [ "${RESPERM}" = "read_only" ] ; then
-   MSG="이 읽기 전용으로 설정되었읍니다."
+   MSG="가(이)  읽기 전용으로 설정되었습니다."
 	out_log  "${LOGMSG}"
 	show_msg "${RESNAME}${MSG}"
 	exit 0

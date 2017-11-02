@@ -19,6 +19,8 @@
 #include "grac_rule_printer_cups.h"
 #include "grm_log.h"
 #include "cutility.h"
+#include "sys_cups.h"
+#include "sys_user.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +55,7 @@ static GrmPrinterAccData* _alloc_data(int nameSize)
 
 	data = malloc(sizeof(GrmPrinterAccData));
 	if (data != NULL) {
-		memset(data, 0, sizeof(GrmPrinterAccData));
+		c_memset(data, 0, sizeof(GrmPrinterAccData));
 		data->name = malloc(nameSize+1);
 		if (data->name == NULL) {
 			free(data);
@@ -177,11 +179,11 @@ gboolean grac_rule_printer_cups_apply(gboolean allow)
 static gboolean _printer_access_add_data(gboolean userB, int id, char* name, gboolean allow)
 {
 	GrmPrinterAccData* data;
-	data = _alloc_data(strlen(name)+1);
+	data = _alloc_data(c_strlen(name, 256)+1);
 	if (data != NULL) {
 		data->isUserID = userB;
 		data->id = id;
-		strcpy(data->name, name);
+		c_strcpy(data->name, name, 256);
 		data->allow = allow;
 		g_ptr_array_add(G_PrinterAccess.list, data);
 		return TRUE;
@@ -277,7 +279,7 @@ static gboolean _printer_access_del_data(gboolean userB, int id, char* name)
 	for (idx=0; idx<G_PrinterAccess.list->len; idx++) {
 		data = g_ptr_array_index(G_PrinterAccess.list, idx);
 		if (data->isUserID == userB) {
-			if ((id > 0 && id == data->id) || (name != NULL && !strcmp(name, data->name)) )
+			if ((id > 0 && id == data->id) || (name != NULL && c_strmatch(name, data->name)) )
 			{
 				g_ptr_array_remove_index(G_PrinterAccess.list, idx);
 				idx--;

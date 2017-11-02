@@ -21,6 +21,7 @@
 #include "grac_rule_udev.h"
 #include "grac_rule_hook.h"
 #include "grac_rule_printer_cups.h"
+#include "grac_printer.h"
 #include "grac_map.h"
 #include "grac_config.h"
 #include "grm_log.h"
@@ -963,6 +964,8 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 	gboolean done = TRUE;
 	int	perm_id;
 
+	grm_log_debug("start : %s()", __FUNCTION__);
+
 	sys_ipt_set_log(TRUE, "GRAC: Disallowed Network ");		// Maximunm 29 chars
                                               /* 12345678901234567890123456789 */
 
@@ -1022,16 +1025,24 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 	char	udev_rule_target[2048];
 	int		uid;
 
+	grm_log_debug("start : %s()", __FUNCTION__);
+
 	uid = sys_user_get_login_uid();
 	if (uid < 0) {
 		grm_log_warning("%s(): can't get login name", __FUNCTION__);
 		snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%s", grac_config_file_udev_rules());
+		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
 	}
 	else {
+		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%s", grac_config_file_udev_rules());
+		unlink(tmp_file);
+		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
+		unlink(tmp_file);
+
 		snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%d/%s", uid, grac_config_file_udev_rules());
+		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%d/grac_tmp_udev", uid);
 	}
 
-	snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%d/grac_tmp_udev", uid);
 /*
 	c_strcpy(tmp_file, "/tmp/grac_tmp_XXXXXX", sizeof(tmp_file));
 	res = mkstemp(tmp_file);
@@ -1105,7 +1116,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		// no need for subsystem==USB, users should reinsert USB device
 		// resinserting USB sets bAuthorized=1 automatically
 
-		cmd = "udevadm trigger -s bluetooth -s net -s input -s video4linux -s pci -s sound -c add";
+		cmd = "udevadm trigger -s bluetooth -s net -s input -s video4linux -s pci -s sound -s hidraw -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
 			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
@@ -1124,6 +1135,8 @@ static gboolean _grac_rule_apply_hook(GracRule *rule)
 {
 	gboolean done = FALSE;
 	int	perm_id;
+
+	grm_log_debug("start : %s()", __FUNCTION__);
 
 	done = grac_rule_hook_init();
 
@@ -1184,6 +1197,8 @@ static gboolean _grac_rule_apply_cups_printer(GracRule* rule)
 	int			 perm_id;
 	gboolean allow;
 
+	grm_log_debug("start : %s()", __FUNCTION__);
+
 	perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_PRINTER);
 	if (perm_id == GRAC_PERMISSION_ALLOW)
 		allow = TRUE;
@@ -1217,8 +1232,9 @@ static gboolean _grac_rule_apply_cups_printer(GracRule* rule)
 static gboolean _grac_rule_apply_extra(GracRule *rule)
 {
 	gboolean done = TRUE;
-
 	int res_id, perm_id;
+
+	grm_log_debug("start : %s()", __FUNCTION__);
 
 	res_id = grac_resource_first_control_res_id();
 	while (res_id >= 0) {
@@ -1235,6 +1251,10 @@ static gboolean _grac_rule_apply_extra(GracRule *rule)
 			}
 			break;
 		case GRAC_RESOURCE_PRINTER :
+			if (perm_id == GRAC_PERMISSION_ALLOW)
+				grac_printer_apply(TRUE);
+			else
+				grac_printer_apply(FALSE);
 			if (perm_id == GRAC_PERMISSION_DISALLOW) {
 				_grac_rule_disallow_network_printer(rule, grac_config_network_printer_port());
 			}
@@ -1489,3 +1509,13 @@ gboolean grac_rule_bluetooth_mac_get_addr(GracRule *rule, int idx, char *addr, i
 	return done;
 }
 
+gboolean grac_rule_pre_process()
+{
+	return grac_printer_init();
+}
+
+gboolean grac_rule_post_process()
+{
+	return grac_printer_end();
+
+}

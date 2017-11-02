@@ -634,6 +634,7 @@ gboolean sys_user_get_login_name_by_who_cmd(char *name, int size)
 
 	cmd = "who | awk '{print $1}'";
 	done =  sys_run_cmd_get_output(cmd, "by_who_cmd", output, sizeof(output));
+	// done =  sys_run_cmd(cmd, 1500*1000, "by_who_cmd", output, sizeof(output));
 	if (done == FALSE) {
 		grm_log_error("commamd running error : %s", cmd);
 		return FALSE;
@@ -651,6 +652,10 @@ gboolean sys_user_get_login_name_by_who_cmd(char *name, int size)
 
 	c_strtrim(output, sizeof(output));
 	c_strcpy(name, output, size);
+	if (c_strlen(name, size) <= 0) {
+		grm_log_error("empty data : %s", cmd);
+		done = FALSE;
+	}
 
 	return done;
 }

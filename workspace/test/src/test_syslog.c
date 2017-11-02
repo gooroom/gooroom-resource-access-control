@@ -11,15 +11,15 @@
 
 typedef enum
 {
-  GRM_LOG_LEVEL_DEBUG,
-  GRM_LOG_LEVEL_INFO,
-  GRM_LOG_LEVEL_NOTICE,
-  GRM_LOG_LEVEL_WARNING,
-  GRM_LOG_LEVEL_ERROR
+  t_log_LEVEL_DEBUG,
+  t_log_LEVEL_INFO,
+  t_log_LEVEL_NOTICE,
+  t_log_LEVEL_WARNING,
+  t_log_LEVEL_ERROR
 } GrmLogLevel;
 
 
-G_LOCK_DEFINE_STATIC (grm_log_lock);
+G_LOCK_DEFINE_STATIC (t_log_lock);
 
 
 static void _do_sys_log(GrmLogLevel level, char *message)
@@ -34,23 +34,23 @@ static void _do_sys_log(GrmLogLevel level, char *message)
 
 	switch (level)
 	{
-	case GRM_LOG_LEVEL_DEBUG:
+	case t_log_LEVEL_DEBUG:
 		log_priority = LOG_DEBUG;
 		break;
 
-	case GRM_LOG_LEVEL_INFO:
+	case t_log_LEVEL_INFO:
     log_priority = LOG_INFO;
     break;
 
-	case GRM_LOG_LEVEL_NOTICE:
+	case t_log_LEVEL_NOTICE:
 		log_priority = LOG_NOTICE;
 		break;
 
-	case GRM_LOG_LEVEL_WARNING:
+	case t_log_LEVEL_WARNING:
 		log_priority = LOG_WARNING;
 		break;
 
-	case GRM_LOG_LEVEL_ERROR:
+	case t_log_LEVEL_ERROR:
 		log_priority = LOG_ERR;
 		break;
 
@@ -70,32 +70,32 @@ char G_AppName[256] = { 0 };
 
 static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 {
-	G_LOCK (grm_log_lock);
+	G_LOCK (t_log_lock);
 
-	static gboolean version_out = FALSE;
-	static char*    log_version = "****** libgrac version 2016.12.01 (001) *****";
+//	static gboolean version_out = FALSE;
+//	static char*    log_version = "****** libgrac version 2016.12.01 (001) *****";
 	gchar *kind_str;
 	gchar *message;
 
 	switch (level)
 	{
-	case GRM_LOG_LEVEL_DEBUG:
+	case t_log_LEVEL_DEBUG:
 		kind_str = "Debug";
 		break;
 
-	case GRM_LOG_LEVEL_INFO:
+	case t_log_LEVEL_INFO:
     kind_str = "Info";
     break;
 
-	case GRM_LOG_LEVEL_NOTICE:
+	case t_log_LEVEL_NOTICE:
 		kind_str = "Notice";
 		break;
 
-	case GRM_LOG_LEVEL_WARNING:
+	case t_log_LEVEL_WARNING:
 		kind_str = "Warning";
 		break;
 
-	case GRM_LOG_LEVEL_ERROR:
+	case t_log_LEVEL_ERROR:
 		kind_str = "Error";
 		break;
 
@@ -126,11 +126,11 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 		g_free (message);
 	}
 
-	G_UNLOCK (grm_log_lock);
+	G_UNLOCK (t_log_lock);
 
 }
 
-void grm_log(GrmLogLevel level, gchar *format, ...)
+void t_log(GrmLogLevel level, gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
@@ -142,11 +142,11 @@ void grm_log(GrmLogLevel level, gchar *format, ...)
  @brief   DEBUG 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_debug  (gchar *format, ...)
+void t_log_debug  (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
-	_grm_do_log(GRM_LOG_LEVEL_DEBUG, format, var_args);
+	_grm_do_log(t_log_LEVEL_DEBUG, format, var_args);
 	va_end (var_args);
 }
 
@@ -154,11 +154,11 @@ void grm_log_debug  (gchar *format, ...)
  @brief   INFO 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_info   (gchar *format, ...)
+void t_log_info   (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
-	_grm_do_log(GRM_LOG_LEVEL_INFO, format, var_args);
+	_grm_do_log(t_log_LEVEL_INFO, format, var_args);
 	va_end (var_args);
 }
 
@@ -166,11 +166,11 @@ void grm_log_info   (gchar *format, ...)
  @brief  NOTICE 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_notice (gchar *format, ...)
+void t_log_notice (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
-	_grm_do_log(GRM_LOG_LEVEL_NOTICE, format, var_args);
+	_grm_do_log(t_log_LEVEL_NOTICE, format, var_args);
 	va_end (var_args);
 }
 
@@ -178,11 +178,11 @@ void grm_log_notice (gchar *format, ...)
  @brief   WARNING 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_warning(gchar *format, ...)
+void t_log_warning(gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
-	_grm_do_log(GRM_LOG_LEVEL_WARNING, format, var_args);
+	_grm_do_log(t_log_LEVEL_WARNING, format, var_args);
 	va_end (var_args);
 }
 
@@ -190,21 +190,21 @@ void grm_log_warning(gchar *format, ...)
  @brief   ERROR 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_error  (gchar *format, ...)
+void t_log_error  (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
-	_grm_do_log(GRM_LOG_LEVEL_ERROR, format, var_args);
+	_grm_do_log(t_log_LEVEL_ERROR, format, var_args);
 	va_end (var_args);
 }
 
 int	test_sys_log()
 {
-	grm_log_debug  ("GRAC This is a debug log");
-	grm_log_info   ("GRAC This is a info log");
-	grm_log_notice ("GRAC This is a notice log");
-	grm_log_warning("GRAC This is a warning log");
-	grm_log_error  ("GRAC This is a error log");
+	t_log_debug  ("GRAC This is a debug log");
+	t_log_info   ("GRAC This is a info log");
+	t_log_notice ("GRAC This is a notice log");
+	t_log_warning("GRAC This is a warning log");
+	t_log_error  ("GRAC This is a error log");
 
 	return 0;
 }

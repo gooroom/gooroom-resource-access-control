@@ -23,113 +23,76 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 
+#include <cups/cups.h>
+
+#include "grm_log.h"
 #include "grac_config.h"
 #include "grac_rule.h"
 #include "grac_resource.h"
+#include "grac_printer.h"
 #include "cutility.h"
 #include "sys_user.h"
 #include "sys_etc.h"
 
 
-static void test()
+void t_runcmd()
 {
-	const char	*rule_path;
+	gboolean res;
+	char	buf[1024];
+	char 	*cmd;
 
-	rule_path = grac_config_path_default_grac_rules();
+	cmd = "who";
+	cmd = "who | awk '{print $1}'";
+	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
+	if (res)
+		printf("%s\n", buf);
+	else
+		printf("error : %s\n", cmd);
 
-	GracRule *grac_rule = grac_rule_alloc();
-	if (rule_path != NULL) {
-		gboolean res;
-		res = grac_rule_load(grac_rule, (gchar*)rule_path);
-		if (res == FALSE) {
-			printf("%s() : load rule error : %s", __FUNCTION__, rule_path);
-			return;
-		}
-		else {
-			grac_rule_apply(grac_rule);
-		}
-	}
+	cmd = "avahi-browse -arp";
+	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
+	if (res)
+		printf("%s\n", buf);
+	else
+		printf("error : %s\n", cmd);
 
-}
+	cmd = "xyz-123";
+	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
+	if (res)
+		printf("%s\n", buf);
+	else
+		printf("error : %s\n", cmd);
 
-static void _recover_configurationValue(char *buf, int buf_size)
-{
-	char	*ptr;
-	int		i, n, ch, cnt;
-	char	*attr = "bConfigurationValue";
+	cmd = "ls -l /";
+	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
+	if (res)
+		printf("%s\n", buf);
+	else
+		printf("error : %s\n", cmd);
 
-	ptr = c_stristr(buf, attr, buf_size);
-	if (ptr) {
-		ptr += c_strlen(attr, 256);
-		ptr++;
-		if (*ptr >= '0' && *ptr <= '9') {
-			cnt = *ptr - '0';
-			ptr++;
-		}
-		else {
-			cnt = 0;
-		}
+	cmd = "bluetoothctl";
+	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
+	if (res)
+		printf("%s\n", buf);
+	else
+		printf("error : %s\n", cmd);
 
-		ptr = c_stristr(buf, "P=", buf_size);
-		if (ptr) {
-			ptr += 2;
-			char	dev_path[512];
-			for (i=0; i<sizeof(dev_path)-1; i++) {
-				ch = ptr[i] & 0x0ff;
-				if (ch <= 0x02)
-					break;
-				dev_path[i] = ch;
-			}
-			if (i>0 && dev_path[i-1] == '/')
-				i--;
-			dev_path[i] = 0;
-
-			if (cnt > 0) {
-				n = i;
-				for (i=n-1; i>=0; i--) {
-					if (dev_path[i] == '/') {
-						dev_path[i] = 0;
-						cnt--;
-						if (cnt == 0)
-							break;
-					}
-				}
-			}
-
-			char	cmd[1024];
-			snprintf(cmd, sizeof(cmd), "echo 1 > %s/%s", dev_path, attr);
-
-			printf("%s --> %s\n", buf, cmd);
-		}
-	}
 }
 
 int main()
 {
-/*
-	char name[1024];
-	gboolean done;
+	char	name[256];
 
-	done = sys_user_get_login_name_by_api(name, sizeof(name));
+//t_runcmd();
+	sys_user_get_login_name(name, sizeof(name));
+	printf("%s\n", name);
 
-	printf("%d: %s\n", (int)done, name);
-
-*/
-
-	test();
-
-	/*
-	_recover_configurationValue("bConfigurationValue.3 P=/sys/a/b/c/d/e/f", 256);
-	_recover_configurationValue("bConfigurationValue.4 P=/sys/a/b/c/d/e/f", 256);
-	_recover_configurationValue("bConfigurationValue  P=/sys/a/b/c/d/e/f", 256);
-
-	_recover_configurationValue("R=cdrom M=bConfigurationValue.3 P=/sys/a/b/c/d/e/f", 256);
-	_recover_configurationValue("R=cdrom M=bConfigurationValue.4 P=/sys/a/b/c/d/e/f", 256);
-	_recover_configurationValue("R=cdrom M=bConfigurationValue  P=/sys/a/b/c/d/e/f", 256);
-*/
 
 	return EXIT_SUCCESS;
 }
+
+
 
 

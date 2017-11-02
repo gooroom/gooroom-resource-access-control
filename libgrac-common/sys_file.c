@@ -376,3 +376,30 @@ gboolean sys_file_make_new_directory(gchar *path, gchar* owner, gchar* group, in
 	return done;
 }
 
+int sys_file_get_length(gchar *path)
+{
+	int	length = -1;
+	int	res;
+	struct stat st;
+
+	if (path) {
+		res = stat(path, &st);
+		if (res == 0)
+			length = st.st_size;
+	}
+
+	return length;
+}
+
+gboolean sys_file_is_existing(gchar *path)
+{
+	gboolean exist = FALSE;
+
+	if (path) {
+		if (access(path, F_OK) == 0) {
+			exist = TRUE;
+		}
+	}
+
+	return exist;
+}

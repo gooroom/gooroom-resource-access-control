@@ -530,3 +530,17 @@ int	c_get_word  (char *buf, int bsize, char* delemeter, char *word, int wsize)
 
 	return idx;
 }
+
+int c_strchr_idx(char *str, int find_ch, int max)
+{
+	int	i, ch;
+
+	for (i=0; i<max; i++) {
+		ch = str[i] & 0x0ff;
+		if (ch == 0)
+			break;
+		if (ch == find_ch)
+			return i;
+	}
+	return -1;
+}

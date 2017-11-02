@@ -15,7 +15,7 @@ Depends: libgrac-device,
 		hook-clipboard,
 		hook-screenshooter,
 		libnotify-bin, bluez, udev, eject, iptables, ipset, 
-		avahi-utils,
+		avahi-utils,cups-client,
 		util-linux, bsdutils, coreutils, gawk, procps,
 		${misc:Depends}
 Description: grac device daemon 

@@ -38,6 +38,7 @@
 #include "cutility.h"
 
 #include "sys_user.h"
+#include "sys_file.h"
 #include "sys_etc.h"
 
 #include <stdio.h>
@@ -104,6 +105,8 @@ static gboolean init_proc()
 		path = grac_config_path_ld_so_preload();
 		if (path)
 			unlink(path);
+
+		grac_rule_pre_process();
 	}
 
 
@@ -115,6 +118,8 @@ static gboolean init_proc()
 static void	term_proc()
 {
 	grac_rule_free(&DaemonCtrl.grac_rule);
+
+	grac_rule_post_process();
 }
 
 /**
@@ -130,44 +135,6 @@ void stop_daemon()
 
 G_LOCK_DEFINE_STATIC (load_apply_lock);
 
-
-// 정책파일 무시, 모든 권한 부여
-/*
-static gboolean apply_admin_rule()
-{
-	gboolean done;
-
-	done = grac_rule_apply_allow_all(DaemonCtrl.grac_rule);
-
-	return done;
-}
-*/
-
-// 특별히 추가적으로 할 일 없음
-static gboolean apply_guest_rule()
-{
-	gboolean done;
-
-	grm_log_debug("apply_guest_rule()");
-	done = grac_rule_apply(DaemonCtrl.grac_rule);
-	if (done == FALSE)
-		grm_log_error("apply_guest_rule() : apply error");
-
-	return done;
-}
-
-// 정책파일 사용, 권한 부여
-static gboolean apply_grac_rule()
-{
-	gboolean done;
-
-	grm_log_debug("apply_grac_rule()");
-	done = grac_rule_apply(DaemonCtrl.grac_rule);
-	if (done == FALSE)
-		grm_log_error("apply_grac_rule() : apply error");
-
-	return done;
-}
 
 static gboolean verify_grac_rule_file(char* path)
 {
@@ -223,67 +190,39 @@ static gboolean verify_grac_rule_file(char* path)
 	return done;
 }
 
-static const char *get_rule_path(int *user_rule)
+static const char *check_rule_path(gboolean user)
 {
-	// user name check
-/*
-	char 	username[1024];
-	int		uid;
-	gboolean res, admin = FALSE;
-	gboolean default_rule = FALSE;
+	char *path = NULL;
 
-	// 로그인 사용자 확인
-	res = sys_user_get_login_name(username, sizeof(username));
-	if (res == FALSE) {
-		grm_log_error("load_data_and_apply() : can't get login name : assume guest");
-		admin = FALSE;
-		uid = -1;
-		default_rule = TRUE;
-	}
-	else {
-		if (sys_user_is_in_group(username, "adm"))
-			admin = TRUE;
-		else if (sys_user_is_in_group(username, "sudo"))
-			admin = TRUE;
-		else
-			admin = FALSE;
-		uid = sys_user_get_uid_from_name(username);
-		if (uid < 0)
-			default_rule = TRUE;
-		else
-			default_rule = FALSE;
-	}
-*/
+	if (user)
+		path = (char*)grac_config_path_user_grac_rules();
+	else
+		path = (char*)grac_config_path_default_grac_rules();
 
-	const char *path = NULL;
-	*user_rule = -1;
-
-	path = grac_config_path_user_grac_rules();
 	if (path) {
-		if (access(path, F_OK) != 0) {
-			grm_log_warning("%s() : not found the user rule", __FUNCTION__);
+		if (sys_file_is_existing(path) == FALSE) {
+			grm_log_warning("%s() : not found rule [%s]", __FUNCTION__, path);
 			path = NULL;
 		}
 		else {
-			*user_rule = 1;
+			if (sys_file_get_length(path) <= 0) {
+				grm_log_warning("%s() : empty rule file", __FUNCTION__, path);
+				path = NULL;
+			}
 		}
 	}
 
-	if (path == NULL) {
-		path = grac_config_path_default_grac_rules();
-		if (path) {
-			if (access(path, F_OK) != 0) {
-				grm_log_error("%s() : not found the default rule", __FUNCTION__);
-				path = NULL;
-			}
-			else {
-				*user_rule = 0;
-			}
+	if (path && user) {
+		gboolean res = verify_grac_rule_file((char*)path);
+		if (res == FALSE) {
+			grm_log_error("%s() : not verified rule file [%s]", __FUNCTION__, path);
+			path = NULL;
 		}
 	}
 
 	return path;
 }
+
 
 static gboolean adjust_udev_rule_map_file()
 {
@@ -433,8 +372,9 @@ static gboolean recover_applied_device()
 		_recover_configurationValue(buf, sizeof(buf));
 	}
 	fclose(fp);
-	unlink(path);
 
+	path = grac_config_path_recover_info();
+	unlink(path);
 
 	// rescan
 	if (rescan) {
@@ -471,60 +411,58 @@ static gboolean recover_applied_device()
 static gboolean load_data_and_apply()
 {
 	gboolean done = FALSE;
+	gboolean load = FALSE;
 	const char	*rule_path;
-	int		user_rule;
 
 	G_LOCK (load_apply_lock);
 
 	grm_log_info("Apply grac-rule");
-
 	grm_log_debug("load_data_and_apply() : start");
 
 	if (adjust_udev_rule_map_file() == FALSE)
 		grm_log_error("%s() : can't adjust map file", __FUNCTION__);
 
-	rule_path = get_rule_path(&user_rule);
-
-	if (rule_path && user_rule == 1) {
-		gboolean res = verify_grac_rule_file((char*)rule_path);
-		if (res == FALSE) {
-			grm_log_error("%s() : not verified grac rule file [%s]", __FUNCTION__, rule_path);
-			rule_path = NULL;
-		}
-	}
-
 	// 2017.10.12
 	if (recover_applied_device() == FALSE)
 		grm_log_error("%s() : can't recover devices", __FUNCTION__);
 
+	// try to load user.rules
 	grac_rule_clear(DaemonCtrl.grac_rule);
-
-	if (rule_path != NULL) {
-		gboolean res;
-		res = grac_rule_load(DaemonCtrl.grac_rule, (gchar*)rule_path);
-		if (res == FALSE) {
+	rule_path = check_rule_path(TRUE);
+	if (rule_path) {
+		load = grac_rule_load(DaemonCtrl.grac_rule, (gchar*)rule_path);
+		if (load == FALSE) {
 			grm_log_error("%s() : load rule error : %s", __FUNCTION__, rule_path);
-			grac_rule_set_default_of_guest(DaemonCtrl.grac_rule);
-			done = apply_guest_rule();	// 정책파일 오류,  최소 권한 부여
-		}
-		else {
-			done = apply_grac_rule();
 		}
 	}
-	else { // 정책파일 없음
-//	if (admin == TRUE) {
-//			grac_rule_set_default_of_admin(DaemonCtrl.grac_rule);
-//			done = apply_admin_rule();	// 모든 권한 부여
-//		}
-//	else {
-			grac_rule_set_default_of_guest(DaemonCtrl.grac_rule);
-			done = apply_guest_rule();	// 최소 권한 부여
-//		}
+
+	// try to load default
+	if (load == FALSE) {
+		grac_rule_clear(DaemonCtrl.grac_rule);
+		rule_path = check_rule_path(FALSE);
+		if (rule_path) {
+			load = grac_rule_load(DaemonCtrl.grac_rule, (gchar*)rule_path);
+			if (load == FALSE) {
+				grm_log_error("%s() : load rule error : %s", __FUNCTION__, rule_path);
+			}
+		}
 	}
+
+	// if load, error make default
+	if (load == FALSE) {
+		grac_rule_set_default_of_guest(DaemonCtrl.grac_rule);  // 정책파일 오류,  최소 권한 부여
+	}
+
+	//  정책적용
+	done = grac_rule_apply(DaemonCtrl.grac_rule);
+	if (done == FALSE)
+		grm_log_error("%s() : apply error", __FUNCTION__);
 
 	G_UNLOCK (load_apply_lock);
 
-	grm_log_debug("load_data_and_apply() : end");
+	grm_log_info("Apply grac-rule : result = %d", (int)done);
+	grm_log_debug("%s() : result = %d", __FUNCTION__, (int)done);
+
 	return done;
 }
 

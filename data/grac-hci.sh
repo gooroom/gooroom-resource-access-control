@@ -17,7 +17,8 @@ MACADDR="$(/bin/echo ${MACADDR} | /usr/bin/tr [.] [:])"
 #
 out_log()
 {
-	/usr/bin/logger -t "[GRAC]" "app=\"grac-hci.sh\" msg=\"$1\""
+#	/usr/bin/logger -t "[GRAC]" "app=\"grac-hci.sh\" msg=\"$1\""
+	/usr/bin/logger --id=$$ -p 3 -t "GRAC" "$1"
 }
 
 if [ "${COMMAND}" = "DISALLOW" ]; then

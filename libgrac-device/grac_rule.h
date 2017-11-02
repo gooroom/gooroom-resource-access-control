@@ -38,5 +38,8 @@ void grac_rule_dump (GracRule *rule, FILE *out_fp);		// only for debugging
 
 //gboolean grac_rule_apply_by_user (GracRule *data, gchar* username);
 
+gboolean grac_rule_pre_process();
+gboolean grac_rule_post_process();
+
 
 #endif /* _GRAC_RULE_H_ */

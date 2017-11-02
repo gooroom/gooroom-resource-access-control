@@ -39,6 +39,9 @@ char*	c_strristr (char *src, char* str, int size);		// if not found, return NULL
 
 void	c_strcat (char *dest, char* src, int size);
 
+int c_strchr_idx(char *str, int find_ch, int max);	// if not found, return -1
+
+
 void 	c_memset(void *buf,  int ch,     int len);
 void*	c_memcpy(void *dest, void* src,  int len);
 int 	c_memcmp(void *buf1, void* buf2, int len, int ret_both_null);

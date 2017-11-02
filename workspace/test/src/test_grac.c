@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 
+#include "grac_config.h"
 #include "grac_rule.h"
 #include "grac_resource.h"
 #include "cutility.h"
@@ -43,4 +44,25 @@ void test_grac_rule_load()
 	grac_rule_dump(grac_rule, NULL);
 
 	grac_rule_free(&grac_rule);
+}
+
+void test_grac_load_apply()
+{
+	const char	*rule_path;
+
+	rule_path = grac_config_path_default_grac_rules();
+
+	GracRule *grac_rule = grac_rule_alloc();
+	if (rule_path != NULL) {
+		gboolean res;
+		res = grac_rule_load(grac_rule, (gchar*)rule_path);
+		if (res == FALSE) {
+			printf("%s() : load rule error : %s", __FUNCTION__, rule_path);
+			return;
+		}
+		else {
+			grac_rule_apply(grac_rule);
+		}
+	}
+
 }

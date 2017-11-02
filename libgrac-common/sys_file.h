@@ -24,9 +24,8 @@ gboolean sys_file_set_mode_other(gchar *path, gchar *mode); // process only othe
 
 gboolean sys_file_make_new_directory(gchar *path, gchar* owner, gchar* group, int mode);  // 존재하면 아무 동작 없음
 
-//gboolean sys_file_get_mode(gchar *path, gchar *mode);		// mode;s size is 10 at least
-//gboolean sys_file_get_mode_user (gchar *path, gchar *mode);		// mode;s size is 4 at least
-//gboolean sys_file_get_mode_group(gchar *path, gchar *mode);		// mode;s size is 4 at least
-//gboolean sys_file_get_mode_other(gchar *path, gchar *mode);		// mode;s size is 4 at least
+int			 sys_file_get_length(gchar *path);
+gboolean sys_file_is_existing(gchar *path);
+
 
 #endif /* _SYS_FILE_H_ */
