@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 
 #include <cups/cups.h>
 
@@ -31,68 +30,33 @@
 #include "grac_config.h"
 #include "grac_rule.h"
 #include "grac_resource.h"
-#include "grac_printer.h"
+//#include "grac_block_device.h"
 #include "cutility.h"
 #include "sys_user.h"
+#include "sys_file.h"
 #include "sys_etc.h"
 
 
-void t_runcmd()
+int main(int argc, char *argv[])
 {
-	gboolean res;
-	char	buf[1024];
-	char 	*cmd;
 
-	cmd = "who";
-	cmd = "who | awk '{print $1}'";
-	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
-	if (res)
-		printf("%s\n", buf);
-	else
-		printf("error : %s\n", cmd);
+//printf("check - %d\n", (int) grac_udev_check_existing("sda"));
 
-	cmd = "avahi-browse -arp";
-	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
-	if (res)
-		printf("%s\n", buf);
-	else
-		printf("error : %s\n", cmd);
+/*
+	if (argc > 1) {
+		grac_eject(argv[1]);
+	}
+*/
+//	grac_eject("vda");
+//	printf("\n");
+//	grac_eject("vda1");
 
-	cmd = "xyz-123";
-	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
-	if (res)
-		printf("%s\n", buf);
-	else
-		printf("error : %s\n", cmd);
+// 	t_block();
 
-	cmd = "ls -l /";
-	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
-	if (res)
-		printf("%s\n", buf);
-	else
-		printf("error : %s\n", cmd);
-
-	cmd = "bluetoothctl";
-	res = sys_run_cmd(cmd, 1000*1000, "test", buf, sizeof(buf));
-	if (res)
-		printf("%s\n", buf);
-	else
-		printf("error : %s\n", cmd);
-
-}
-
-int main()
-{
-	char	name[256];
-
-//t_runcmd();
-	sys_user_get_login_name(name, sizeof(name));
-	printf("%s\n", name);
-
+//	test_udev();
 
 	return EXIT_SUCCESS;
 }
-
 
 
 

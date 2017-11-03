@@ -39,7 +39,7 @@
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.555863678" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool command="gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.341986897" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">
-								<option id="gnu.c.link.option.libs.708843095" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
+								<option id="gnu.c.link.option.libs.708843095" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="gobject-2.0"/>
 									<listOptionValue builtIn="false" value="glib-2.0"/>
 									<listOptionValue builtIn="false" value="grac-device"/>
@@ -50,13 +50,14 @@
 									<listOptionValue builtIn="false" value="gdk_pixbuf-2.0"/>
 									<listOptionValue builtIn="false" value="notify"/>
 									<listOptionValue builtIn="false" value="json-c"/>
+									<listOptionValue builtIn="false" value="udev"/>
 								</option>
 								<option id="gnu.c.link.option.paths.925625839" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libgrac-common/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libgrac-device/Debug}&quot;"/>
 								</option>
 								<option id="gnu.c.link.option.ldflags.879106002" name="Linker flags" superClass="gnu.c.link.option.ldflags" value="`pkg-config --libs libiptc`" valueType="string"/>
-								<option id="gnu.c.link.option.pthread.1428516542" superClass="gnu.c.link.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+								<option id="gnu.c.link.option.pthread.1428516542" name="Support for pthread (-pthread)" superClass="gnu.c.link.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.2094034708" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

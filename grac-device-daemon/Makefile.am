@@ -27,6 +27,7 @@ grac_device_daemon_LDADD =	\
 	-lcups		\
 	-ljson-c	\
 	-lgrmpycaller	\
+	-ludev	\
 	$(top_builddir)/libgrac-common/libgrac-common.la	\
 	$(top_builddir)/libgrac-device/libgrac-device.la
 

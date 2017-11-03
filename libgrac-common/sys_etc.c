@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/syscall.h>
 
 #include "sys_etc.h"
 #include "grm_log.h"
@@ -110,6 +111,8 @@ gboolean sys_run_cmd_no_output(gchar *cmd, char *caller)
 
 		if (res == FALSE)
 			grm_log_error("%s : sys_run_cmd_no_output() : %s -> %d", caller, cmd, status);
+		else
+			grm_log_debug("%s : sys_run_cmd_no_output() : %s", caller, cmd);
 	}
 	else {
 		grm_log_error("%s : sys_run_cmd_no_output() : %s : can't create pipe", caller, cmd);
@@ -489,6 +492,7 @@ static void* run_cmd_thread(void *data)
 }
 
 
+// do not use this !!!!!!!!!!!!!!!!!!!
 gboolean sys_run_cmd(gchar *cmd, long wait, char *logstr, char *output, int size)
 {
 	gboolean done = FALSE;
@@ -568,6 +572,15 @@ gboolean sys_run_cmd(gchar *cmd, long wait, char *logstr, char *output, int size
 	return done;
 }
 
+int sys_getpid()
+{
+	return getpid();
+}
+
+int sys_gettid()
+{
+	return syscall(__NR_gettid);
+}
 
 
 

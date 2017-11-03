@@ -80,6 +80,16 @@
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_printer.h</locationURI>
 		</link>
 		<link>
+			<name>src/grac_blockdev.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_blockdev.c</locationURI>
+		</link>
+		<link>
+			<name>src/grac_blockdev.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_blockdev.h</locationURI>
+		</link>
+		<link>
 			<name>src/grac_rule.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-device/grac_rule.c</locationURI>

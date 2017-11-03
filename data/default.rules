@@ -3,6 +3,8 @@
 		"state" : "allow"
      	},
 
+	"wireless" : "allow",
+
    "usb_memory" : "disallow",
 
    "bluetooth" : {

@@ -14,6 +14,7 @@ libgrac_device_headers =	\
 	grac_rule_printer_cups.h	\
 	grac_resource.h		\
 	grac_printer.h		\
+	grac_blockdev.h		\
 	grac_adjust_udev_rule.h
 
 libgrac_device_sources =	\
@@ -24,6 +25,7 @@ libgrac_device_sources =	\
 	grac_rule_printer_cups.c	\
 	grac_resource.c		\
 	grac_printer.c		\
+	grac_blockdev.c		\
 	grac_adjust_udev_rule.c
 
 libgrac_device_includedir = \

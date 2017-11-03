@@ -11,23 +11,55 @@
 #
 # [grac_rule]  usb_memory  disallow
 #
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/eject /dev/%k", GOTO+="usb_end"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/eject /dev/%k", GOTO+="usb_end"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
+
+#
+# [grac_rule]  usb_memory  disallow
+#
 ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
 ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
+
+
+
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+#ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k"
+
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", ENV{UDISKS_AUTO}="0", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow grac-block %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", RUN+="/usr/bin/grac-block.sh disallow partition /dev/%k"
+ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", RUN+="/bin/sh -c '/bin/echo AAAAAA >> /var/log/gooroom/grac.log'", RUN+="/usr/bin/grac-block.sh disallow disk /dev/sdb"
+
 
 #
 # USB Block Device's Partition to Read-Only
 #
 # [grac_rule] usb_memory read_only
 #
-# NTFS by mount
+# FAT by blockdev
 SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/usr/bin/grac-apply.sh usb_memory read_only blockdev.ntfs %k $devpath"
 SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/sbin/blockdev --setro /dev/%k"
+SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/usr/bin/grac-apply.sh usb_memory read_only blockdev.ntfs %k $devpath"
+SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/sbin/blockdev --setro /dev/%k"
 #
-# FAT by blockdev
-ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/sh -c '/bin/mount | /bin/grep fuseblk | /bin/grep rw | /usr/bin/cut -d\  -f1'", RUN+="/usr/bin/grac-apply.sh usb_memory read_only remount %k $devpath"
+# NTFS by mount
+ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", RUN+="/usr/bin/grac-apply.sh usb_memory read_only remount %k $devpath"
 ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", PROGRAM="/bin/sh -c '/bin/mount | /bin/grep fuseblk | /bin/grep rw | /usr/bin/cut -d\  -f1'", RUN+="/bin/mount -o remount,ro %c"
+
+
+LABEL="usb_end"
+
 
 #
 # CDROM & DVD Disable
@@ -91,27 +123,16 @@ LABEL="bluetooth_end"
 # PCI Audio Controller
 #
 # [grac_rule]  sound  disallow  pci
-# [grac_rule]  microphone disallow  pci
 #
-ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh sound.pci disallow rescan %k $devpath"
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh sound disallow rescan %k $devpath"
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
-
-#
-# USB Audio Controller
-#
-# [grac_rule] sound disallow usb 
-# [grac_rule] microphone disallow  usb
-#
-ACTION=="add", SUBSYSTEM=="sound", ENV{ID_BUS}=="usb", RUN+="/usr/bin/grac-apply.sh sound.%E{ID_BUS}:%E{SUBSYSTEM} disallow bConfigurationValue.4 %k $devpath"
-ACTION=="add", SUBSYSTEM=="sound", ENV{ID_BUS}=="usb", RUN+="/bin/sh -c 'echo 0 > /sys$devpath/../../../../bConfigurationValue'"
-
 
 #
 # same as Audio Controller (can't control mic separatley from the audio 
 # [grac_rule]  microphone disallow  pci
 #
-#ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan %k $devpath"
-#ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan %k $devpath"
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
 
 #
 # PCI Wireless Lan

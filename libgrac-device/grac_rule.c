@@ -22,6 +22,7 @@
 #include "grac_rule_hook.h"
 #include "grac_rule_printer_cups.h"
 #include "grac_printer.h"
+#include "grac_blockdev.h"
 #include "grac_map.h"
 #include "grac_config.h"
 #include "grm_log.h"
@@ -1293,6 +1294,17 @@ gboolean grac_rule_apply (GracRule *rule)
 	if (rule) {
 		done = _grac_rule_apply_network(rule);
 
+		// special process for USB
+		int perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_USB);
+		if (perm_id == GRAC_PERMISSION_READONLY)
+			grac_blockdev_apply_readonly();
+		else if (perm_id == GRAC_PERMISSION_READWRITE)
+			grac_blockdev_apply_normal();
+		else if (perm_id == GRAC_PERMISSION_ALLOW)
+			grac_blockdev_apply_normal();
+		else
+			grac_blockdev_apply_disallow();
+
 		done &= _grac_rule_apply_udev_rule(rule);
 
 		done &= _grac_rule_apply_hook(rule);
@@ -1511,11 +1523,20 @@ gboolean grac_rule_bluetooth_mac_get_addr(GracRule *rule, int idx, char *addr, i
 
 gboolean grac_rule_pre_process()
 {
-	return grac_printer_init();
+	gboolean done = TRUE;
+
+	done &= grac_printer_init();
+	done &= grac_blockdev_init();
+
+	return done;
 }
 
 gboolean grac_rule_post_process()
 {
-	return grac_printer_end();
+	gboolean done = TRUE;
 
+	done &= grac_printer_end();
+	done &= grac_blockdev_end();
+
+	return done;
 }

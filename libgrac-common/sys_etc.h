@@ -23,5 +23,8 @@ int sys_check_running_process(char *username, char *exec);		// -1, 0, 1
 FILE* 	 sys_popen (char *cmd, char *type, int *pid);
 gboolean sys_pclose(FILE *fp, int pid);
 
+int	sys_getpid();
+int	sys_gettid();
+
 
 #endif /* _SYS_ETC_H_ */
