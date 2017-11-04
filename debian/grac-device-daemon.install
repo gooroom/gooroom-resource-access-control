@@ -3,6 +3,7 @@ lib/systemd/system/*
 usr/lib/*/grac-device-daemon
 usr/bin/grac-apply.sh
 usr/bin/grac-hci.sh
+usr/bin/grac-block.sh
 
 etc/gooroom/grac.d/default.rules
 etc/gooroom/grac.d/grac-udev-rules.map
