@@ -19,6 +19,7 @@
 #include "grac_printer.h"
 #include "grm_log.h"
 #include "cutility.h"
+#include "sys_file.h"
 #include "sys_etc.h"
 
 #include <stdio.h>
@@ -28,7 +29,6 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
-#include <sys/syscall.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <cups/cups.h>
@@ -39,12 +39,86 @@ struct _AvahiCtrl {
 	gboolean	on_avahi_thread;
 	FILE	*p_fp;
 	pid_t  p_pid;
-} G_AvahiCtrl = { 0 };
+
+	int		i_fd;
+	int		i_wd;
+};
+
+static struct _AvahiCtrl  G_AvahiCtrl = { 0 };
+
+static gboolean _delete_current_printer_list();
 
 
-static int _gettid()
+#include <sys/inotify.h>
+
+static void* _watch_ppd_thread(void *data)
 {
-	return syscall(__NR_gettid);
+	struct _AvahiCtrl *ctrl = (struct _AvahiCtrl*)data;
+	int	fd, wd;
+
+	fd = inotify_init();
+	if (fd <= 0) {
+		grm_log_error("%s() : can't init notify", __FUNCTION__);
+		return NULL;
+	}
+
+	wd = inotify_add_watch(fd, "/etc/cups/ppd", IN_CLOSE_WRITE);
+	if (wd <= 0) {
+		grm_log_error("%s() : can't add watch", __FUNCTION__);
+		close(fd);
+		return NULL;
+	}
+	ctrl->i_fd = fd;
+	ctrl->i_wd = wd;
+
+	int n;
+	char	buf[1024];
+
+	while (1) {
+		n = read(fd, buf, sizeof(buf));
+		if (n <= 0)
+				break;
+
+		grm_log_debug("%s() : check and delete", __FUNCTION__);
+		_delete_current_printer_list();
+	}
+
+	if (ctrl->i_fd > 0 && ctrl->i_wd > 0) {
+		inotify_rm_watch(ctrl->i_fd, ctrl->i_wd);
+		close(ctrl->i_fd);
+	}
+
+	return NULL;
+}
+
+static gboolean _start_watch_ppd()
+{
+	int	res;
+	pthread_t thread;
+
+	G_AvahiCtrl.i_fd = 0;
+	G_AvahiCtrl.i_wd = 0;
+
+	res = pthread_create(&thread, NULL, _watch_ppd_thread, (void*)&G_AvahiCtrl);
+	if (res != 0) {
+		grm_log_error("can't create watch_ppd_thread : %d", res);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static void _stop_watch_ppd()
+{
+	if (G_AvahiCtrl.i_fd) {
+		int fd, wd;
+		fd = G_AvahiCtrl.i_fd;
+		wd = G_AvahiCtrl.i_wd;
+		G_AvahiCtrl.i_fd = 0;
+		G_AvahiCtrl.i_wd = 0;
+		inotify_rm_watch(fd, wd);
+		close(fd);
+	}
 }
 
 static gboolean _existing_printer(char *prt_name)
@@ -64,6 +138,15 @@ static gboolean _existing_printer(char *prt_name)
 
 	cupsFreeDests(printer_count, printer_dests);
 
+	if (found == FALSE) {
+		char ppd_file[1024];
+		snprintf(ppd_file, sizeof(ppd_file), "/etc/cups/ppd/%s.ppd", prt_name);
+		if (sys_file_is_existing(ppd_file)) {
+			grm_log_debug("%s() : no cups dest but existing ppd", __FUNCTION__, prt_name);
+			found = TRUE;
+		}
+	}
+
 	return found;
 }
 
@@ -74,6 +157,7 @@ static gboolean _delete_printer(char *prt_name)
 	char	cmd[1024];
 
 	if (_existing_printer(prt_name) == FALSE) {
+		grm_log_error("%s() : not existing printer", __FUNCTION__);
 		return TRUE;
 	}
 
@@ -186,8 +270,8 @@ static void* avahi_thread(void *data)
 				c_strcpy(prt_name, ptr+1, sizeof(prt_name));
 				grm_log_debug("%s() : catch new printer : %s", __FUNCTION__, rp);
 				_delete_printer(prt_name);
+				_delete_current_printer_list();
 			}
-
 	}
 	grm_log_debug("out of avahi thread");
 
@@ -202,7 +286,7 @@ static void* avahi_thread(void *data)
 
 	ctrl->on_avahi_thread = FALSE;
 
-	grm_log_debug("stop avahi thread : pid = %d tid=%d", getpid(), _gettid());
+	grm_log_debug("stop avahi thread : pid = %d tid=%d", sys_getpid(), sys_gettid());
 
 	return NULL;
 }
@@ -221,11 +305,15 @@ static gboolean _start_printer_monitor()
 		return FALSE;
 	}
 
+	_start_watch_ppd();
+
 	return TRUE;
 }
 
 static void _stop_printer_monitor()
 {
+	_stop_watch_ppd();
+
 	G_AvahiCtrl.normal_stop = TRUE;
 	G_AvahiCtrl.request_stop = TRUE;
 
@@ -423,23 +511,53 @@ static gboolean _recover_saved_printer_list()
 
 static gboolean _delete_current_printer_list()
 {
-	gboolean done = TRUE;
+	gboolean done = FALSE;
 	cups_dest_t *printer_dests = NULL;
 	int printer_count = 0;
+	int	loop = 3;
+	char cmd[256], buf[1024];
+	gboolean res;
+	gboolean again = FALSE;
 
-	printer_count = cupsGetDests(&printer_dests);
-	if (printer_count == 0) {
+	c_strcpy(cmd, "ls /etc/cups/ppd/*.ppd", sizeof(cmd));;
+
+	while (loop > 0 && done == FALSE) {
+		printer_count = cupsGetDests(&printer_dests);
+		if (printer_count == 0) {
 			grm_log_debug("%s() : there is no printer", __FUNCTION__);
-			return TRUE;
-	}
+			done = TRUE;
+		}
+		int idx;
+		for (idx=0; idx < printer_count; idx++) {
+			grm_log_debug("%s() : delete printer : %s", __FUNCTION__, printer_dests[idx].name);
+			done &= _delete_printer(printer_dests[idx].name);
+		}
+		cupsFreeDests(printer_count, printer_dests);
 
-	int idx;
-	for (idx=0; idx < printer_count; idx++) {
-		done &= _delete_printer(printer_dests[idx].name);
-		grm_log_debug("%s() : delete printer : %s", __FUNCTION__, printer_dests[idx].name);
-	}
+		if (done == TRUE) {
+			res = sys_run_cmd_get_output(cmd, "grac_printer", buf, sizeof(buf));
+			if (res == TRUE) {
+				grm_log_debug("%s() : check cups/ppd : [%s]", __FUNCTION__, buf);
+				if (buf[0] != 0)
+					done = FALSE;
+			}
+		}
 
-	cupsFreeDests(printer_count, printer_dests);
+		if (done == FALSE) {
+			again = FALSE;
+			loop--;
+		}
+		else {
+			if (again == TRUE) {
+				break;
+			}
+			else {
+				again = TRUE;
+				loop++;
+			}
+		}
+		usleep(100*1000);
+	}
 
 	return done;
 }

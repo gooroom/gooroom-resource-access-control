@@ -29,19 +29,6 @@ ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{D
 ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
 
 
-
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-#ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/eject /dev/%k"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k"
-
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", ENV{UDISKS_AUTO}="0", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow grac-block %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", RUN+="/usr/bin/grac-block.sh disallow partition /dev/%k"
-ACTION=="add", DEVPATH=="*fuseblk", SUBSYSTEM=="bdi", RUN+="/bin/sh -c '/bin/echo AAAAAA >> /var/log/gooroom/grac.log'", RUN+="/usr/bin/grac-block.sh disallow disk /dev/sdb"
-
-
 #
 # USB Block Device's Partition to Read-Only
 #
