@@ -20,6 +20,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
+
+#include <glib.h>
+#include <glib/gstdio.h>
+
+
+#define _MAX_STR_LEN_  65536
 
  /**
   @brief  문자열의 앞 부분과 뒷부분의 공백문자를 제거한다.
@@ -50,6 +57,10 @@ void c_strltrim(char *str, int size)
 
 	unsigned char ch;
 	int idx, n;
+
+	if (size < 0)
+		size = _MAX_STR_LEN_;
+
 	n = c_strlen(str, size-1);
 	for (idx=0; idx<n; idx++) {
 		ch = str[idx];
@@ -72,6 +83,9 @@ void c_strrtrim(char *str, int size)
 {
 	if (str == NULL)
 		return;
+
+	if (size < 0)
+		size = _MAX_STR_LEN_;
 
 	int idx, n;
 	unsigned char ch;
@@ -96,6 +110,9 @@ int c_strlen(const char *str, int max)
 {
 	int	n = 0;
 
+	if (max < 0)
+		max = _MAX_STR_LEN_;
+
 	if (str) {
 		for (n=0; n < max; n++) {
 			if (str[n] == 0)
@@ -115,8 +132,11 @@ int c_strlen(const char *str, int max)
 */
 char* c_strcpy(char *dest, char *src, int size)
 {
+	if (size < 0)
+		size = _MAX_STR_LEN_;
+
 	if (dest && src) {
-		strncpy(dest, src, size);
+		g_strlcpy(dest, src, size);
 		dest[size-1] = 0;
 	}
 
@@ -141,6 +161,9 @@ int  c_strcmp(const char *s1, const char *s2, int size, int both_null)
 	if (s1 == NULL && s2 == NULL)
 		return both_null;
 
+	if (size < 0)
+		size = _MAX_STR_LEN_;
+
 	if (s1 == NULL)
 		return -1;
 	if (s2 == NULL)
@@ -161,6 +184,10 @@ int  c_strcmp(const char *s1, const char *s2, int size, int both_null)
 char* c_strdup(char *src, int max)
 {
 	char *dest = NULL;
+
+	if (max < 0)
+		max = _MAX_STR_LEN_;
+
 	if (src)
 		dest = strndup(src, max);
 
@@ -174,9 +201,9 @@ int   c_strmatch(const char *s1, const char *s2)
 
 	int	i, n1, n2;
 
-	n1 = c_strlen(s1, 65536);
-	n2 = c_strlen(s2, 65536);
-	if (n1 != n2 || n1 == 65536)
+	n1 = c_strlen(s1, -1);
+	n2 = c_strlen(s2, -1);
+	if (n1 != n2 || n1 >= _MAX_STR_LEN_)
 		return 0;
 
 	for (i=0; i<n1; i++) {
@@ -194,9 +221,9 @@ int   c_strimatch(const char *s1, const char *s2)
 
 	int	i, n1, n2;
 
-	n1 = c_strlen(s1, 65536);
-	n2 = c_strlen(s2, 65536);
-	if (n1 != n2 || n1 == 65536)
+	n1 = c_strlen(s1, -1);
+	n2 = c_strlen(s2, -1);
+	if (n1 != n2 || n1 == _MAX_STR_LEN_)
 		return 0;
 
 	for (i=0; i<n1; i++) {
@@ -213,6 +240,9 @@ int   c_strimatch(const char *s1, const char *s2)
 char*	c_strchr (char *src, int ch, int size)		// if not found, return NULL
 {
 	char *find = NULL;
+
+	if (size < 0)
+		size = _MAX_STR_LEN_;
 
 	if (src) {
 		int	i;
@@ -232,6 +262,9 @@ char*	c_strrchr(char *src, int ch, int size)		// if not found, return NULL
 {
 	char *find = NULL;
 
+	if (size < 0)
+		size = _MAX_STR_LEN_;
+
 	if (src) {
 		int	i;
 		int len = c_strlen(src, size-1);
@@ -250,6 +283,9 @@ char*	c_strstr (char *src, char* str, int size)		// if not found, return NULL
 {
 	char *find = NULL;
 	int len1, len2;
+
+	if (size < 0)
+		size = _MAX_STR_LEN_;
 
 	len1 = c_strlen(src, size-1);
 	len2 = c_strlen(str, size+1);
@@ -272,6 +308,9 @@ char*	c_stristr (char *src, char* str, int size)		// if not found, return NULL
 {
 	char *find = NULL;
 	int len1, len2;
+
+	if (size < 0)
+		size = _MAX_STR_LEN_;
 
 	len1 = c_strlen(src, size-1);
 	len2 = c_strlen(str, size+1);
@@ -296,6 +335,9 @@ char*	c_strrstr(char *src, char* str, int size)		// if not found, return NULL
 	char *find = NULL;
 	int len1, len2;
 
+	if (size < 0)
+		size = _MAX_STR_LEN_;
+
 	len1 = c_strlen(src, size-1);
 	len2 = c_strlen(str, size+1);
 
@@ -317,6 +359,9 @@ char*	c_strristr(char *src, char* str, int size)		// if not found, return NULL
 	char *find = NULL;
 	int len1, len2;
 
+	if (size < 0)
+		size = _MAX_STR_LEN_;
+
 	len1 = c_strlen(src, size-1);
 	len2 = c_strlen(str, size+1);
 
@@ -335,10 +380,13 @@ char*	c_strristr(char *src, char* str, int size)		// if not found, return NULL
 
 void	c_strcat (char *dest, char* src, int size)
 {
+	if (size < 0)
+		size = _MAX_STR_LEN_;
+
 	if (dest == NULL || src == NULL)
 		return;
 
-	strncat(dest, src, size);
+	g_strlcat(dest, src, size);
 }
 
 void 	c_memset(void *buf, int ch, int len)
@@ -543,4 +591,13 @@ int c_strchr_idx(char *str, int find_ch, int max)
 			return i;
 	}
 	return -1;
+}
+
+// if err is -1. get current error
+char	*c_strerror(int err)
+{
+	if (err == -1)
+		err = errno;
+
+	return strerror(err);
 }

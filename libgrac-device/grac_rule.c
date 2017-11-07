@@ -60,6 +60,8 @@ struct _GracRule
 	// 블루투스  MAC list
 	GPtrArray *bluetooth_mac_array;			// char*
 	int	bluetooth_mac_count;
+
+	sys_ipt *ipt;
 };
 
 
@@ -77,6 +79,13 @@ GracRule* grac_rule_alloc()
 
 		rule->res_perm_map = grac_map_alloc();
 		if (rule->res_perm_map == NULL) {
+			grm_log_debug("grac_rule_alloc() : out of memory");
+			grac_rule_free(&rule);
+			return NULL;
+		}
+
+		rule->ipt = sys_ipt_alloc();
+		if (rule->ipt == NULL) {
 			grm_log_debug("grac_rule_alloc() : out of memory");
 			grac_rule_free(&rule);
 			return NULL;
@@ -100,6 +109,7 @@ void grac_rule_free(GracRule **pRule)
 
 		grac_rule_clear(rule);
 
+		sys_ipt_alloc(&rule->ipt);
 		grac_map_free(&rule->res_perm_map);
 
 		free(rule);
@@ -873,7 +883,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 
 	// protocol && port
 	if (protocol_count == 0) {	// ignore ports
-		appB = sys_ipt_append_rule(ipt_rule);
+		appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 		if (appB == FALSE) {
 			grm_log_error("%s : applying ipt_rule : %s, all protocols, all ports", func, log_addr);
 		}
@@ -907,7 +917,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 					int 	port_idx;
 					char	*port_str;
 					if (s_port_count + d_port_count == 0) {
-						appB = sys_ipt_append_rule(ipt_rule);
+						appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 						if (appB == FALSE) {
 							grm_log_error("%s : applying ipt_rule : %s, %s, no ports", func, log_addr, protocol_name);
 						}
@@ -918,7 +928,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 							if (res == 1)
 								sys_ipt_rule_add_src_port_str(ipt_rule, port_str);
 						}
-						appB = sys_ipt_append_rule(ipt_rule);
+						appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 						if (appB == FALSE) {
 							grm_log_error("%s : applying ipt_rule : %s, %s, with src_ports", func, log_addr, protocol_name);
 						}
@@ -933,7 +943,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 							if (res == 1)
 								sys_ipt_rule_add_dst_port_str(ipt_rule, port_str);
 						}
-						appB = sys_ipt_append_rule(ipt_rule);
+						appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 						if (appB == FALSE) {
 							grm_log_error("%s : applying ipt_rule : %s, %s, with dst_ports", func, log_addr, protocol_name);
 						}
@@ -944,7 +954,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 					if (s_port_count + d_port_count > 0) {
 						grm_log_error("%s : applying ipt_rule : %s, %s, not allowd port : ignore", func, log_addr, protocol_name);
 					}
-					appB = sys_ipt_append_rule(ipt_rule);
+					appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 					if (appB == FALSE) {
 						grm_log_error("%s : applying ipt_rule : %s, %s, no ports", func, log_addr, protocol_name);
 					}
@@ -967,36 +977,36 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 
 	grm_log_debug("start : %s()", __FUNCTION__);
 
-	sys_ipt_set_log(TRUE, "GRAC: Disallowed Network ");		// Maximunm 29 chars
+	sys_ipt_set_log(rule->ipt, TRUE, "GRAC: Disallowed Network ");		// Maximunm 29 chars
                                               /* 12345678901234567890123456789 */
 
 	// no data
 	if (rule == NULL) {
 		// set deny
-		done &= sys_ipt_clear_all();
-		done &= sys_ipt_set_policy(FALSE);
+		done &= sys_ipt_clear_all(rule->ipt);
+		done &= sys_ipt_set_policy(rule->ipt, FALSE);
 //	done &= sys_ipt_insert_all_drop_rule();
 		return done;
 	}
 
 	// set only default
 	if (rule->network_count == 0) {
-		done &= sys_ipt_clear_all();
+		done &= sys_ipt_clear_all(rule->ipt);
 		perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_NETWORK);
 		if (perm_id == GRAC_PERMISSION_ALLOW)
-			done &= sys_ipt_set_policy(TRUE);
+			done &= sys_ipt_set_policy(rule->ipt, TRUE);
 		else
-			done &= sys_ipt_set_policy(FALSE);
+			done &= sys_ipt_set_policy(rule->ipt, FALSE);
 		return done;
 	}
 
-	done &= sys_ipt_clear_all();
+	done &= sys_ipt_clear_all(rule->ipt);
 
 	perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_NETWORK);
 	if (perm_id == GRAC_PERMISSION_ALLOW)
-		done &= sys_ipt_set_policy(TRUE);
+		done &= sys_ipt_set_policy(rule->ipt, TRUE);
 	else 	// deny or error - default permission is deny.
-		done &= sys_ipt_set_policy(FALSE);
+		done &= sys_ipt_set_policy(rule->ipt, FALSE);
 
 	int	idx;
 	for (idx=0; idx < rule->network_count; idx++) {
@@ -1010,9 +1020,9 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 
 	perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_NETWORK);
 	if (perm_id == GRAC_PERMISSION_ALLOW)
-		done &= sys_ipt_append_all_accept_rule();
+		done &= sys_ipt_append_all_accept_rule(rule->ipt);
 	else 	// deny or error - default permission is deny.
-		done &= sys_ipt_append_all_drop_rule();
+		done &= sys_ipt_append_all_drop_rule(rule->ipt);
 
 	return done;
 }
@@ -1031,17 +1041,17 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 	uid = sys_user_get_login_uid();
 	if (uid < 0) {
 		grm_log_warning("%s(): can't get login name", __FUNCTION__);
-		snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%s", grac_config_file_udev_rules());
-		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
+		g_snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%s", grac_config_file_udev_rules());
+		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
 	}
 	else {
-		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%s", grac_config_file_udev_rules());
+		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%s", grac_config_file_udev_rules());
 		unlink(tmp_file);
-		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
+		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
 		unlink(tmp_file);
 
-		snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%d/%s", uid, grac_config_file_udev_rules());
-		snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%d/grac_tmp_udev", uid);
+		g_snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%d/%s", uid, grac_config_file_udev_rules());
+		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%d/grac_tmp_udev", uid);
 	}
 
 /*
@@ -1050,7 +1060,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 	if (res == -1) {
 		const char *tmp_path;
 		tmp_path = grac_config_dir_grac_data();
-		snprintf(tmp_file, sizeof(tmp_file), "/%s/grac_tmp_udev", tmp_path);
+		g_snprintf(tmp_file, sizeof(tmp_file), "/%s/grac_tmp_udev", tmp_path);
 	}
 */
 
@@ -1169,24 +1179,24 @@ static gboolean _grac_rule_disallow_network_printer(GracRule *rule, int port)
 	if (rule == NULL)
 		return FALSE;
 
-	sys_ipt_rule *ipt = sys_ipt_rule_alloc();
+	sys_ipt_rule *ipt_rule = sys_ipt_rule_alloc();
 
-	if (ipt) {
+	if (ipt_rule) {
 		done = TRUE;
 		char	port_str[32];
 
-		snprintf(port_str, sizeof(port_str), "%u", port);
+		g_snprintf(port_str, sizeof(port_str), "%u", port);
 
-		sys_ipt_set_log(TRUE, "GRAC: Disallowed Printer ");		// Maximunm 29 chars
+		sys_ipt_set_log(rule->ipt, TRUE, "GRAC: Disallowed Printer ");		// Maximunm 29 chars
                                                   /* 12345678901234567890123456789 */
-		done &= sys_ipt_rule_set_target  (ipt, SYS_IPT_TARGET_DROP);
-		done &= sys_ipt_rule_set_chain   (ipt, SYS_IPT_CHAIN_B_OUTPUT);
-		done &= sys_ipt_rule_set_protocol(ipt, SYS_IPT_PROTOCOL_TCP);
-		done &= sys_ipt_rule_add_dst_port_str(ipt, port_str);
+		done &= sys_ipt_rule_set_target  (ipt_rule, SYS_IPT_TARGET_DROP);
+		done &= sys_ipt_rule_set_chain   (ipt_rule, SYS_IPT_CHAIN_B_OUTPUT);
+		done &= sys_ipt_rule_set_protocol(ipt_rule, SYS_IPT_PROTOCOL_TCP);
+		done &= sys_ipt_rule_add_dst_port_str(ipt_rule, port_str);
 
-		done &= sys_ipt_insert_rule(ipt);
+		done &= sys_ipt_insert_rule(rule->ipt, ipt_rule);
 
-		sys_ipt_rule_free(&ipt);
+		sys_ipt_rule_free(&ipt_rule);
 	}
 
 	return done;
@@ -1292,6 +1302,7 @@ gboolean grac_rule_apply (GracRule *rule)
 
 	grm_log_debug("start : %s()", __FUNCTION__);
 	if (rule) {
+
 		done = _grac_rule_apply_network(rule);
 
 		// special process for USB
@@ -1317,23 +1328,23 @@ gboolean grac_rule_apply (GracRule *rule)
 
 gboolean grac_rule_apply_allow_all(GracRule *rule)
 {
-	gboolean done;
+	gboolean done = FALSE;
 
-	grm_log_debug("start : %s()", __FUNCTION__);
+	if (rule) {
+		// clear all filter
+		done = sys_ipt_clear_all(rule->ipt);
+		done &= sys_ipt_set_policy(rule->ipt, TRUE);
 
-	// clear all filter
-	done = sys_ipt_clear_all();
-	done &= sys_ipt_set_policy(TRUE);
-
-	// clear udev rule
-	const char *path;
-	path = grac_config_path_udev_rules();
-	if (path) {
-		GracRuleUdev *udev_rule;
-		udev_rule = grac_rule_udev_alloc(NULL);
-		if (udev_rule)
-			done &= grac_rule_udev_make_empty(udev_rule, path);
-		grac_rule_udev_free(&udev_rule);
+		// clear udev rule
+		const char *path;
+		path = grac_config_path_udev_rules();
+		if (path) {
+			GracRuleUdev *udev_rule;
+			udev_rule = grac_rule_udev_alloc(NULL);
+			if (udev_rule)
+				done &= grac_rule_udev_make_empty(udev_rule, path);
+			grac_rule_udev_free(&udev_rule);
+		}
 	}
 
 	return done;

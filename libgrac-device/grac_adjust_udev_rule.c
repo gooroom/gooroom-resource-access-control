@@ -24,6 +24,9 @@
 #include <string.h>
 #include <errno.h>
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
 typedef struct _GracBlockDevice GracBlockDevice;
 struct _GracBlockDevice {
 	char 		*dev_name;
@@ -360,11 +363,11 @@ static void	_grac_block_device_list_dump_sub(int depth, GracBlockDevice	*blk)
 
 	GracBlockDevice	*cur = blk;
 	while (cur) {
-		printf("%s", tab);
-//	printf(form, 	cur->dev_name, cur->dev_type, (int)cur->removable, (int)cur->readonly,
+		g_printf("%s", tab);
+//	g_printf(form, 	cur->dev_name, cur->dev_type, (int)cur->removable, (int)cur->readonly,
 //							  cur->mount_point, (int)cur->hotplug, cur->sub_system);
-		printf(form, 	cur->dev_name, cur->dev_type, (int)cur->removable, (int)cur->readonly, cur->mount_point);
-		printf("(mounted flag %d:%d)\n", (int)cur->this_root, (int)cur->child_root);
+		g_printf(form, 	cur->dev_name, cur->dev_type, (int)cur->removable, (int)cur->readonly, cur->mount_point);
+		g_printf("(mounted flag %d:%d)\n", (int)cur->this_root, (int)cur->child_root);
 
 		_grac_block_device_list_dump_sub(depth+1, cur->children);
 
@@ -397,7 +400,7 @@ static gboolean _make_block_device_list_parent()
 		char *t = c_strchr(ptr, '\n', 256);
 		if (t)
 			*t = 0;
-		n = strlen(ptr);
+		n = c_strlen(ptr, 256);
 		if (n > 0) {
 			GracBlockDevice*	dev = grac_block_device_alloc();
 			if (dev == NULL) {
@@ -640,7 +643,7 @@ static gboolean _make_block_device_list_complete()
 		char *t = c_strchr(ptr, '\n', 256);
 		if (t)
 			*t = 0;
-		n = strlen(ptr);
+		n = c_strlen(ptr, 256);
 		if (n > 0) {
 			done = _make_block_device_list_complete_one(ptr);
 			if (done == FALSE) {
@@ -687,13 +690,13 @@ static gboolean	do_adjust_udev_rule_file(char *org_path, char *adj_path)
 	char	*key = "KERNEL==";
 	char	*subsystem = "SUBSYSTEM==\"block\"";
 
-	in = fopen(org_path, "r");
+	in = g_fopen(org_path, "r");
 	if (in == NULL) {
 		grm_log_error("%s() : can't open file : %s", __FUNCTION__, org_path);
 		return FALSE;
 	}
 
-	out = fopen(adj_path, "w");
+	out = g_fopen(adj_path, "w");
 	if (out == NULL) {
 		grm_log_error("%s() : can't create file : %s", __FUNCTION__, adj_path);
 		fclose(in);
@@ -716,7 +719,7 @@ static gboolean	do_adjust_udev_rule_file(char *org_path, char *adj_path)
 			continue;
 		}
 
-		ptr += strlen(key);
+		ptr += c_strlen(key, sizeof(buf));
 		if (*ptr != '\"') {
 			fprintf(out, "%s", buf);
 			continue;

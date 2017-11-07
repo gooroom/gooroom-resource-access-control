@@ -40,6 +40,26 @@
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/cutility.h</locationURI>
 		</link>
 		<link>
+			<name>src/grac_config.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_config.c</locationURI>
+		</link>
+		<link>
+			<name>src/grac_config.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_config.h</locationURI>
+		</link>
+		<link>
+			<name>src/grac_map.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_map.c</locationURI>
+		</link>
+		<link>
+			<name>src/grac_map.h</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_map.h</locationURI>
+		</link>
+		<link>
 			<name>src/grm_log.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grm_log.c</locationURI>
@@ -53,26 +73,6 @@
 			<name>src/syslib</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_acl.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_acl.c</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_acl.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_acl.h</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_comm.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_comm.c</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_comm.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_comm.h</locationURI>
 		</link>
 		<link>
 			<name>src/syslib/sys_cups.c</name>
@@ -105,16 +105,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_file.h</locationURI>
 		</link>
 		<link>
-			<name>src/syslib/sys_ipset.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_ipset.c</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_ipset.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_ipset.h</locationURI>
-		</link>
-		<link>
 			<name>src/syslib/sys_ipt.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_ipt.c</locationURI>
@@ -125,16 +115,6 @@
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_ipt.h</locationURI>
 		</link>
 		<link>
-			<name>src/syslib/sys_iptables.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_iptables.c</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_iptables.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_iptables.h</locationURI>
-		</link>
-		<link>
 			<name>src/syslib/sys_user.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_user.c</locationURI>
@@ -143,36 +123,6 @@
 			<name>src/syslib/sys_user.h</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_user.h</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_user_list.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_user_list.c</locationURI>
-		</link>
-		<link>
-			<name>src/syslib/sys_user_list.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/sys_user_list.h</locationURI>
-		</link>
-		<link>
-			<name>src/grac_config.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_config.c</locationURI>
-		</link>
-		<link>
-			<name>src/grac_config.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_config.h</locationURI>
-		</link>
-		<link>
-			<name>src/grac_map.c</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_map.c</locationURI>
-		</link>
-		<link>
-			<name>src/grac_map.h</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_map.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

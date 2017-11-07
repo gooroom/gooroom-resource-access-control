@@ -24,6 +24,9 @@
 #include <errno.h>
 #include <ctype.h>
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
 typedef enum {
 	GRAC_RULE_MAP_LINE_ERROR = -1,
 	GRAC_RULE_MAP_LINE_EMPTY = 0,
@@ -226,7 +229,7 @@ static int	get_line_count(char *file)
 	char	buf[2048];
 	int		count = 0;
 
-	fp = fopen(file, "r");
+	fp = g_fopen(file, "r");
 	if (fp != NULL) {
 		while (1) {
 			if (fgets(buf, sizeof(buf), fp) == NULL)
@@ -254,7 +257,7 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 	if (udev_rule == NULL || grac_rule == NULL)
 		return FALSE;
 
-	fp = fopen(udev_rule->map_file_path, "r");
+	fp = g_fopen(udev_rule->map_file_path, "r");
 	if (fp == NULL)
 		return FALSE;
 
@@ -573,11 +576,11 @@ gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsi
 	save_ch = *ptr1;
 	*ptr1 = 0;
 	if (ch == 0)
-		snprintf(format, fsize, "%s", buf);
+		g_snprintf(format, fsize, "%s", buf);
 	else if (*ptr2 <= 0x20)
-		snprintf(format, fsize, "%s%s", buf, ptr2);
+		g_snprintf(format, fsize, "%s%s", buf, ptr2);
 	else
-		snprintf(format, fsize, "%s %s", buf, ptr2);
+		g_snprintf(format, fsize, "%s %s", buf, ptr2);
 	*ptr1 = save_ch;
 
 	res = FALSE;
@@ -653,12 +656,12 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 	if (udev_rule == NULL || rules_file == NULL)
 		return FALSE;
 
-	in_fp = fopen(udev_rule->map_file_path, "r");
+	in_fp = g_fopen(udev_rule->map_file_path, "r");
 	if (in_fp == NULL) {
 		return FALSE;
 	}
 
-	out_fp = fopen(rules_file, "w");
+	out_fp = g_fopen(rules_file, "w");
 	if (out_fp == NULL) {
 		fclose(in_fp);
 		return FALSE;
@@ -688,7 +691,7 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 					;
 					// bluetooth 전체 장치를 위한 rule은 별도로 있다고 가정
 					// _delete_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format));
-					//printf(out_fp, "%s", out_format);
+					//g_fprintf(out_fp, "%s", out_format);
 				}
 				else {
 					int		mac_idx;
@@ -696,12 +699,12 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 					for (mac_idx=0; mac_idx < count; mac_idx++) {
 						grac_rule_bluetooth_mac_get_addr(grac_rule, mac_idx, mac_addr, sizeof(mac_addr));
 						_adjust_mac_addr(mac_addr);
-						fprintf(out_fp, out_format, mac_addr);
+						g_fprintf(out_fp, out_format, mac_addr);
 					}
 				}
 			}
 			else {
-				fprintf(out_fp, "%s", buf);
+				g_fprintf(out_fp, "%s", buf);
 			}
 		}
 	}
@@ -761,7 +764,7 @@ gboolean grac_rule_udev_make_empty(GracRuleUdev *udev_rule, const char *udev_rul
 	if (udev_rule == NULL || udev_rule_path == NULL)
 		return FALSE;
 
-	out_fp = fopen(udev_rule_path, "w");
+	out_fp = g_fopen(udev_rule_path, "w");
 	if (out_fp == NULL) {
 		return FALSE;
 	}

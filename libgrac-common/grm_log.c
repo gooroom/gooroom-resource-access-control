@@ -37,14 +37,17 @@
 
 #include "grm_log.h"
 #include "sys_etc.h"
+#include "cutility.h"
 
 #include <stdio.h>
 #include <unistd.h>
 #include <syslog.h>
-#include <string.h>
-#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <limits.h>
+
+#include <glib.h>
+#include <glib/gstdio.h>
 
 typedef enum
 {
@@ -55,20 +58,15 @@ typedef enum
   GRM_LOG_LEVEL_ERROR
 } GrmLogLevel;
 
-///-------------
-// 모두 지원 안 함
-//#define GRM_LOG_DEBUG  (args...)  grm_log(GRM_LOG_LEVEL_DEBUG, args)
-//#define GRM_LOG_INFO   (args...)  grm_log(GRM_LOG_LEVEL_INFO, ##args)
-//#define GRM_LOG_NOTICE (args...)  grm_log(GRM_LOG_LEVEL_NOTICE, __VA_ARGS__)
-///-------------
 
 G_LOCK_DEFINE_STATIC (grm_log_lock);
 
 static gchar G_AppName[128] = {0};
+static int   G_AppNameSize = sizeof(G_AppName);
 
 void grm_log_set_name (gchar *appname)
 {
-	strncpy(G_AppName, appname, sizeof(G_AppName));
+	c_strcpy(G_AppName, appname, G_AppNameSize);
 }
 
 
@@ -94,11 +92,11 @@ static gboolean _limit_log_file_size()
 		if (size > LOG_FILE_MAX_SIZE) {
 				res = unlink(PATH_LOG_BACK);
 				res = rename(PATH_LOG_FILE, PATH_LOG_BACK);
-				FILE *fp = fopen(PATH_LOG_FILE, "w");
+				FILE *fp = g_fopen(PATH_LOG_FILE, "w");
 				if (fp)
 					fclose(fp);
-				if (access(PATH_LOG_FILE, F_OK) == 0)
-					chmod(PATH_LOG_FILE, 0766);
+				if (g_access(PATH_LOG_FILE, F_OK) == 0)
+					g_chmod(PATH_LOG_FILE, 0766);
 		}
 
 		res = stat(PATH_LOG_FILE, &finfo);
@@ -126,49 +124,34 @@ static void _do_file_log(char *msg)
 
 	char	module[1024];
 	if (sys_get_current_process_name(module, sizeof(module)) == FALSE)
-		strcpy(module, "unknown");
-/*
-	int		res;
-	memset(module, 0, sizeof(module));
-	res = readlink("/proc/self/exe", module, sizeof(module)-1);
-	if (res < 0) {
-		module[0] = 0;
-	}
-	else {
-		char *ptr;
-		ptr = strrchr(module, '/');
-		if (ptr != NULL)
-			strcpy(module, ptr+1);
-	}
-*/
-
+		c_strcpy(module, "unknown", sizeof(module));
 
 	static gboolean check_dir = FALSE;
 	if (check_dir == FALSE) {
-		if (access(PATH_LOG_BASE1, F_OK) != 0)
+		if (g_access(PATH_LOG_BASE1, F_OK) != 0)
 			mkdir(PATH_LOG_BASE1, 0777);
-		if (access(PATH_LOG_BASE2, F_OK) != 0)
+		if (g_access(PATH_LOG_BASE2, F_OK) != 0)
 			mkdir(PATH_LOG_BASE2, 0777);
-		if (access(PATH_LOG_FILE, F_OK) != 0) {
-			FILE *fp = fopen(PATH_LOG_FILE, "w");
+		if (g_access(PATH_LOG_FILE, F_OK) != 0) {
+			FILE *fp = g_fopen(PATH_LOG_FILE, "w");
 			if (fp)
 				fclose(fp);
 		}
-		if (access(PATH_LOG_FILE, F_OK) == 0)
-			chmod(PATH_LOG_FILE, 0766);
+		if (g_access(PATH_LOG_FILE, F_OK) == 0)
+			g_chmod(PATH_LOG_FILE, 0766);
 
 		check_dir = _limit_log_file_size();
 	}
 
 
-	FILE *fp = fopen(PATH_LOG_FILE, "a");
+	FILE *fp = g_fopen(PATH_LOG_FILE, "a");
 	if (fp) {
-		int n = strlen(msg);
+		int n = c_strlen(msg, 2048);
 		int m_sec = (int)(current.tv_usec/100);  // 10**-4 second
 		if (n > 0 && msg[n-1] == '\n')
-			fprintf(fp, "%s.%04d [%3s %d] %s", time_str, m_sec, module, getpid(), msg);
+			g_fprintf(fp, "%s.%04d [%3s %d] %s", time_str, m_sec, module, getpid(), msg);
 		else
-			fprintf(fp, "%s.%04d [%3s %d] %s\n", time_str, m_sec, module, getpid(), msg);
+			g_fprintf(fp, "%s.%04d [%3s %d] %s\n", time_str, m_sec, module, getpid(), msg);
 		fclose(fp);
 	}
 }
@@ -221,8 +204,6 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 {
 	G_LOCK (grm_log_lock);
 
-//	static gboolean version_out = FALSE;
-//	static char*    log_version = "****** libgrac version 2017.10.01 (001) *****";
 	gchar *kind_str;
 	gchar *message;
 
@@ -257,30 +238,27 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 	char	sys_message[1024];
 	int		new_size;
 
-	new_size = strlen(G_AppName)+2 + strlen(kind_str)+2 + strlen(format) + 1;
+	new_size = c_strlen(G_AppName, G_AppNameSize)+2
+						+ c_strlen(kind_str,G_AppNameSize)+2
+						+ c_strlen(format, G_AppNameSize)
+						+ 1;
 	if (new_size > sizeof(new_format)) {
 		message = g_strdup_vprintf (format, var_args);
 	}
 	else {
 		if (G_AppName[0] == 0)
-			sprintf(new_format, "%s: %s", kind_str, format);
+			g_snprintf(new_format, sizeof(new_format), "%s: %s", kind_str, format);
 		else
-			sprintf(new_format, "%s: %s: %s", G_AppName, kind_str, format);
+			g_snprintf(new_format, sizeof(new_format), "%s: %s: %s", G_AppName, kind_str, format);
 		message = g_strdup_vprintf (new_format, var_args);
 		if (message != NULL) {
 			if (G_AppName[0] == 0)
-				snprintf(sys_message, sizeof(sys_message), "app=\"GRAC\" msg=\"%s\"", message);
+				g_snprintf(sys_message, sizeof(sys_message), "app=\"GRAC\" msg=\"%s\"", message);
 			else
-				snprintf(sys_message, sizeof(sys_message), "app=\"%s\" msg=\"%s\"", G_AppName, message);
+				g_snprintf(sys_message, sizeof(sys_message), "app=\"%s\" msg=\"%s\"", G_AppName, message);
 		}
 
 	}
-
-//	if (version_out == FALSE) {
-//		_do_sys_log(level, log_version);
-//		_do_file_log(log_version);
-//		version_out = TRUE;
-//		}
 
 	if (message != NULL) {
 		_do_sys_log (level, sys_message);

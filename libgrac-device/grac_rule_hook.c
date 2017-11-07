@@ -18,6 +18,7 @@
 #include "grm_log.h"
 #include "cutility.h"
 #include "sys_user.h"
+#include "sys_file.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +28,9 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
+
+#include <glib.h>
+#include <glib/gstdio.h>
 
 static gboolean _create_ld_so_preload()
 {
@@ -42,7 +46,7 @@ static gboolean _create_ld_so_preload()
 		grm_log_error("%s(): can't get login name", __FUNCTION__);
 		return FALSE;
 	}
-	snprintf(preload_target, sizeof(preload_target), "/var/run/user/%d/%s", uid, grac_config_file_ld_so_preload());
+	g_snprintf(preload_target, sizeof(preload_target), "/var/run/user/%d/%s", uid, grac_config_file_ld_so_preload());
 
 	preload_link = grac_config_path_ld_so_preload();
 	if (preload_link == NULL) {
@@ -67,7 +71,7 @@ static gboolean _create_ld_so_preload()
 	gboolean exist_screen_path = FALSE;
 	char	last_char = '\n';
 
-	fp = fopen(preload_target, "r");
+	fp = g_fopen(preload_target, "r");
 	if (fp != NULL) {
 		int n;
 		while (1) {
@@ -88,7 +92,7 @@ static gboolean _create_ld_so_preload()
 	}
 
 	if (exist_clip_path == FALSE || exist_screen_path == FALSE) {
-		fp = fopen(preload_target, "a");
+		fp = g_fopen(preload_target, "a");
 		if (fp != NULL) {
 			if (last_char != '\n')
 				fprintf(fp, "\n");
@@ -147,12 +151,12 @@ static gboolean _delete_ld_so_preload()
 	char	buf2[2048];
 	gboolean out_data = FALSE;
 
-	snprintf(tmp_file, sizeof(tmp_file), "%s/grac_preload.tmp", (char*)grac_config_dir_grac_data());
-	in_fp = fopen(preload_path, "r");
+	g_snprintf(tmp_file, sizeof(tmp_file), "%s/grac_preload.tmp", (char*)grac_config_dir_grac_data());
+	in_fp = g_fopen(preload_path, "r");
 	if (in_fp == NULL)
 		return done;
 
-	out_fp = fopen(tmp_file, "w");
+	out_fp = g_fopen(tmp_file, "w");
 	if (out_fp != NULL) {
 		while (1) {
 			if (fgets(buf1, sizeof(buf1), in_fp) == NULL)
@@ -202,7 +206,7 @@ gboolean grac_rule_hook_init()
 		grm_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
 		done = FALSE;
 	}
-	else if (access(path, F_OK) != 0) {
+	else if (sys_file_is_existing((char*)path) == FALSE) {
 		grm_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
 		done = FALSE;
 	}
@@ -212,7 +216,7 @@ gboolean grac_rule_hook_init()
 		grm_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
 		done = FALSE;
 	}
-	else if (access(path, F_OK) != 0) {
+	else if (sys_file_is_existing((char*)path) == FALSE) {
 		grm_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
 		done = FALSE;
 	}
@@ -247,7 +251,7 @@ gboolean grac_rule_hook_allow_clipboard(gboolean allow)
 	path = grac_config_path_hook_clipboard_conf();
 	if (path) {
 		FILE	*fp;
-		fp = fopen(path, "w");
+		fp = g_fopen(path, "w");
 		if (fp == NULL) {
 			grm_log_error("%s(): can't open [%s]", __FUNCTION__, path);
 		}
@@ -272,7 +276,7 @@ gboolean grac_rule_hook_allow_screenshooter(gboolean allow)
 	path = grac_config_path_hook_screenshooter_conf();
 	if (path) {
 		FILE	*fp;
-		fp = fopen(path, "w");
+		fp = g_fopen(path, "w");
 		if (fp == NULL) {
 			grm_log_error("%s(): can't open [%s]", __FUNCTION__, path);
 		}

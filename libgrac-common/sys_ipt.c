@@ -23,17 +23,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include <errno.h>
+
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #define MAX_PORT_COUNT 100
-
-static gboolean sys_ipt_log_on = FALSE;
-static char sys_ipt_log_header[256] = { 0 };
-
 
 struct _sys_ipt_rule {
 	int	target;				// ACCEPT, DROP
@@ -443,7 +440,7 @@ gboolean	sys_ipt_rule_set_addr (sys_ipt_rule *rule, guint8 addr[4])
 		const char *res;
 		res = inet_ntop(AF_INET, rule->addr_data.ip_v4, rule->addr_str, sizeof(rule->addr_str) );
 		if (res == NULL) {
-			grm_log_warning("sys_ipt.c : invalid V4 address data : %s", strerror(errno));
+			grm_log_warning("sys_ipt.c : invalid V4 address data : %s", c_strerror(-1));
 			rule->addr_str[0] = 0;
 		}
 
@@ -464,7 +461,7 @@ gboolean	sys_ipt_rule_set_addr6 (sys_ipt_rule *rule, guint16 addr[8])
 		const char *res;
 		res = inet_ntop(AF_INET6, rule->addr_data.ip_v6, rule->addr_str, sizeof(rule->addr_str) );
 		if (res == NULL) {
-			grm_log_warning("sys_ipt.c : invalid V6 address data : %s", strerror(errno));
+			grm_log_warning("sys_ipt.c : invalid V6 address data : %s", c_strerror(-1));
 			rule->addr_str[0] = 0;
 		}
 
@@ -489,7 +486,7 @@ gboolean	sys_ipt_rule_set_addr_str (sys_ipt_rule *rule, gchar *addr_str)
 			done = TRUE;
 		}
 		else {
-			grm_log_warning("sys_ipt_rule_set_addr_str() : %s", strerror(errno));
+			grm_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
 			rule->addr_data_type = 0;
 			rule->addr_version = 1;
 			c_strcpy(rule->addr_str, addr_str, sizeof(rule->addr_str));
@@ -516,7 +513,7 @@ gboolean	sys_ipt_rule_set_addr6_str(sys_ipt_rule *rule, gchar *addr_str)
 			done = TRUE;
 		}
 		else {
-			grm_log_warning("sys_ipt_rule_set_addr_str() : %s", strerror(errno));
+			grm_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
 			rule->addr_data_type = 0;
 			rule->addr_version = 2;
 			c_strcpy(rule->addr_str, addr_str, sizeof(rule->addr_str));
@@ -624,86 +621,139 @@ gboolean	sys_ipt_rule_set_mac_addr_str(sys_ipt_rule *rule, gchar *mac_str)
 // control iptables
 //------------------------------------------------------------------------------------
 
+struct _sys_ipt {
+	gboolean log_on;
+	char *log_head;
+	int	 log_head_size;
+	char *set_cmd;
+	int	 set_cmd_size;
+	char *log_cmd;
+	int	 log_cmd_size;
+
+	char	*tmp_buf;
+	int		tmp_buf_size;
+};
+
+sys_ipt *sys_ipt_alloc()
+{
+	sys_ipt *ipt = malloc(sizeof(sys_ipt));
+	if (ipt) {
+		c_memset(ipt, 0, sizeof(sys_ipt));
+		ipt->log_head_size = 256;
+		ipt->log_head = c_alloc(ipt->log_head_size);
+		ipt->set_cmd_size = 2048;
+		ipt->set_cmd = c_alloc(ipt->set_cmd_size);
+		ipt->log_cmd_size = 2048;
+		ipt->log_cmd = c_alloc(ipt->log_cmd_size);
+		ipt->tmp_buf_size = 1024;
+		ipt->tmp_buf = c_alloc(ipt->tmp_buf_size);
+
+		if (ipt->log_head == NULL ||
+				ipt->set_cmd == NULL ||
+				ipt->log_cmd == NULL ||
+				ipt->tmp_buf == NULL )
+		{
+			sys_ipt_free(&ipt);
+		}
+	}
+
+	return ipt;
+}
+
+void sys_ipt_free(sys_ipt **pipt)
+{
+	sys_ipt *ipt;
+
+	if (pipt) {
+		ipt = *pipt;
+		if (ipt) {
+			c_free(&ipt->log_head);
+			c_free(&ipt->set_cmd);
+			c_free(&ipt->log_cmd);
+			c_free(&ipt->tmp_buf);
+
+			free(ipt);
+		}
+		*pipt = NULL;
+	}
+}
+
 /**
   @brief   iptables에 등록되어 있는 모든 rule을 초기화한다.
   @return gboolean 성공여부
  */
-gboolean	sys_ipt_clear_all()
+gboolean	sys_ipt_clear_all(sys_ipt* ipt)
 {
 	gboolean res;
-	gchar	cmd[128];
+	gchar	*cmd;
 
-	sprintf(cmd, "iptables -F OUTPUT 2>&1");
+	cmd = "iptables -F OUTPUT 2>&1";
 	res = sys_run_cmd_no_output(cmd, "sys_ipt");
 
-	sprintf(cmd, "iptables -F INPUT 2>&1");
+	cmd = "iptables -F INPUT 2>&1";
 	res &= sys_run_cmd_no_output(cmd, "sys_ipt");
 
 	return res;
 }
 
 
-static gboolean _make_and_run_cmd (gboolean append, int chain, sys_ipt_rule *rule)
+static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys_ipt_rule *rule)
 {
 	gboolean done = FALSE;
-	char cmd[1024];
-	char cmd_log[1024];
-	int	 cmd_len = 0;
+	int	len;
 
 	// command
 	if (rule->addr_version == 2)
-		c_strcpy(cmd, "ip6tables ", sizeof(cmd));
+		c_strcpy(ipt->set_cmd, "ip6tables ", ipt->set_cmd_size);
 	else
-		c_strcpy(cmd, "iptables ", sizeof(cmd));
+		c_strcpy(ipt->set_cmd, "iptables ", ipt->set_cmd_size);
 
 	// location of list
 	if (append == TRUE)
-		c_strcat(cmd, "-A ", sizeof(cmd));
+		c_strcat(ipt->set_cmd, "-A ", ipt->set_cmd_size);
 	else
-		c_strcat(cmd, "-I ", sizeof(cmd));
+		c_strcat(ipt->set_cmd, "-I ", ipt->set_cmd_size);
 
 	if (chain == SYS_IPT_CHAIN_B_INPUT)
-		c_strcat(cmd, "INPUT ", sizeof(cmd));
+		c_strcat(ipt->set_cmd, "INPUT ", ipt->set_cmd_size);
 	else if (chain == SYS_IPT_CHAIN_B_OUTPUT)
-		c_strcat(cmd, "OUTPUT ", sizeof(cmd));
+		c_strcat(ipt->set_cmd, "OUTPUT ", ipt->set_cmd_size);
 	else
 		return FALSE;
 
 	// address
 	if (rule->addr_str[0] != 0) {   // if (rule->addr_data_type == 1)
 		if (chain == SYS_IPT_CHAIN_B_INPUT)
-			c_strcat(cmd, "-s ", sizeof(cmd));
+			c_strcat(ipt->set_cmd, "-s ", ipt->set_cmd_size);
 		else   // output
-			c_strcat(cmd, "-d ", sizeof(cmd));
-		c_strcat(cmd, rule->addr_str, sizeof(cmd));
+			c_strcat(ipt->set_cmd, "-d ", ipt->set_cmd_size);
+		c_strcat(ipt->set_cmd, rule->addr_str, ipt->set_cmd_size);
 
-		char mask_str[12];
 		if (rule->mask) {
 			if (rule->addr_version == 2)
-				snprintf(mask_str, sizeof(mask_str), "/%d ", rule->mask % 129);
+				g_snprintf(ipt->tmp_buf, ipt->tmp_buf_size, "/%d ", rule->mask % 129);
 			else
-				snprintf(mask_str, sizeof(mask_str), "/%d ", rule->mask % 33);
+				g_snprintf(ipt->tmp_buf, ipt->tmp_buf_size, "/%d ", rule->mask % 33);
 		}
 		else {
-			c_strcpy(mask_str, " ", sizeof(mask_str));
+			c_strcpy(ipt->tmp_buf, " ", ipt->tmp_buf_size);
 		}
 
-		c_strcat(cmd, mask_str, sizeof(cmd));
+		c_strcat(ipt->set_cmd, ipt->tmp_buf, ipt->set_cmd_size);
 	}
 
 	// protocol
 	if (rule->protocol_type != 0) {
-		c_strcat(cmd, "-p ", sizeof(cmd));
+		c_strcat(ipt->set_cmd, "-p ", ipt->set_cmd_size);
 
 		if (rule->protocol_name[0] != 0) {
-			c_strcat(cmd, rule->protocol_name, sizeof(cmd));
+			c_strcat(ipt->set_cmd, rule->protocol_name, ipt->set_cmd_size);
 		}
 		else {
-			char proto[32];
-			snprintf(proto, sizeof(proto), "%u", rule->protocol_number);
-			c_strcat(cmd, proto, sizeof(cmd));
+			g_snprintf(ipt->tmp_buf, ipt->tmp_buf_size, "%u", rule->protocol_number);
+			c_strcat(ipt->set_cmd, ipt->tmp_buf, ipt->set_cmd_size);
 		}
-		c_strcat(cmd, " ", sizeof(cmd));
+		c_strcat(ipt->set_cmd, " ", ipt->set_cmd_size);
 	}
 
 	// port
@@ -711,183 +761,184 @@ static gboolean _make_and_run_cmd (gboolean append, int chain, sys_ipt_rule *rul
 			rule->protocol_number == SYS_IPT_PROTOCOL_UDP)
 	{
 		if (rule->src_port_count > 1 || rule->dst_port_count > 1) {
-			c_strcat(cmd, "-m multiport ", sizeof(cmd));
+			c_strcat(ipt->set_cmd, "-m multiport ", ipt->set_cmd_size);
 			if (rule->src_port_count > 0) {
 				int i;
-				c_strcat(cmd, "--sports ", sizeof(cmd));
+				c_strcat(ipt->set_cmd, "--sports ", ipt->set_cmd_size);
 				for (i=0; i<rule->src_port_count; i++) {
 					if (i > 0)
-						c_strcat(cmd, ",", sizeof(cmd));
-					c_strcat(cmd, rule->src_port_str[i], sizeof(cmd));
+						c_strcat(ipt->set_cmd, ",", ipt->set_cmd_size);
+					c_strcat(ipt->set_cmd, rule->src_port_str[i], ipt->set_cmd_size);
 				}
-				c_strcat(cmd, " ", sizeof(cmd));
+				c_strcat(ipt->set_cmd, " ", ipt->set_cmd_size);
 			}
 			if (rule->dst_port_count > 0) {
 				int i;
-				c_strcat(cmd, "--dports ", sizeof(cmd));
+				c_strcat(ipt->set_cmd, "--dports ", ipt->set_cmd_size);
 				for (i=0; i<rule->dst_port_count; i++) {
 					if (i > 0)
-						c_strcat(cmd, ",", sizeof(cmd));
-					c_strcat(cmd, rule->dst_port_str[i], sizeof(cmd));
+						c_strcat(ipt->set_cmd, ",", ipt->set_cmd_size);
+					c_strcat(ipt->set_cmd, rule->dst_port_str[i], ipt->set_cmd_size);
 				}
-				c_strcat(cmd, " ", sizeof(cmd));
+				c_strcat(ipt->set_cmd, " ", ipt->set_cmd_size);
 			}
 		}
 		else {
 			if (rule->src_port_count == 1) {
-				c_strcat(cmd, "--sport ", sizeof(cmd));
-				c_strcat(cmd, rule->src_port_str[0], sizeof(cmd));
-				c_strcat(cmd, " ", sizeof(cmd));
+				c_strcat(ipt->set_cmd, "--sport ", ipt->set_cmd_size);
+				c_strcat(ipt->set_cmd, rule->src_port_str[0], ipt->set_cmd_size);
+				c_strcat(ipt->set_cmd, " ", ipt->set_cmd_size);
 			}
 			if (rule->dst_port_count == 1) {
-				c_strcat(cmd, "--dport ", sizeof(cmd));
-				c_strcat(cmd, rule->dst_port_str[0], sizeof(cmd));
-				c_strcat(cmd, " ", sizeof(cmd));
+				c_strcat(ipt->set_cmd, "--dport ", ipt->set_cmd_size);
+				c_strcat(ipt->set_cmd, rule->dst_port_str[0], ipt->set_cmd_size);
+				c_strcat(ipt->set_cmd, " ", ipt->set_cmd_size);
 			}
 		}
 	}
 
 	// ipset
 	if (rule->addr_data_type == 2) {
-		int len = c_strlen(cmd, sizeof(cmd));
+		int len = c_strlen(ipt->set_cmd, ipt->set_cmd_size);
 		if (chain == SYS_IPT_CHAIN_B_INPUT)
-			snprintf(&cmd[len], sizeof(cmd)-len, "-m set --match-set %s src ", rule->addr_data.ipset_name);
+			g_snprintf(ipt->set_cmd+len, ipt->set_cmd_size-len, "-m set --match-set %s src ", rule->addr_data.ipset_name);
 		else
-			snprintf(&cmd[len], sizeof(cmd)-len, "-m set %s --match-set dst ", rule->addr_data.ipset_name);
+			g_snprintf(ipt->set_cmd+len, ipt->set_cmd_size-len, "-m set %s --match-set dst ", rule->addr_data.ipset_name);
 	}
 
 	// MAC
 	if (rule->mac_type == 1) {
 		if (chain == SYS_IPT_CHAIN_B_INPUT) {
-			int len = c_strlen(cmd, sizeof(cmd));
-			snprintf(&cmd[len], sizeof(cmd)-len, "-m mac --mac-source %02x:%02x:%02x:%02x:%02x:%02x ",
+			int len = c_strlen(ipt->set_cmd, ipt->set_cmd_size);
+			g_snprintf(ipt->set_cmd+len, ipt->set_cmd_size-len, "-m mac --mac-source %02x:%02x:%02x:%02x:%02x:%02x ",
 																					rule->mac_addr[0], rule->mac_addr[1], rule->mac_addr[2],
 																					rule->mac_addr[3], rule->mac_addr[4], rule->mac_addr[5] );
 		}
 	}
 
-	if (sys_ipt_log_on) {
-		snprintf(cmd_log, sizeof(cmd_log),
-							"%s -j LOG --log-level warning --log-prefix '%s'", cmd, sys_ipt_log_header);
+	if (ipt->log_on) {
+		g_snprintf(ipt->log_cmd, ipt->log_cmd_size,
+							"%s -j LOG --log-level warning --log-prefix '%s'", ipt->set_cmd, ipt->log_head);
 	}
 
 	// target
 	if (rule->target == SYS_IPT_TARGET_ACCEPT)
-		c_strcat(cmd, "-j ACCEPT?", sizeof(cmd));
+		c_strcat(ipt->set_cmd, "-j ACCEPT", ipt->set_cmd_size);
 	else if (rule->target == SYS_IPT_TARGET_DROP)
-		c_strcat(cmd, "-j DROP?", sizeof(cmd));
+		c_strcat(ipt->set_cmd, "-j DROP", ipt->set_cmd_size);
 	else
 		return FALSE;
 
-	cmd_len = c_strlen(cmd, sizeof(cmd));
-	if (cmd_len <= 0 || cmd[cmd_len-1] != '?') {
-		grm_log_error("sys_ipt.c: Made command is invalid [%s]", cmd);
+	c_strcat(ipt->set_cmd, "?", ipt->set_cmd_size);
+
+	len = c_strlen(ipt->set_cmd, ipt->set_cmd_size);
+	if (len <= 0 || ipt->set_cmd[len-1] != '?') {
+		grm_log_error("sys_ipt.c: Made command is invalid [%s]", ipt->set_cmd);
 		return FALSE;
 	}
-	cmd[cmd_len-1] = 0;
+	ipt->set_cmd[len-1] = 0;
 
 	// actual calling the iptables command for LOG
-	if (sys_ipt_log_on && append == TRUE) {
-		gboolean res = sys_run_cmd_no_output(cmd_log, "sys_ipt(log)");
-		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", cmd_log, (int)res);
+	if (ipt->log_on && append == TRUE) {
+		gboolean res = sys_run_cmd_no_output(ipt->log_cmd, "sys_ipt(log)");
+		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->log_cmd, (int)res);
 	}
 
 	// actual calling the iptables command.
-	done = sys_run_cmd_no_output(cmd, "sys_ipt");
-	grm_log_debug("sys_ipt.c: run command [%s] : res=%d", cmd, (int)done);
+	done = sys_run_cmd_no_output(ipt->set_cmd, "sys_ipt");
+	grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->set_cmd, (int)done);
 
-	if (sys_ipt_log_on && append == FALSE) {
-		gboolean res = sys_run_cmd_no_output(cmd_log, "sys_ipt(log)");
-		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", cmd_log, (int)res);
+	if (ipt->log_on && append == FALSE) {
+		gboolean res = sys_run_cmd_no_output(ipt->log_cmd, "sys_ipt(log)");
+		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->log_cmd, (int)res);
 	}
 
 	return done;
 }
 
-static gboolean _apply_rule (gboolean append, sys_ipt_rule *rule)
+static gboolean _apply_rule (sys_ipt* ipt, gboolean append, sys_ipt_rule *rule)
 {
 	gboolean done = FALSE;
 
 	if (rule) {
 		done = TRUE;
 		if (rule->chain_set == 0) {
-			done &= _make_and_run_cmd(append, SYS_IPT_CHAIN_B_INPUT,  rule);
-			done &= _make_and_run_cmd(append, SYS_IPT_CHAIN_B_OUTPUT, rule);
+			done &= _make_and_run_cmd(ipt, append, SYS_IPT_CHAIN_B_INPUT,  rule);
+			done &= _make_and_run_cmd(ipt, append, SYS_IPT_CHAIN_B_OUTPUT, rule);
 		}
 		else {
 			if (rule->chain_set & SYS_IPT_CHAIN_B_INPUT)
-				done &= _make_and_run_cmd(append, SYS_IPT_CHAIN_B_INPUT, rule);
+				done &= _make_and_run_cmd(ipt, append, SYS_IPT_CHAIN_B_INPUT, rule);
 			if (rule->chain_set & SYS_IPT_CHAIN_B_OUTPUT)
-				done &= _make_and_run_cmd(append, SYS_IPT_CHAIN_B_OUTPUT, rule);
+				done &= _make_and_run_cmd(ipt, append, SYS_IPT_CHAIN_B_OUTPUT, rule);
 		}
 	}
 
 	return done;
 }
 
-gboolean	sys_ipt_insert_rule(sys_ipt_rule *rule)
+gboolean	sys_ipt_insert_rule(sys_ipt* ipt, sys_ipt_rule *rule)
 {
-	return _apply_rule (FALSE, rule);
+	return _apply_rule (ipt, FALSE, rule);
 }
 
-gboolean	sys_ipt_append_rule(sys_ipt_rule *rule)
+gboolean	sys_ipt_append_rule(sys_ipt *ipt, sys_ipt_rule *rule)
 {
-	return _apply_rule (TRUE, rule);
+	return _apply_rule (ipt, TRUE, rule);
 }
 
-static gboolean	_sys_ipt_add_all_target_rule(gboolean append, int target)
+static gboolean	_sys_ipt_add_all_target_rule(sys_ipt* ipt, gboolean append, int target)
 {
 	gboolean done = TRUE;
 	sys_ipt_rule rule;
 
-	gboolean save = sys_ipt_log_on;
-	sys_ipt_log_on = FALSE;
+	gboolean save = ipt->log_on;
+	ipt->log_on = FALSE;
 
 	sys_ipt_rule_init(&rule);
 	rule.chain_set = SYS_IPT_CHAIN_B_INOUT;
 	sys_ipt_rule_set_target (&rule, target);
 
-	done &= _apply_rule (append, &rule);
+	done &= _apply_rule (ipt, append, &rule);
 
 	rule.addr_version = 2;
-	done &= _apply_rule (append, &rule);
+	done &= _apply_rule (ipt, append, &rule);
 
-	sys_ipt_log_on = save;
+	ipt->log_on = save;
 
 	return done;
 }
 
 
-gboolean	sys_ipt_insert_all_drop_rule()
+gboolean	sys_ipt_insert_all_drop_rule(sys_ipt* ipt)
 {
-	return _sys_ipt_add_all_target_rule (FALSE, SYS_IPT_TARGET_DROP);
+	return _sys_ipt_add_all_target_rule (ipt, FALSE, SYS_IPT_TARGET_DROP);
 }
 
-gboolean	sys_ipt_append_all_drop_rule()
+gboolean	sys_ipt_append_all_drop_rule(sys_ipt* ipt)
 {
-	return _sys_ipt_add_all_target_rule (TRUE, SYS_IPT_TARGET_DROP);
+	return _sys_ipt_add_all_target_rule (ipt, TRUE, SYS_IPT_TARGET_DROP);
 }
 
-gboolean	sys_ipt_insert_all_accept_rule()
+gboolean	sys_ipt_insert_all_accept_rule(sys_ipt* ipt)
 {
-	return _sys_ipt_add_all_target_rule (FALSE, SYS_IPT_TARGET_ACCEPT);
+	return _sys_ipt_add_all_target_rule (ipt, FALSE, SYS_IPT_TARGET_ACCEPT);
 }
 
-gboolean	sys_ipt_append_all_accept_rule()
+gboolean	sys_ipt_append_all_accept_rule(sys_ipt* ipt)
 {
-	return _sys_ipt_add_all_target_rule (TRUE, SYS_IPT_TARGET_ACCEPT);
+	return _sys_ipt_add_all_target_rule (ipt, TRUE, SYS_IPT_TARGET_ACCEPT);
 }
 
-gboolean	sys_ipt_set_log(gboolean log_on, char *header)
+gboolean	sys_ipt_set_log(sys_ipt* ipt, gboolean log_on, char *header)
 {
 	gboolean done = FALSE;
 
 	if (c_strlen(header, 256) > 0) {
-		sys_ipt_log_on = log_on;
+		ipt->log_on = log_on;
 
-		int n = sizeof(sys_ipt_log_header);
-		c_memset(sys_ipt_log_header, 0, n);
-		c_strcpy(sys_ipt_log_header, header, n);
+		c_memset(ipt->log_head, 0, ipt->log_head_size);
+		c_strcpy(ipt->log_head, header, ipt->log_head_size);
 
 		done = TRUE;
 	}
@@ -895,21 +946,20 @@ gboolean	sys_ipt_set_log(gboolean log_on, char *header)
 	return done;
 }
 
-static gboolean	_sys_ipt_set_policy_sub(char *cmd, char *chain, char *target)
+static gboolean	_sys_ipt_set_policy_sub(sys_ipt* ipt, char *cmd, char *chain, char *target)
 {
 	gboolean done;
-	char	cmd_buf[1024];
 
-	sprintf(cmd_buf, "%s -P %s %s", cmd, chain, target);
+	g_snprintf(ipt->set_cmd, ipt->set_cmd_size, "%s -P %s %s", cmd, chain, target);
 
-	done = sys_run_cmd_no_output(cmd_buf, "sys_ipt");
-	grm_log_debug("sys_ipt.c: run command [%s] : res=%d", cmd_buf, (int)done);
+	done = sys_run_cmd_no_output(ipt->set_cmd, "sys_ipt");
+	grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->set_cmd, (int)done);
 
 	return done;
 }
 
 
-gboolean	sys_ipt_set_policy(gboolean allow)
+gboolean	sys_ipt_set_policy(sys_ipt* ipt, gboolean allow)
 {
 	gboolean done = TRUE;
 	char 	*target;
@@ -919,11 +969,11 @@ gboolean	sys_ipt_set_policy(gboolean allow)
 	else
 		target = "DROP";
 
-	done &= _sys_ipt_set_policy_sub("iptables", "INPUT", target);
-	done &= _sys_ipt_set_policy_sub("iptables", "OUTPUT", target);
+	done &= _sys_ipt_set_policy_sub(ipt, "iptables", "INPUT", target);
+	done &= _sys_ipt_set_policy_sub(ipt, "iptables", "OUTPUT", target);
 
-	done &= _sys_ipt_set_policy_sub("ip6tables", "INPUT", target);
-	done &= _sys_ipt_set_policy_sub("ip6tables", "OUTPUT", target);
+	done &= _sys_ipt_set_policy_sub(ipt, "ip6tables", "INPUT", target);
+	done &= _sys_ipt_set_policy_sub(ipt, "ip6tables", "OUTPUT", target);
 
 	return done;
 }

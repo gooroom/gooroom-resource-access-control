@@ -34,6 +34,9 @@
 #include <sys/wait.h>
 #include <libudev.h>
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
 /**********************************************************************
     get udev data
 **********************************************************************/
@@ -326,7 +329,7 @@ gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
 			gboolean res;
 			char cmd[1024], buf[1024];
 
-			snprintf(cmd, sizeof(cmd), "/bin/lsblk -o MOUNTPOINT -n %s", node);
+			g_snprintf(cmd, sizeof(cmd), "/bin/lsblk -o MOUNTPOINT -n %s", node);
 			res = sys_run_cmd_get_output(cmd, (char*)__FUNCTION__, buf, sizeof(buf));
 			if (res) {
 				c_strtrim(buf, sizeof(buf));
@@ -452,7 +455,7 @@ static gboolean _do_unmount_children(char *sysname)
 				res = grac_udev_get_mount_point(ch_name, mount, sizeof(mount));
 				if (res && mount[0]) { 			// unmount
 					grac_udev_get_node(ch_name, ch_node, sizeof(ch_node));
-					snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl unmount -b %s", ch_node);
+					g_snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl unmount -b %s", ch_node);
 					sys_run_cmd_no_output(cmd, (char*)__FUNCTION__);
 					res = grac_udev_get_mount_point(ch_name, mount, sizeof(mount));
 					if (res && mount[0])  			// check result
@@ -505,7 +508,7 @@ static gboolean _do_eject(char *sysname)
 	removable = grac_udev_get_removable(sysname);
 	if (removable == 1) {
 		for (retry=0; retry < retry_max; retry++)  {
-			snprintf(cmd, sizeof(cmd), "/usr/bin/eject %s", dev_node);
+			g_snprintf(cmd, sizeof(cmd), "/usr/bin/eject %s", dev_node);
 			sys_run_cmd_no_output(cmd, (char*)__FUNCTION__);
 			res = grac_udev_check_existing(sysname);
 			if (res == FALSE) {
@@ -513,7 +516,7 @@ static gboolean _do_eject(char *sysname)
 				break;
 			}
 
-			snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl power-off -b %s", dev_node);
+			g_snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl power-off -b %s", dev_node);
 			sys_run_cmd_no_output(cmd, (char*)__FUNCTION__);
 			res = grac_udev_check_existing(sysname);
 			if (res == FALSE) {
@@ -528,7 +531,7 @@ static gboolean _do_eject(char *sysname)
 		}
 	}
 	else {
-		snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl power-off -b %s", dev_node);
+		g_snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl power-off -b %s", dev_node);
 		for (retry=0; retry < retry_max; retry++)  {
 			res = _do_unmount_children(sysname);
 			if (res == TRUE) {
@@ -569,7 +572,7 @@ gboolean grac_eject(char *p_sysname)
 		done = grac_udev_get_type(sysname, dev_type, sizeof(dev_type));
 		if (done)
 			break;
-		usleep(1000*1000);
+		g_usleep(1000*1000);
 		n--;
 	}
 
@@ -624,7 +627,7 @@ static gboolean _init_data()
 	if (sys_file_is_existing(MONITOR_BLOCK_DIR) == FALSE)
 		mkdir(MONITOR_BLOCK_DIR, 0755);
 
-	FILE *fp = fopen(MONITOR_BLOCK_PATH, "w");
+	FILE *fp = g_fopen(MONITOR_BLOCK_PATH, "w");
 	if (fp) {
 		fclose(fp);
 	}
@@ -667,7 +670,7 @@ static void* block_thread(void *data)
 	while (ctrl->request_stop == FALSE) {
 
 			if (fgets(buf, sizeof(buf), fp) == NULL) {
-				usleep(100*1000);
+				g_usleep(100*1000);
 				continue;
 			}
 			grm_log_debug("block_thread : %s", buf);
@@ -733,7 +736,7 @@ static void _stop_block_dev_monitor()
 	while (cnt > 0) {
 		if (BlockCtrl.on_thread == FALSE)
 			break;
-		usleep(100*1000);
+		g_usleep(100*1000);
 		cnt--;
 	}
 }

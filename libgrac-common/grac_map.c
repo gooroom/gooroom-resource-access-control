@@ -19,23 +19,24 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <malloc.h>
 #include <unistd.h>
-#include <errno.h>
+
+#include "cutility.h"
 
 struct _GracMap {
 	GHashTable *table;
 	GHashTableIter iter;
 };
 
+static int _MAX_DATA_ = 1024;
 
 static gpointer str_allocate(const char* data)
 {
 	char *ptr = NULL;
 
 	if (data) {
-		ptr = strdup(data);
+		ptr = c_strdup((char*)data, _MAX_DATA_);
 	}
 
 	return ptr;
@@ -58,7 +59,7 @@ GracMap* grac_map_alloc()
 {
 	GracMap *map = malloc(sizeof(GracMap));
 	if (map) {
-		memset(map, 0, sizeof(GracMap));
+		c_memset(map, 0, sizeof(GracMap));
 		map->table = g_hash_table_new_full(g_str_hash, g_str_equal, str_destroy, str_destroy);
 		if (map->table == NULL) {
 			free(map);
@@ -188,7 +189,7 @@ int  grac_map_get_data_len(GracMap *map, const char *key)
 
 	data = grac_map_get_data(map, key);
 	if (data)
-		len = strlen(data)+1;
+		len = c_strlen(data, _MAX_DATA_)+1;
 
 	return len;
 }

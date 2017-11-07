@@ -14,14 +14,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
 #include <grp.h>
 #include <errno.h>
+
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include "sys_file.h"
 #include "cutility.h"
@@ -35,32 +38,45 @@
   @param [in]   size			homeDir 크기
   @return	gboolean	성공여부
  */
-gboolean sys_file_get_default_home_dir(gchar *user, gchar *homeDir, int size)
+gboolean sys_file_get_default_home_dir(gchar *user, gchar *home_dir, int home_dir_size)
 {
 	struct passwd  get_pwd;
 	struct passwd  *res_pwd;
-	char	 buffer[2048];
+	int		 buffer_size = PATH_MAX;
+	char	 *buffer;
 	int    res;
 
-	errno = 0;
-	res = getpwnam_r(user, &get_pwd, buffer, sizeof(buffer), &res_pwd);
-	if (res < 0 || res_pwd == NULL)
+	buffer = c_alloc(buffer_size+1);
+	if (buffer == NULL)
 		return FALSE;
+
+	errno = 0;
+	res = getpwnam_r(user, &get_pwd, buffer, buffer_size, &res_pwd);
+	if (res < 0 || res_pwd == NULL) {
+		c_free(&buffer);
+		return FALSE;
+	}
 
 	if (get_pwd.pw_dir == NULL) {
 		char	*base = "/home/";
-		if (size < strlen(user) + strlen(base) + 2)
+		if (home_dir_size < c_strlen(user, NAME_MAX) + c_strlen(base, PATH_MAX) + 2) {
+			c_free(&buffer);
 			return FALSE;
-		sprintf(homeDir, "%s%s/", base, user);
+		}
+		g_snprintf(home_dir, home_dir_size, "%s%s/", base, user);
 	}
 	else {
-		if (size < strlen(get_pwd.pw_dir) + 2)
+		if (home_dir_size < c_strlen(get_pwd.pw_dir, PATH_MAX) + 2) {
+			c_free(&buffer);
 			return FALSE;
-		strcpy(homeDir, get_pwd.pw_dir);
-		char *ptr = strrchr(homeDir, '/');
+		}
+		c_strcpy(home_dir, get_pwd.pw_dir, home_dir_size);
+		char *ptr = c_strrchr(home_dir, '/', home_dir_size);
 		if (ptr == NULL || *(ptr+1) != 0)
-			strcat(homeDir, "/");
+			c_strcat(home_dir, "/", home_dir_size);
 	}
+
+	c_free(&buffer);
 
 	return TRUE;
 }
@@ -78,10 +94,26 @@ gboolean sys_file_get_default_usb_dir(gchar *user, gchar *homeDir, int size)
 {
 	char	*base = "/media/";
 
-	if (size < strlen(user) + strlen(base) + 2)
+	if (size < c_strlen(user, NAME_MAX) + c_strlen(base, PATH_MAX) + 2)
 		return FALSE;
-	sprintf(homeDir, "%s%s/", base, user);
+
+	g_snprintf(homeDir, size, "%s%s/", base, user);
+
 	return TRUE;
+}
+
+static int s_chown(char *path, uid_t uid, gid_t gid)
+{
+	int	res = -1;
+	int fd;
+
+	fd = g_open(path, O_RDWR);
+	if (fd >= 0) {
+		res = fchown(fd, uid, gid);
+		g_close(fd, NULL);
+	}
+
+	return res;
 }
 
 /**
@@ -95,71 +127,94 @@ gboolean sys_file_get_default_usb_dir(gchar *user, gchar *homeDir, int size)
  */
 gboolean sys_file_change_owner_group(gchar *path, gchar* owner, gchar* group)
 {
-	gboolean done;
+	gboolean done = FALSE;
 
-	char orgPwdStr[128];
-	char orgGrpStr[128];
+	char *org_pwd = NULL;
+	char *org_grp = NULL;
+	int	 org_pwd_size = NAME_MAX;
+	int	 org_grp_size = NAME_MAX;
 	int	 new_uid, new_gid;
-
-	done = sys_file_get_owner_group(path,
-																	orgPwdStr, sizeof(orgPwdStr),
-																	orgGrpStr, sizeof(orgGrpStr));
-	if (done == FALSE)
-		return FALSE;
 
 	struct passwd  get_pwd;
 	struct passwd  *res_pwd;
-	char	 pbuf[2048];
 	struct group  get_grp;
 	struct group  *res_grp;
-	char	 gbuf[2048];
+	char	 *pwd_buf = NULL;
+	char	 *grp_buf = NULL;
+	int		 pwd_buf_size = PATH_MAX*2;
+	int		 grp_buf_size = PATH_MAX*2;
 	int    res;
 
+	org_pwd = c_alloc(org_pwd_size);
+	org_grp = c_alloc(org_grp_size);
+
+	if (org_pwd == NULL || org_grp == NULL)
+		goto finish;
+
+	done = sys_file_get_owner_group(path,
+																	org_pwd, org_pwd_size,
+																	org_grp, org_grp_size);
+	if (done == FALSE)
+		goto finish;
+
+	done = FALSE;
+	pwd_buf = c_alloc(pwd_buf_size);
+	grp_buf = c_alloc(grp_buf_size);
+	if (pwd_buf == NULL || grp_buf == NULL)
+		goto finish;
+
 	errno = 0;
-	if (c_strlen(owner, NAME_MAX) == 0) {
-		owner = orgPwdStr;
+	if (c_strlen(owner, NAME_MAX) <= 0) {
+		owner = org_pwd;
 		new_uid = -1;
 	}
 	else {
-		res = getpwnam_r(owner, &get_pwd, pbuf, sizeof(pbuf), &res_pwd);
+		res = getpwnam_r(owner, &get_pwd, pwd_buf, pwd_buf_size, &res_pwd);
 		if (res < 0 || res_pwd == NULL) {
-			return FALSE;
+			goto finish;
 		}
 		new_uid = get_pwd.pw_uid;
 	}
 
-	if (c_strlen(group, NAME_MAX) == 0) {
-		group = orgGrpStr;
+	if (c_strlen(group, NAME_MAX) <= 0) {
+		group = org_grp;
 		new_gid = -1;
 	}
 	else {
-		res = getgrnam_r(group, &get_grp, gbuf, sizeof(gbuf), &res_grp);
+		res = getgrnam_r(group, &get_grp, grp_buf, grp_buf_size, &res_grp);
 		if (res < 0 || res_grp == NULL)
-			return FALSE;
+			goto finish;
 		new_gid = get_grp.gr_gid;
 	}
 
 	done = TRUE;
-	if (c_strcmp(orgPwdStr, owner, NAME_MAX, -1) == 0) {
-		if (c_strcmp(orgGrpStr, group, NAME_MAX, -1) == 0) {
+	if (c_strcmp(org_pwd, owner, NAME_MAX, -1) == 0) {
+		if (c_strcmp(org_grp, group, NAME_MAX, -1) == 0) {
 			// no change
 			done = TRUE;
 		}
 		else { // different group
-			if (chown(path, -1, new_gid) < 0)
+			if (s_chown(path, -1, new_gid) < 0)
 				done = FALSE;
 		}
 	}
 	else {
-		if (c_strcmp(orgGrpStr, group, NAME_MAX, -1) == 0) { // different owner
-			if (chown(path, new_uid, -1) < 0)
+		if (c_strcmp(org_grp, group, NAME_MAX, -1) == 0) { // different owner
+			if (s_chown(path, new_uid, -1) < 0)
 				done = FALSE;
 		}
 		else { // different owner, group
-			if (chown(path, new_uid, new_gid) < 0)
+			if (s_chown(path, new_uid, new_gid) < 0)
 				done = FALSE;
 		}
 	}
+
+finish:
+	c_free(&org_pwd);
+	c_free(&org_grp);
+
+	c_free(&pwd_buf);
+	c_free(&grp_buf);
 
 	return done;
 }
@@ -176,38 +231,51 @@ gboolean sys_file_change_owner_group(gchar *path, gchar* owner, gchar* group)
 gboolean sys_file_get_owner_group(gchar *path, gchar *owner, int oSize,
 		                                           gchar *group, int gSize)
 {
+	gboolean done = FALSE;
 	struct	stat finfo;
+
+	struct passwd  get_pwd;
+	struct passwd  *res_pwd;
+	struct group  get_grp;
+	struct group  *res_grp;
+	char	 *pwd_buf = NULL;
+	char	 *grp_buf = NULL;
+	int		 pwd_buf_size = PATH_MAX*2;
+	int		 grp_buf_size = PATH_MAX*2;
+	int    res;
 
 	if (stat(path, &finfo) < 0)
 		return FALSE;
 
-	struct passwd  get_pwd;
-	struct passwd  *res_pwd;
-	char	 pbuf[2048];
-	struct group  get_grp;
-	struct group  *res_grp;
-	char	 gbuf[2048];
-	int    res;
+	pwd_buf = c_alloc(pwd_buf_size);
+	grp_buf = c_alloc(grp_buf_size);
+	if (pwd_buf == NULL || grp_buf == NULL)
+		goto finish;
 
 	errno = 0;
-	res = getpwuid_r(finfo.st_uid, &get_pwd, pbuf, sizeof(pbuf), &res_pwd);
+	res = getpwuid_r(finfo.st_uid, &get_pwd, pwd_buf, pwd_buf_size, &res_pwd);
 	if (res < 0 || res_pwd == NULL)
-		return FALSE;
+		goto finish;
 
-	res = getgrgid_r(finfo.st_gid, &get_grp, gbuf, sizeof(gbuf), &res_grp);
+	res = getgrgid_r(finfo.st_gid, &get_grp, grp_buf, grp_buf_size, &res_grp);
 	if (res < 0 || res_grp == NULL)
-		return FALSE;
+		goto finish;
 
-	if (oSize < strlen(get_pwd.pw_name)+1)
-		return FALSE;
+	if (oSize < c_strlen(get_pwd.pw_name, NAME_MAX)+1)
+		goto finish;
 
-	if (gSize < strlen(get_grp.gr_name)+1)
-		return FALSE;
+	if (gSize < c_strlen(get_grp.gr_name, NAME_MAX)+1)
+		goto finish;
 
-	strcpy(owner, get_pwd.pw_name);
-	strcpy(group, get_grp.gr_name);
+	done = TRUE;
+	c_strcpy(owner, get_pwd.pw_name, NAME_MAX);
+	c_strcpy(group, get_grp.gr_name, NAME_MAX);
 
-	return TRUE;
+finish:
+	c_free(&pwd_buf);
+	c_free(&grp_buf);
+
+	return done;
 }
 
 
@@ -220,7 +288,7 @@ static char* g_mode_char = "rwxrwxrwx";
 
 static gboolean _file_set_mode(gchar *path, char *modeStr, int off, int len)
 {
-	if (modeStr == NULL || strlen(modeStr) < len)
+	if (modeStr == NULL || c_strlen(modeStr, off+len) < off+len)
 		return FALSE;
 
 	int setMask = 0;
@@ -241,7 +309,7 @@ static gboolean _file_set_mode(gchar *path, char *modeStr, int off, int len)
 	mode &= ~setMask;
 	mode |= (setVal & setMask);
 
-	if (chmod(path, mode) < 0)
+	if (g_chmod(path, mode) < 0)
 		return FALSE;
 	else
 		return TRUE;
@@ -312,14 +380,14 @@ static gboolean _do_make_directory(gchar *path, gchar* owner, gchar* group, int 
 
 	if (c_strlen(path, PATH_MAX) == 0)
 		return TRUE;
-	if (strcmp(path, "/") == 0)
+	if (c_strmatch(path, "/") == 0)
 		return TRUE;
 
 	// already existing
-	if (access(path, F_OK) == 0)
+	if (sys_file_is_existing(path))
 		return TRUE;
 
-	ptr = strrchr(path, '/');
+	ptr = c_strrchr(path, '/', PATH_MAX);
 	if (ptr) {
 		*ptr = 0;
 		done = _do_make_directory(path, owner, group, mode);
@@ -335,7 +403,7 @@ static gboolean _do_make_directory(gchar *path, gchar* owner, gchar* group, int 
 		if (c_strlen(owner, NAME_MAX) && c_strlen(group, NAME_MAX)) {
 			done &= sys_file_change_owner_group(path, owner, group);
 		}
-		if (chmod(path, mode) != 0) {
+		if (g_chmod(path, mode) != 0) {
 			done = FALSE;
 		}
 	}
@@ -361,7 +429,7 @@ gboolean sys_file_make_new_directory(gchar *path, gchar* owner, gchar* group, in
 	if (c_strlen(path, PATH_MAX) > 0) {
 		char *tmp;
 		int size = c_strlen(path, PATH_MAX)+1;
-		tmp = malloc(size);
+		tmp = c_alloc(size);
 		if (tmp) {
 			int n;
 			c_strcpy(tmp, path, size);
@@ -369,7 +437,7 @@ gboolean sys_file_make_new_directory(gchar *path, gchar* owner, gchar* group, in
 			if (tmp[n-1] == '/')
 				tmp[n-1] = 0;
 			done = _do_make_directory(tmp, owner, group, mode);
-			free(tmp);
+			c_free(&tmp);
 		}
 	}
 
@@ -396,10 +464,11 @@ gboolean sys_file_is_existing(gchar *path)
 	gboolean exist = FALSE;
 
 	if (path) {
-		if (access(path, F_OK) == 0) {
+		if (g_access(path, F_OK) == 0) {
 			exist = TRUE;
 		}
 	}
 
 	return exist;
 }
+

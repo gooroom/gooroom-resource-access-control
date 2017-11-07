@@ -68,17 +68,23 @@ gboolean	sys_ipt_rule_set_mac_addr_str(sys_ipt_rule *rule, gchar *mac_str);
 //------------------------------------------------------------------------------------
 // control iptables
 //------------------------------------------------------------------------------------
-gboolean	sys_ipt_clear_all();
 
-gboolean	sys_ipt_insert_rule(sys_ipt_rule *rule);
-gboolean	sys_ipt_append_rule(sys_ipt_rule *rule);
+typedef struct _sys_ipt sys_ipt;
 
-gboolean	sys_ipt_insert_all_drop_rule();
-gboolean	sys_ipt_append_all_drop_rule();
-gboolean	sys_ipt_insert_all_accept_rule();
-gboolean	sys_ipt_append_all_accept_rule();
+sys_ipt *sys_ipt_alloc();
+void sys_ipt_free(sys_ipt **pipt);
 
-gboolean	sys_ipt_set_log(gboolean log_on, char *header);   // Maximum 29 chars
-gboolean	sys_ipt_set_policy(gboolean allow);
+gboolean	sys_ipt_clear_all(sys_ipt *ipt);
+
+gboolean	sys_ipt_insert_rule(sys_ipt *ipt, sys_ipt_rule *rule);
+gboolean	sys_ipt_append_rule(sys_ipt *ipt, sys_ipt_rule *rule);
+
+gboolean	sys_ipt_insert_all_drop_rule(sys_ipt *ipt);
+gboolean	sys_ipt_append_all_drop_rule(sys_ipt *ipt);
+gboolean	sys_ipt_insert_all_accept_rule(sys_ipt *ipt);
+gboolean	sys_ipt_append_all_accept_rule(sys_ipt *ipt);
+
+gboolean	sys_ipt_set_log(sys_ipt *ipt, gboolean log_on, char *header);   // Maximum 29 chars
+gboolean	sys_ipt_set_policy(sys_ipt *ipt, gboolean allow);
 
 #endif /* _SYS_IPT_H_ */

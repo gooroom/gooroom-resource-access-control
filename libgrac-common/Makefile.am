@@ -6,31 +6,21 @@ lib_LTLIBRARIES = 	\
 	libgrac-common.la
 
 libgrac_common_headers =		\
-	sys_acl.h		\
+	cutility.h		\
 	sys_cups.h		\
-	sys_comm.h		\
 	sys_user.h		\
-	sys_user_list.h	\
-	sys_ipset.h	\
 	sys_ipt.h	\
-	sys_iptables.h	\
 	sys_file.h	\
 	sys_etc.h	\
-	cutility.h		\
 	grm_log.h	\
 	grac_config.h	\
 	grac_map.h
 
 libgrac_common_sources =		\
 	cutility.c		\
-	sys_acl.c		\
 	sys_cups.c		\
-	sys_comm.c		\
 	sys_user.c		\
-	sys_user_list.c	\
-	sys_ipset.c	\
 	sys_ipt.c	\
-	sys_iptables.c	\
 	sys_file.c	\
 	sys_etc.c	\
 	grm_log.c	\

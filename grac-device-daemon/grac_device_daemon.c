@@ -37,7 +37,6 @@
 #include "grm_log.h"
 #include "cutility.h"
 
-#include "sys_user.h"
 #include "sys_file.h"
 #include "sys_etc.h"
 
@@ -53,6 +52,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <glib-unix.h>
+#include <glib/gstdio.h>
 #include <gio/gio.h>
 
 #include <grmpycaller.h>
@@ -144,7 +144,7 @@ static gboolean verify_grac_rule_file(char* path)
 	char	*result;
 
 	task_format = "{\"task_name\":\"verify_signature\", \"file_name\":\"%s\"}";
-	snprintf(task, sizeof(task), task_format, path);
+	g_snprintf(task, sizeof(task), task_format, path);
 
 	result = do_task(task);
 	if (result) {
@@ -312,7 +312,7 @@ static void _recover_configurationValue(char *buf, int buf_size)
 			n = c_strlen(dev_path, sizeof(dev_path));
 			if (n > 0) {
 				char	cmd[1024];
-				snprintf(cmd, sizeof(cmd), "echo 1 > %s/%s", dev_path, attr);
+				g_snprintf(cmd, sizeof(cmd), "echo 1 > %s/%s", dev_path, attr);
 				if (sys_run_cmd_no_output (cmd, "grac-recover") == FALSE)
 					grm_log_error("command error  : %s", cmd);
 				else
@@ -346,7 +346,7 @@ static gboolean recover_applied_device()
 	char	*cmd;
 	gboolean res;
 
-	fp = fopen(path, "r");
+	fp = g_fopen(path, "r");
 	if (fp == NULL) {
 		grm_log_debug("%s() : end : no file", __FUNCTION__);
 		return TRUE;

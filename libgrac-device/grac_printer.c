@@ -33,6 +33,9 @@
 #include <sys/wait.h>
 #include <cups/cups.h>
 
+#include <glib.h>
+#include <glib/gstdio.h>
+
 struct _AvahiCtrl {
 	gboolean	request_stop;
 	gboolean	normal_stop;
@@ -87,6 +90,8 @@ static void* _watch_ppd_thread(void *data)
 		inotify_rm_watch(ctrl->i_fd, ctrl->i_wd);
 		close(ctrl->i_fd);
 	}
+
+	grm_log_debug("%s() : end of watching ppd", __FUNCTION__);
 
 	return NULL;
 }
@@ -143,7 +148,7 @@ static gboolean _existing_printer(char *prt_name, gboolean cups, gboolean ppd)
 	if (ppd) {
 		if (found == FALSE) {
 			char ppd_file[1024];
-			snprintf(ppd_file, sizeof(ppd_file), "/etc/cups/ppd/%s.ppd", prt_name);
+			g_snprintf(ppd_file, sizeof(ppd_file), "/etc/cups/ppd/%s.ppd", prt_name);
 			if (sys_file_is_existing(ppd_file)) {
 				grm_log_debug("%s() : no cups dest but existing ppd", __FUNCTION__, prt_name);
 				found = TRUE;
@@ -165,7 +170,7 @@ static gboolean _delete_printer(char *prt_name)
 		return TRUE;
 	}
 
-	snprintf(cmd, sizeof(cmd), "lpadmin -x %s", prt_name);
+	g_snprintf(cmd, sizeof(cmd), "lpadmin -x %s", prt_name);
 	done = sys_run_cmd_no_output(cmd, "del-printer");
 	if (done == FALSE) {
 		grm_log_error("%s() : can't run  : %s", __FUNCTION__, cmd);
@@ -178,7 +183,7 @@ static gboolean _delete_printer(char *prt_name)
 			done = FALSE;
 		}
 		else {
-			snprintf(cmd, sizeof(cmd), "/usr/bin/grac-apply.sh printer.%s disallow cups printer %s", prt_name, prt_name);
+			g_snprintf(cmd, sizeof(cmd), "/usr/bin/grac-apply.sh printer.%s disallow cups printer %s", prt_name, prt_name);
 			res = sys_run_cmd_no_output(cmd, "del-printer");
 			if (res == FALSE)
 				grm_log_debug("%s() : can't run  : %s", __FUNCTION__, cmd);
@@ -251,7 +256,7 @@ void* avahi_thread(void *data)
 	while (ctrl->request_stop == FALSE) {
 
 			if (fgets(buf, sizeof(buf), fp) == NULL) {
-				usleep(100*1000);
+				g_usleep(100*1000);
 				continue;
 			}
 
@@ -340,7 +345,7 @@ static void _stop_printer_monitor()
 	}
 
 	while (G_AvahiCtrl.on_avahi_thread) {
-		usleep(10*1000);
+		g_usleep(10*1000);
 	}
 */
 }
@@ -356,8 +361,8 @@ static int _save_printer(char *prt_name)
 	struct stat st_cups;
 	int		res;
 
-	snprintf(save_ppd, sizeof(save_ppd), "%s/%s.ppd", save_path, prt_name);
-	snprintf(cups_ppd, sizeof(cups_ppd), "/etc/cups/ppd/%s.ppd", prt_name);
+	g_snprintf(save_ppd, sizeof(save_ppd), "%s/%s.ppd", save_path, prt_name);
+	g_snprintf(cups_ppd, sizeof(cups_ppd), "/etc/cups/ppd/%s.ppd", prt_name);
 
 	res = stat(cups_ppd, &st_cups);
 	if (res != 0) {
@@ -385,7 +390,7 @@ static int _save_printer(char *prt_name)
 	char	cmd[1024];
 	gboolean done;
 
-	snprintf(cmd, sizeof(cmd), "cp %s %s", cups_ppd, save_ppd);
+	g_snprintf(cmd, sizeof(cmd), "cp %s %s", cups_ppd, save_ppd);
 	done = sys_run_cmd_no_output(cmd, "save-ppd");
 	if (done == FALSE) {
 		grm_log_error("%s() : can't run  : %s", __FUNCTION__, cmd);
@@ -407,8 +412,8 @@ static gboolean _recover_printer(char *prt_name)
 	struct stat st_cups;
 	int		res;
 
-	snprintf(save_ppd, sizeof(save_ppd), "%s/%s.ppd", save_path, prt_name);
-	snprintf(cups_ppd, sizeof(cups_ppd), "/etc/cups/ppd/%s.ppd", prt_name);
+	g_snprintf(save_ppd, sizeof(save_ppd), "%s/%s.ppd", save_path, prt_name);
+	g_snprintf(cups_ppd, sizeof(cups_ppd), "/etc/cups/ppd/%s.ppd", prt_name);
 
 	res = stat(save_ppd, &st_save);
 	if (res != 0) {
@@ -434,7 +439,7 @@ static gboolean _recover_printer(char *prt_name)
 	}
 
 	char	cmd[1024];
-	snprintf(cmd, sizeof(cmd), "lpadmin -p %s -P %s", prt_name, save_ppd);
+	g_snprintf(cmd, sizeof(cmd), "lpadmin -p %s -P %s", prt_name, save_ppd);
 	done = sys_run_cmd_no_output(cmd, "recover-ppd");
 	if (done == FALSE) {
 		grm_log_error("%s() : can't run  : %s", __FUNCTION__, cmd);
@@ -466,8 +471,8 @@ static gboolean _save_current_printer_list()
 
 	mkdir(dir_path, 0755);
 
-	snprintf(path_prt_list, sizeof(path_prt_list), "%s/%s", dir_path, file_prt_list);
-	fp = fopen(path_prt_list, "w");
+	g_snprintf(path_prt_list, sizeof(path_prt_list), "%s/%s", dir_path, file_prt_list);
+	fp = g_fopen(path_prt_list, "w");
 	if (fp == NULL) {
 		grm_log_error("%s() : can't create : %s",__FUNCTION__,  path_prt_list);
 		done = FALSE;
@@ -501,8 +506,8 @@ static gboolean _recover_saved_printer_list()
 	char	path_prt_list[1024];
 	FILE *fp;
 
-	snprintf(path_prt_list, sizeof(path_prt_list), "%s/%s", dir_path, file_prt_list);
-	fp = fopen(path_prt_list, "r");
+	g_snprintf(path_prt_list, sizeof(path_prt_list), "%s/%s", dir_path, file_prt_list);
+	fp = g_fopen(path_prt_list, "r");
 	if (fp == NULL) {
 		grm_log_debug("no recover printer\n");
 		return TRUE;
@@ -570,7 +575,7 @@ static gboolean _delete_current_printer_list()
 				loop++;
 			}
 		}
-		usleep(100*1000);
+		g_usleep(100*1000);
 	}
 
 	return done;

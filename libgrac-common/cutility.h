@@ -41,6 +41,7 @@ void	c_strcat (char *dest, char* src, int size);
 
 int c_strchr_idx(char *str, int find_ch, int max);	// if not found, return -1
 
+char	*c_strerror(int err);	// if err is -1. get current error
 
 void 	c_memset(void *buf,  int ch,     int len);
 void*	c_memcpy(void *dest, void* src,  int len);

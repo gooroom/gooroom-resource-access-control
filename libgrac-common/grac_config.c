@@ -24,12 +24,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <errno.h>
 #include <limits.h>
+
+#include <glib.h>
+#include <glib/gstdio.h>
 
 struct _GracConfig {
 	gint  max_path;
@@ -101,9 +102,9 @@ static struct _GracConfig GracConfig = {
 // 존재하지 않는 경우에만 디렉토리 생성
 static void _make_directory(char *dir)
 {
-	if (access(dir, F_OK) != 0) {
+	if (g_access(dir, F_OK) != 0) {
 		if (mkdir(dir, 0755) < 0) {
-			grm_log_error("mkdir : %s", strerror(errno));
+			grm_log_error("mkdir : %s", c_strerror(-1));
 		}
 	}
 }
@@ -120,7 +121,7 @@ static void _make_directory_tree(char *base_dir)
 		while (1) {
 			if (*ptr == 0)
 				break;
-			res = strchr(ptr, '/');
+			res = c_strchr(ptr, '/', PATH_MAX);
 			if (res == NULL) {
 				_make_directory(make_dir);
 				break;
@@ -152,7 +153,7 @@ const gint  grac_config_max_length_username()
 
 const gchar*	grac_config_dir_grac_data()
 {
-	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_data, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_data);
 
 	return GracConfig.dir_grac_data;
@@ -160,7 +161,7 @@ const gchar*	grac_config_dir_grac_data()
 
 const char*	grac_config_path_grac_rules(char* login_name)
 {
-	if (access(GracConfig.dir_grac_rule, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_rule, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_rule);
 
 	const char *path;
@@ -183,7 +184,7 @@ const char*	grac_config_path_grac_rules(char* login_name)
 
 const char*	grac_config_path_user_grac_rules()
 {
-	if (access(GracConfig.dir_grac_rule, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_rule, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_rule);
 
 	return GracConfig.path_user_grac_rule;
@@ -191,7 +192,7 @@ const char*	grac_config_path_user_grac_rules()
 
 const char*	grac_config_path_default_grac_rules()
 {
-	if (access(GracConfig.dir_grac_rule, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_rule, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_rule);
 
 	return GracConfig.path_default_grac_rule;
@@ -199,7 +200,7 @@ const char*	grac_config_path_default_grac_rules()
 
 const char*	grac_config_path_udev_map_org()
 {
-	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_data, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_data);
 
 	return GracConfig.path_grac_udev_map_org;
@@ -207,7 +208,7 @@ const char*	grac_config_path_udev_map_org()
 
 const char*	grac_config_path_udev_map_local()
 {
-	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_data, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_data);
 
 	return GracConfig.path_grac_udev_map_local;
@@ -215,7 +216,7 @@ const char*	grac_config_path_udev_map_local()
 
 const char*	grac_config_path_udev_rules()
 {
-	if (access(GracConfig.dir_udev_rules, F_OK) != 0)
+	if (g_access(GracConfig.dir_udev_rules, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_udev_rules);
 
 	return GracConfig.path_udev_rules;
@@ -233,7 +234,7 @@ const gchar*	grac_config_path_hook_screenshooter_so()
 
 const gchar*	grac_config_path_hook_screenshooter_conf()
 {
-	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_data, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_data);
 
 	return GracConfig.path_hook_screenshooter_conf;
@@ -246,7 +247,7 @@ const gchar*	grac_config_path_hook_clipboard_so()
 
 const gchar*	grac_config_path_hook_clipboard_conf()
 {
-	if (access(GracConfig.dir_grac_data, F_OK) != 0)
+	if (g_access(GracConfig.dir_grac_data, F_OK) != 0)
 		_make_directory_tree(GracConfig.dir_grac_data);
 
 	return GracConfig.path_hook_clipboard_conf;

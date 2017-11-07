@@ -17,15 +17,16 @@
 
 
 #include "sys_cups.h"
+#include "cutility.h"
+#include "grm_log.h"
 
 #include <malloc.h>
-#include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 
 #include <cups/cups.h>
 
-#include "grm_log.h"
 
 // 2016.5  update by using cups API
 
@@ -69,96 +70,8 @@ static void _free_buf()
 		g_deny_user = NULL;
 	}
 
-#if _OLD
-	if (g_printer_list != NULL) {
-		g_ptr_array_free(g_printer_list, TRUE);
-		g_printer_list = NULL;
-	}
-#endif
 }
 
-#if _OLD  // old method
-static void _get_word(char *buf, char *word)
-{
-	while (isspace(*buf & 0x0ff) ) buf++;
-
-	while (! isspace(*buf & 0x0ff) )
-		*word ++ = *buf++;
-	*word = 0;
-}
-
-gboolean _MakePrinterList(GPtrArray *list)
-{
-	void	printer_list()
-	{
-		int	i, num_dests;
-		cups_dest_t *dests;
-		cups_dest_t *default_dest;
-
-		// num_dests = cupsGetDests2(CUPS_HTTP_DEFAULT, &dests); same results
-		num_dests = cupsGetDests(&dests);
-		printf("Printer Count : %d\n", num_dests);
-		if (num_dests == 0) {
-			printf("There is no printer\n");
-			return;
-		}
-		for (i=0; i<num_dests; i++) {
-			printf("%d: %s\n", i, dests[i].name);
-		}
-
-		default_dest = cupsGetDest(NULL, NULL, num_dests, dests);
-		if (default_dest) {
-			printf("default printer : %s\n", default_dest->name);
-		}
-		else {
-			printf("Can't get default printer\n");
-		}
-
-		cupsFreeDests(num_dests, dests);
-
-
-	gboolean res = TRUE;
-	FILE *fp;
-
-	fp = popen("lpstat -a 2>&1", "r");
-	if (fp != NULL) {
-		char buf[512], word[512];
-		while (1) {
-			if (fgets(buf, sizeof(buf), fp) == NULL)
-				break;
-			_get_word(buf, word);
-
-			if (!strcmp(word, "lpstat:")) {	// No printer
-				break;
-			}
-			if (strlen(word) > 0) {		// need more detailed checking !!!!!
-				char *ptr = malloc(strlen(word)+1);
-				if (ptr == NULL) {
-					res = FALSE;
-					break;
-				}
-				else {
-					strcpy(ptr, word);
-					g_ptr_array_add(list, ptr);
-				}
-			}
-		}
-		pclose(fp);
-	}
-	else {
-		res = FALSE;
-	}
-
-	// Test Code
-	//if (res) {
-	//	int i;
-	//	for (i=0; i<g_printer_list->len; i++)
-	//		printf("%d : %s\n", i, g_ptr_array_index(g_printer_list, i));
-	//}
-
-	return res;
-}
-#endif
 
 // 프린터 목록을 구한다.
 static gboolean _InitPrinterList()
@@ -197,18 +110,6 @@ gboolean sys_cups_access_init()
 	res = _init_buf();
 
 	res &= _InitPrinterList();
-
-#if _OLD
-	if (g_printer_list == NULL) {
-		g_printer_list = g_ptr_array_new();
-		if (g_printer_list == NULL) {
- 			res = FALSE;
-		}
-		else {
-			res = _MakePrinterList(g_printer_list);
-		}
-	}
-#endif
 
 	if (res == FALSE)
 		_free_buf();
@@ -260,18 +161,23 @@ static int _cups_is_class_type(http_t *http, char *printer)
 	ipp_t			*request,	*response;
 	ipp_attribute_t	*attr;
 	cups_ptype_t		type;
-	char	printer_uri[HTTP_MAX_URI];
+	char	*prt_uri;
+	int		prt_uri_size = HTTP_MAX_URI;
 	const char	*server = cupsServer();		// "localhost"
 	int		res;
 
-	httpAssembleURIf(HTTP_URI_CODING_ALL, printer_uri, sizeof(printer_uri),
+	prt_uri = c_alloc(prt_uri_size);
+	if (prt_uri == NULL)
+		return 0;
+
+	httpAssembleURIf(HTTP_URI_CODING_ALL, prt_uri, prt_uri_size,
 					  	  	  "ipp", NULL, server, ippPort(),
 							  	  "/printers/%s", printer);
 
 	request = ippNewRequest(IPP_GET_PRINTER_ATTRIBUTES);
 
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI,
-			   	   	   "printer-uri", NULL, printer_uri);
+			   	   	   "printer-uri", NULL, prt_uri);
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD,
 			   	   	   "requested-attributes", NULL, "printer-type");
 	ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME,
@@ -293,6 +199,8 @@ static int _cups_is_class_type(http_t *http, char *printer)
 	  res = 1;
   else
 	  res = 0;
+
+  c_free(&prt_uri);
 
   return res;
 }
@@ -340,10 +248,10 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 
 	max_len = 0;
 	if (default_user)
-		max_len = strlen(default_user);
+		max_len = c_strlen(default_user, NAME_MAX);
 	for (i=0; i<user_cnt; i++) {
 		char *ptr = (char*)g_ptr_array_index(user_list, i);
-		max_len += strlen(ptr)+1;
+		max_len += c_strlen(ptr, NAME_MAX)+1;
 	}
 	max_len++;
 
@@ -360,12 +268,12 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 	// 목록을 하나의 문자열로 만든다.
 	*attr_users = 0;
 	if (default_user)
-		strcpy(attr_users, default_user);
+		c_strcpy(attr_users, default_user, max_len);
 	for (i=0; i<user_cnt; i++) {
 		char *ptr = (char*)g_ptr_array_index(user_list, i);
 		if (attr_users[0] != 0)
-			strcat(attr_users, ",");
-		strcat(attr_users, ptr);
+			c_strcat(attr_users, ",", max_len);
+		c_strcat(attr_users, ptr, max_len);
 	}
 
   num_options = cupsAddOption(attr_name, attr_users, num_options, &options);
@@ -377,91 +285,49 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 	}
 	else {
 		ipp_t		*request;
-		char		uri[HTTP_MAX_URI];
+		char	*prt_uri;
+		int		prt_uri_size = HTTP_MAX_URI;
 
-		if (_cups_is_class_type(http, printer)) {
-			httpAssembleURIf(HTTP_URI_CODING_ALL, uri, sizeof(uri),
-	    										"ipp", NULL, cupsServer(), ippPort(),
-													"/classes/%s", printer);
-			request = ippNewRequest(CUPS_ADD_MODIFY_CLASS);
-		}
-		else {
-			httpAssembleURIf(HTTP_URI_CODING_ALL, uri, sizeof(uri),
-							  	  	  "ipp", NULL, cupsServer(), ippPort(),
-									  	  "/printers/%s", printer);
-			request = ippNewRequest(CUPS_ADD_MODIFY_PRINTER);
-		}
-
-		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI,  "printer-uri", NULL, uri);
-		ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "requesting-user-name", NULL, cupsUser());
-
-		cupsEncodeOptions2(request, num_options, options, IPP_TAG_PRINTER);
-
-		ippDelete(cupsDoRequest(http, request, "/admin/"));
-
-		if (cupsLastError() > IPP_OK_CONFLICT) {
-			grm_log_error("Error: cups_apply_acees_printer: %s", cupsLastErrorString());
+		prt_uri = c_alloc(prt_uri_size);
+		if (prt_uri == NULL) {
 			resB = FALSE;
 		}
+		else {
+			if (_cups_is_class_type(http, printer)) {
+				httpAssembleURIf(HTTP_URI_CODING_ALL, prt_uri, prt_uri_size,
+													"ipp", NULL, cupsServer(), ippPort(),
+														"/classes/%s", printer);
+				request = ippNewRequest(CUPS_ADD_MODIFY_CLASS);
+			}
+			else {
+				httpAssembleURIf(HTTP_URI_CODING_ALL, prt_uri, prt_uri_size,
+										  "ipp", NULL, cupsServer(), ippPort(),
+											  "/printers/%s", printer);
+				request = ippNewRequest(CUPS_ADD_MODIFY_PRINTER);
+			}
 
-	  if (http)
-		  httpClose(http);
+			ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_URI,  "printer-uri", NULL, prt_uri);
+			ippAddString(request, IPP_TAG_OPERATION, IPP_TAG_NAME, "requesting-user-name", NULL, cupsUser());
+
+			cupsEncodeOptions2(request, num_options, options, IPP_TAG_PRINTER);
+
+			ippDelete(cupsDoRequest(http, request, "/admin/"));
+
+			if (cupsLastError() > IPP_OK_CONFLICT) {
+				grm_log_error("Error: cups_apply_acees_printer: %s", cupsLastErrorString());
+				resB = FALSE;
+			}
+
+		  if (http)
+			  httpClose(http);
+
+			c_free(&prt_uri);
+		}
 	}
 
 	free(attr_users);
 
 	return resB;
-
-#if _OLD
-	static char	cmd[2048];
-	GPtrArray *list;
-	char	*option;
-
-	if (access == CUPS_ACCESS_ALLOW) {
-		list = g_allow_user;
-		if (list->len <= 0)
-			option = "-u allow:root";
-		else
-			option = "-u allow:root,";	// notice "," at the end of string
-	}
-	else if (access == CUPS_ACCESS_DENY) {
-		list = g_deny_user;
-		if (list->len <= 0)
-			option = "-u allow:all";
-		else
-			option = "-u deny:";
-	}
-	else {
-		return FALSE;
-	}
-	sprintf(cmd, "lpadmin -p %s %s", printer, option);
-
-	int i, cnt;
-	if (list == NULL)
-		cnt = 0;
-	else
-		cnt = list->len;
-	for (i=0; i<cnt; i++) {
-		char *user = (char*)g_ptr_array_index(list, i);
-		if (strlen(cmd)+strlen(user)+1 > sizeof(cmd))   // too big length
-			return FALSE;
-		if (i > 0)
-			strcat(cmd, ",");
-		strcat(cmd, user);
-	}
-	strcat(cmd, " 2>&1");
-
-	FILE *fp;
-
-	fp = popen(cmd, "r");
-	if (fp != NULL) {
-		res = TRUE;
-		// need more detailed checking !!!!!
-		pclose(fp);
-	}
-	return res;
-
-#endif
 
 }
 
@@ -487,16 +353,6 @@ gboolean sys_cups_access_apply(gboolean allow)
 		}
 	}
 
-#if _OLD
-	if (g_printer_list->len <= 0)
-		return FALSE;
-
-	resB = TRUE;
-	for (i=0; i<g_printer_list->len; i++) {
-		char *printer = (char*)g_ptr_array_index(g_printer_list, i);
-		resB &= _cups_apply_acees_printer(printer, access);
-	}
-#endif
 
 	return resB;
 }
@@ -572,13 +428,13 @@ gboolean sys_cups_access_add_user (gchar *user, gboolean allow)
 		return FALSE;
 	}
 
-	char *ptr = malloc(strlen(user)+1);
+	char *ptr = malloc(c_strlen(user, NAME_MAX)+1);
 	if (ptr == NULL) {
 		grm_log_error("Error: sys_cups_access_add_user: out of memory");
 		return FALSE;
 	}
 
-	strcpy(ptr, user);
+	c_strcpy(ptr, user, NAME_MAX);
 	if (allow == TRUE)
 		g_ptr_array_add(g_allow_user, ptr);
 	else
@@ -598,16 +454,23 @@ gboolean sys_cups_access_add_user (gchar *user, gboolean allow)
 gboolean sys_cups_access_add_group(gchar *group, gboolean allow)
 {
 	gboolean resB;
-	char	cupsGroup[256];
+	char	*cups_group;
+	int		cups_group_size = NAME_MAX+2;
+
+	cups_group = c_alloc(cups_group_size);
+	if (cups_group == NULL)
+		return FALSE;
 
 	if (group[0] != '@') {
-		cupsGroup[0] = '@';
-		strncpy(&cupsGroup[1], group, sizeof(cupsGroup)-1);
-		resB = sys_cups_access_add_user (cupsGroup, allow);
+		cups_group[0] = '@';
+		c_strcpy(cups_group+1, group, cups_group_size-1);
+		resB = sys_cups_access_add_user (cups_group, allow);
 	}
 	else {
 		resB = sys_cups_access_add_user (group, allow);
 	}
+
+	c_free(&cups_group);
 
 	return resB;
 }
