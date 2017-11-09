@@ -129,13 +129,16 @@ static void* _watch_thread(void *data)
 	ctrl->on_thread = FALSE;
 
 	G_LOCK(watch_thread_lock);
-	{
-		if (ctrl->i_fd > 0 && ctrl->i_wd > 0) {
-			inotify_rm_watch(ctrl->i_fd, ctrl->i_wd);
-			sys_file_close(&ctrl->i_fd);
-		}
-	}
+	fd = ctrl->i_fd;
+	wd = ctrl->i_wd;
+	ctrl->i_fd = -1;
+	ctrl->i_wd = -1;
 	G_UNLOCK(watch_thread_lock);
+
+	if (fd > 0 && wd > 0) {
+		inotify_rm_watch(fd, wd);
+		sys_file_close(&fd);
+	}
 
 	grac_log_debug("%s() : end of watching %s, pid=%d, tid=%d", __FUNCTION__,  ctrl->target, sys_getpid(), sys_gettid());
 
@@ -202,7 +205,6 @@ static gboolean _start_watch_thread(gboolean ppd)
 
 static void _stop_watch_thread(gboolean ppd)
 {
-	G_LOCK(watch_thread_lock);
 
 	struct _WatchCtrl *ctrl;
 
@@ -213,22 +215,23 @@ static void _stop_watch_thread(gboolean ppd)
 		ctrl = &PrtCtrl.conf_watch;
 	}
 
+	grac_log_debug("%s() : start : %s", __FUNCTION__,  ctrl->target);
+
 	ctrl->checked = FALSE;
 	ctrl->stop = TRUE;
 
 	if (ctrl->i_fd > 0) {
 		int fd, wd;
+		G_LOCK(watch_thread_lock);
 		fd = ctrl->i_fd;
 		wd = ctrl->i_wd;
 		ctrl->i_fd = -1;
 		ctrl->i_wd = -1;
+		G_UNLOCK(watch_thread_lock);
+
 		inotify_rm_watch(fd, wd);
 		sys_file_close(&fd);
 	}
-
-	G_UNLOCK(watch_thread_lock);
-
-	pthread_cancel(ctrl->th);
 
 	int loop = 10;
 	while (loop > 0) {
@@ -238,7 +241,12 @@ static void _stop_watch_thread(gboolean ppd)
 		loop--;
 	}
 
-	grac_log_debug("%s() : end : %s", __FUNCTION__,  ctrl->target);
+	pthread_cancel(ctrl->th);
+
+	if (ctrl->on_thread == FALSE)
+		grac_log_debug("%s() : end : %s", __FUNCTION__,  ctrl->target);
+	else
+		grac_log_debug("%s() : end : can't stop : %s", __FUNCTION__,  ctrl->target);
 }
 
 static gboolean _existing_printer(char *prt_name, gboolean cups, gboolean ppd)
@@ -362,14 +370,14 @@ static gboolean _start_printer_monitor()
 	c_memset(&PrtCtrl, 0, sizeof(PrtCtrl));
 
 	_start_watch_thread(TRUE);
-	_start_watch_thread(FALSE);
+	//_start_watch_thread(FALSE);  only for debug
 
 	return TRUE;
 }
 
 static void _stop_printer_monitor()
 {
-	_stop_watch_thread(FALSE);
+	//_stop_watch_thread(FALSE);  only for debug
 	_stop_watch_thread(TRUE);
 }
 
@@ -559,6 +567,8 @@ static gboolean _delete_current_printer_list(gboolean fromThread)
 	int	loop = 10;
 	gboolean again = FALSE;
 
+	grac_log_debug("%s() : start1", __FUNCTION__);
+
 	// waiting adding printer
 	if (fromThread) {
 		loop = 10;
@@ -569,6 +579,9 @@ static gboolean _delete_current_printer_list(gboolean fromThread)
 			loop--;
 		}
 	}
+
+
+	grac_log_debug("%s() : start2", __FUNCTION__);
 
 	loop = 10;
 
@@ -586,8 +599,10 @@ static gboolean _delete_current_printer_list(gboolean fromThread)
 		cupsFreeDests(printer_count, printer_dests);
 
 		if (done) {
-			if (again == FALSE)
+			if (again == FALSE) {
 				again = TRUE;
+				grac_log_debug("%s() : OK retry check", __FUNCTION__);
+			}
 			else if (_existing_any_printer(TRUE, TRUE) == FALSE)
 				break;
 			g_usleep(500*1000);
@@ -598,6 +613,8 @@ static gboolean _delete_current_printer_list(gboolean fromThread)
 			loop--;
 		}
 	}
+
+	grac_log_debug("%s() : end", __FUNCTION__);
 
 	return done;
 }

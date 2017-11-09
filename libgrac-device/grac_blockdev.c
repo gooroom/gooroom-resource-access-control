@@ -611,6 +611,7 @@ struct _BlockCtrl {
 	FILE	*p_fp;
 	pid_t  p_pid;
 	int		perm;
+	pthread_t th;
 } BlockCtrl = { 0 };
 
 #define P_DENY      0
@@ -714,6 +715,8 @@ static gboolean _start_block_dev_monitor(int perm)
 		return FALSE;
 	}
 
+	BlockCtrl.th = thread;
+
 	return TRUE;
 }
 
@@ -721,6 +724,8 @@ static void _stop_block_dev_monitor()
 {
 	BlockCtrl.normal_stop = TRUE;
 	BlockCtrl.request_stop = TRUE;
+
+	grac_log_debug("%s() : start block thread", __FUNCTION__);
 
 	if (BlockCtrl.p_fp) {
 		FILE *fp = BlockCtrl.p_fp;
@@ -731,14 +736,21 @@ static void _stop_block_dev_monitor()
 		sys_pclose(fp, pid);
 	}
 
-	// wait for maximum 2 seconds
-	int cnt = 20;
+	// wait for maximum 1 seconds
+	int cnt = 10;
 	while (cnt > 0) {
 		if (BlockCtrl.on_thread == FALSE)
 			break;
 		g_usleep(100*1000);
 		cnt--;
 	}
+
+	pthread_cancel(BlockCtrl.th);
+
+	if (BlockCtrl.on_thread == FALSE)
+		grac_log_debug("%s() : end block thread", __FUNCTION__);
+	else
+		grac_log_debug("%s() : end : can't stop block thread", __FUNCTION__);
 }
 
 
