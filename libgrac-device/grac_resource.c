@@ -18,7 +18,7 @@
 
 #include "grac_rule.h"
 #include "grac_resource.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 
 #include <stdio.h>

@@ -1,5 +1,5 @@
 /*
- * grm_log.c
+ * grac_log.c
  *
  *  Created on: 2016. 5. 17.
  *      Author: user
@@ -13,7 +13,7 @@
    		1) 어플리케이션용  - 구름 권한 시스템을 이용하고자하는 어플리케이션이 사용 (예)브라우저 \n
 		    grac_control\n
 		2) 구름 플랫폼용 - 구름OS 상의 어플리케이션이 사용하는 라이브러리, 특정 권한 모델과는 독립적이다.\n
-		    grm_log \n
+		    grac_log \n
 		3) 구름 권한 시스템 -  구름권한제어 시스템이 사용하는 라이브러리 (예) grac-daemon\n
 		     grac-*** (grac-control을 제외한 모든 것) \n
 		4) 시스템 의존성 부분 - linux system 의존성 라이브러리,   C 언어용 라이브러리\n
@@ -25,17 +25,17 @@
  **/
 
 /**
-  @file 	 	grm_log.c
+  @file 	 	grac_log.c
   @brief		구름 플랫폼에서 개발되는 어플리케이션을 위한 로그 처리
   @details	로그의 위치는 /var/log/gooroom/grac.log에 생성된다.	\n
   				로그의 레벨은  DEBUG,  INFO,  NOTICE,  WARNING,  ERROR 로 분리된다 \n
-   				헤더파일 :  	grm_log.h	\n
+   				헤더파일 :  	grac_log.h	\n
   				라이브러리:	libgrac.so
  */
 
-// 주의 : grm_log의 중첩 호출을 방지하기 위하여 이곳에서는 시스템에서 제공하는 함수만 사용한다.
+// 주의 : grac_log의 중첩 호출을 방지하기 위하여 이곳에서는 시스템에서 제공하는 함수만 사용한다.
 
-#include "grm_log.h"
+#include "grac_log.h"
 #include "sys_etc.h"
 #include "cutility.h"
 
@@ -59,12 +59,12 @@ typedef enum
 } GrmLogLevel;
 
 
-G_LOCK_DEFINE_STATIC (grm_log_lock);
+G_LOCK_DEFINE_STATIC (grac_log_lock);
 
 static gchar G_AppName[128] = {0};
 static int   G_AppNameSize = sizeof(G_AppName);
 
-void grm_log_set_name (gchar *appname)
+void grac_log_set_name (gchar *appname)
 {
 	c_strcpy(G_AppName, appname, G_AppNameSize);
 }
@@ -202,7 +202,7 @@ static void _do_sys_log(GrmLogLevel level, char *message)
 
 static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 {
-	G_LOCK (grm_log_lock);
+	G_LOCK (grac_log_lock);
 
 	gchar *kind_str;
 	gchar *message;
@@ -267,11 +267,11 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 		g_free (message);
 	}
 
-	G_UNLOCK (grm_log_lock);
+	G_UNLOCK (grac_log_lock);
 
 }
 
-void grm_log(GrmLogLevel level, gchar *format, ...)
+void grac_log(GrmLogLevel level, gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
@@ -283,7 +283,7 @@ void grm_log(GrmLogLevel level, gchar *format, ...)
  @brief   DEBUG 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_debug  (gchar *format, ...)
+void grac_log_debug  (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
@@ -295,7 +295,7 @@ void grm_log_debug  (gchar *format, ...)
  @brief   INFO 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_info   (gchar *format, ...)
+void grac_log_info   (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
@@ -307,7 +307,7 @@ void grm_log_info   (gchar *format, ...)
  @brief  NOTICE 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_notice (gchar *format, ...)
+void grac_log_notice (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
@@ -319,7 +319,7 @@ void grm_log_notice (gchar *format, ...)
  @brief   WARNING 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_warning(gchar *format, ...)
+void grac_log_warning(gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);
@@ -331,7 +331,7 @@ void grm_log_warning(gchar *format, ...)
  @brief   ERROR 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grm_log_error  (gchar *format, ...)
+void grac_log_error  (gchar *format, ...)
 {
 	va_list var_args;
 	va_start (var_args, format);

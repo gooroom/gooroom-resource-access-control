@@ -18,7 +18,7 @@
 
 #include "grac_rule_network.h"
 #include "grac_map.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 
 #include <stdio.h>
@@ -200,7 +200,7 @@ gboolean grac_rule_network_set_address(GracRuleNetwork *rule, char *address)
 		gchar *new_full_addr = c_strdup(address, 65535);
 		gchar *new_part_addr = c_strdup(address, 65535);
 		if (new_full_addr == NULL || new_part_addr == NULL) {
-			grm_log_error("grac_rule_network.c (%d) : out of memory to add address", __LINE__);
+			grac_log_error("grac_rule_network.c (%d) : out of memory to add address", __LINE__);
 
 			c_free(&new_full_addr);
 			c_free(&new_part_addr);
@@ -237,7 +237,7 @@ gboolean grac_rule_network_set_address(GracRuleNetwork *rule, char *address)
 
 		int err = getaddrinfo(rule->addr.part_addr, NULL, NULL, &info_list);
 		if (err != 0) {
-			grm_log_warning("Can't get address info : %s", rule->addr.part_addr);
+			grac_log_warning("Can't get address info : %s", rule->addr.part_addr);
 			rule->addr.kind = 0;
 			done = TRUE;
 		}
@@ -252,13 +252,13 @@ gboolean grac_rule_network_set_address(GracRuleNetwork *rule, char *address)
 				rule->addr.kind = 4;
 				//sin = (void*)iter->ai_addr;
 				//inet_ntop(iter->ai_family, &sin->sin_addr, ip_addr, sizeof(ip_addr));
-				//grm_log_debug("IPv4 - %s -> %s", net_addr->addr_str, ip_addr);
+				//grac_log_debug("IPv4 - %s -> %s", net_addr->addr_str, ip_addr);
 			}
 			else if (iter->ai_family == AF_INET6) {
 				rule->addr.kind = 6;
 				//sin6 = (void*)iter->ai_addr;
 				//inet_ntop(iter->ai_family, &sin6->sin6_addr, ip_addr, sizeof(ip_addr));
-				//grm_log_debug("IPv6 - %s -> %s", net_addr->addr_str, ip_addr);
+				//grac_log_debug("IPv6 - %s -> %s", net_addr->addr_str, ip_addr);
 			}
 			else {
 				rule->addr.kind = 0;
@@ -356,7 +356,7 @@ gboolean grac_rule_network_set_mac(GracRuleNetwork *rule, char *mac)
 	if (rule && mac) {
 		gchar *add_mac = c_strdup(mac, 256);
 		if (add_mac == NULL) {
-			grm_log_error("grac_rule_network.c : can't alloc to set mac address");
+			grac_log_error("grac_rule_network.c : can't alloc to set mac address");
 		}
 		else {
 			c_free(&rule->mac_addr_str);
@@ -395,19 +395,19 @@ gboolean grac_rule_network_add_protocol(GracRuleNetwork *rule, char *protocol)
 		if (rule->protocols_array == NULL) {
 			rule->protocols_array = g_ptr_array_new();
 			if (rule->protocols_array == NULL) {
-				grm_log_error("grac_rule_network.c : can't alloc protocol array of rule");
+				grac_log_error("grac_rule_network.c : can't alloc protocol array of rule");
 				return FALSE;
 			}
 		}
 
 		GracRuleProtocol*	add_protocol = grac_rule_protocol_alloc();
 		if (add_protocol == NULL) {
-			grm_log_error("grac_rule_network.c : can't alloc to add protocol");
+			grac_log_error("grac_rule_network.c : can't alloc to add protocol");
 		}
 		else {
 			add_protocol->protocol_name = c_strdup(protocol, 256);
 			if (add_protocol->protocol_name == NULL) {
-				grm_log_error("grac_rule_network.c : can't alloc to add protocol");
+				grac_log_error("grac_rule_network.c : can't alloc to add protocol");
 				grac_rule_protocol_free(&add_protocol);
 			}
 			else {
@@ -480,27 +480,27 @@ gboolean grac_rule_network_add_src_port(GracRuleNetwork *rule, int protocol_idx,
 	if (rule && port) {
 
 		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
-			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			grac_log_error("grac_rule_network.c : invalid index to protocol");
 			return FALSE;
 		}
 
 		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
 		if (protocol == NULL) {
-			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			grac_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
 			return FALSE;
 		}
 
 		if (protocol->src_port_array == NULL) {
 			protocol->src_port_array = g_ptr_array_new();
 			if (protocol->src_port_array == NULL) {
-				grm_log_error("grac_rule_network.c : can't alloc port array of rule");
+				grac_log_error("grac_rule_network.c : can't alloc port array of rule");
 				return FALSE;
 			}
 		}
 
 		gchar *add_port = c_strdup(port, 256);
 		if (add_port == NULL) {
-			grm_log_error("grac_rule_network.c : can't alloc to add port");
+			grac_log_error("grac_rule_network.c : can't alloc to add port");
 		}
 		else {
 			g_ptr_array_add(protocol->src_port_array, add_port);
@@ -518,13 +518,13 @@ int	grac_rule_network_src_port_count(GracRuleNetwork *rule, int protocol_idx)
 
 	if (rule) {
 		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
-			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			grac_log_error("grac_rule_network.c : invalid index to protocol");
 			return 0;
 		}
 
 		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
 		if (protocol == NULL) {
-			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			grac_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
 			return 0;
 		}
 
@@ -540,13 +540,13 @@ int grac_rule_network_get_src_port(GracRuleNetwork *rule, int protocol_idx,  int
 
 	if (rule && port) {
 		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
-			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			grac_log_error("grac_rule_network.c : invalid index to protocol");
 			return res;
 		}
 
 		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
 		if (protocol == NULL) {
-			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			grac_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
 			return res;
 		}
 
@@ -572,27 +572,27 @@ gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, int protocol_idx,
 
 	if (rule && port) {
 		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
-			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			grac_log_error("grac_rule_network.c : invalid index to protocol");
 			return FALSE;
 		}
 
 		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
 		if (protocol == NULL) {
-			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			grac_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
 			return FALSE;
 		}
 
 		if (protocol->dst_port_array == NULL) {
 			protocol->dst_port_array = g_ptr_array_new();
 			if (protocol->dst_port_array == NULL) {
-				grm_log_error("grac_rule_network.c : can't alloc port array of rule");
+				grac_log_error("grac_rule_network.c : can't alloc port array of rule");
 				return FALSE;
 			}
 		}
 
 		gchar *add_port = c_strdup(port, 256);
 		if (add_port == NULL) {
-			grm_log_error("grac_rule_network.c : can't alloc to add port");
+			grac_log_error("grac_rule_network.c : can't alloc to add port");
 		}
 		else {
 			g_ptr_array_add(protocol->dst_port_array, add_port);
@@ -610,13 +610,13 @@ int	grac_rule_network_dst_port_count(GracRuleNetwork *rule, int protocol_idx)
 
 	if (rule) {
 		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
-			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			grac_log_error("grac_rule_network.c : invalid index to protocol");
 			return 0;
 		}
 
 		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
 		if (protocol == NULL) {
-			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			grac_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
 			return 0;
 		}
 
@@ -632,13 +632,13 @@ int grac_rule_network_get_dst_port(GracRuleNetwork *rule, int protocol_idx, int 
 
 	if (rule && port) {
 		if (protocol_idx < 0 || protocol_idx >= rule->protocols_count) {
-			grm_log_error("grac_rule_network.c : invalid index to protocol");
+			grac_log_error("grac_rule_network.c : invalid index to protocol");
 			return res;
 		}
 
 		GracRuleProtocol *protocol = g_ptr_array_index (rule->protocols_array, protocol_idx);
 		if (protocol == NULL) {
-			grm_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
+			grac_log_error("grac_rule_network.c : invalid data (null) is saved for protocol");
 			return res;
 		}
 

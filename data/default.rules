@@ -5,16 +5,21 @@
 
 	"wireless" : "allow",
 
-   "usb_memory" : "disallow",
+   "usb_memory" : "allow",
 
    "bluetooth" : {
-		"state" : "disallow"
+		"state" : "allow"
 	 },
 
-    "cd_dvd" : "disallow",
-    "printer" : "disallow",
+    "cd_dvd" : "allow",
+    "printer" : "allow",
 
     "screen_capture" : "allow",
-    "clipboard" : "allow"
+    "clipboard" : "allow",
+
+	"camera":"allow",
+	"sound":"allow",
+	"microphone":"allow"
+
 }
 

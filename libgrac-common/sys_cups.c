@@ -18,7 +18,7 @@
 
 #include "sys_cups.h"
 #include "cutility.h"
-#include "grm_log.h"
+#include "grac_log.h"
 
 #include <malloc.h>
 #include <ctype.h>
@@ -80,7 +80,7 @@ static gboolean _InitPrinterList()
 		// g_printer_count = cupsGetDests2(CUPS_HTTP_DEFAULT, &g_printer_dests); same results
 		g_printer_count = cupsGetDests(&g_printer_dests);
 		if (g_printer_count == 0) {
-				grm_log_debug("Debug: cupsGetDests(): not found any  printer in system");
+				grac_log_debug("Debug: cupsGetDests(): not found any  printer in system");
 		}
 	}
 
@@ -257,7 +257,7 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 
 	attr_users = malloc(max_len);
 	if (attr_users == NULL) {
-		grm_log_error("Error: cups_apply_acees_printer: out of memory");
+		grac_log_error("Error: cups_apply_acees_printer: out of memory");
 		return FALSE;
 	}
 
@@ -280,7 +280,7 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 
 	http = httpConnectEncrypt(cupsServer(), ippPort(), cupsEncryption());
 	if (http == NULL) {
-			grm_log_error("Error: cups_apply_acees_printer: httpConnectEncrypt() - %s", strerror(errno));
+			grac_log_error("Error: cups_apply_acees_printer: httpConnectEncrypt() - %s", strerror(errno));
 			resB = FALSE;
 	}
 	else {
@@ -314,7 +314,7 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 			ippDelete(cupsDoRequest(http, request, "/admin/"));
 
 			if (cupsLastError() > IPP_OK_CONFLICT) {
-				grm_log_error("Error: cups_apply_acees_printer: %s", cupsLastErrorString());
+				grac_log_error("Error: cups_apply_acees_printer: %s", cupsLastErrorString());
 				resB = FALSE;
 			}
 
@@ -395,7 +395,7 @@ gboolean sys_cups_access_apply_by_name(char *name, gboolean allow)
 	const char* printer;
 
 	if (name == NULL) {
-		grm_log_debug("Debug: sys_cups_access_apply_by_name(): invalid printer (NULL)");
+		grac_log_debug("Debug: sys_cups_access_apply_by_name(): invalid printer (NULL)");
 		return FALSE;
 	}
 
@@ -408,7 +408,7 @@ gboolean sys_cups_access_apply_by_name(char *name, gboolean allow)
 		}
 	}
 
-	grm_log_debug("Debug: sys_cups_access_apply_by_name(): invalid printer (%s)", name);
+	grac_log_debug("Debug: sys_cups_access_apply_by_name(): invalid printer (%s)", name);
 	return FALSE;
 }
 
@@ -424,13 +424,13 @@ gboolean sys_cups_access_apply_by_name(char *name, gboolean allow)
 gboolean sys_cups_access_add_user (gchar *user, gboolean allow)
 {
 	if (_init_buf() == FALSE) {
-		grm_log_error("Error: sys_cups_access_add_user: out of memory");
+		grac_log_error("Error: sys_cups_access_add_user: out of memory");
 		return FALSE;
 	}
 
 	char *ptr = malloc(c_strlen(user, NAME_MAX)+1);
 	if (ptr == NULL) {
-		grm_log_error("Error: sys_cups_access_add_user: out of memory");
+		grac_log_error("Error: sys_cups_access_add_user: out of memory");
 		return FALSE;
 	}
 

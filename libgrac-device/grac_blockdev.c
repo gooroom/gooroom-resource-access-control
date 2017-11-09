@@ -17,7 +17,7 @@
  */
 
 #include "grac_blockdev.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 #include "sys_file.h"
 #include "sys_etc.h"
@@ -49,7 +49,7 @@ gboolean grac_udev_check_existing(char *sysname)
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return FALSE;
 	}
 
@@ -74,7 +74,7 @@ gboolean grac_udev_get_type(char *sysname, char *type, int type_size)
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return FALSE;
 	}
 
@@ -83,7 +83,7 @@ gboolean grac_udev_get_type(char *sysname, char *type, int type_size)
 		const char *ptr;
 		ptr = udev_device_get_devtype(udev_dev);
 		if (ptr == NULL) {
-			grm_log_debug("%s() : Can't get device type : %s", __FUNCTION__, sysname);
+			grac_log_debug("%s() : Can't get device type : %s", __FUNCTION__, sysname);
 			done = FALSE;
 		}
 		else {
@@ -92,7 +92,7 @@ gboolean grac_udev_get_type(char *sysname, char *type, int type_size)
 		udev_device_unref(udev_dev);
 	}
 	else {
-		grm_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
 
@@ -111,7 +111,7 @@ gboolean grac_udev_get_node(char *sysname, char *node, int node_size)
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return FALSE;
 	}
 
@@ -120,7 +120,7 @@ gboolean grac_udev_get_node(char *sysname, char *node, int node_size)
 		const char *ptr;
 		ptr = udev_device_get_devnode(udev_dev);
 		if (ptr == NULL) {
-			grm_log_debug("%s() : Can't get device node : %s", __FUNCTION__, sysname);
+			grac_log_debug("%s() : Can't get device node : %s", __FUNCTION__, sysname);
 			done = FALSE;
 		}
 		else {
@@ -129,7 +129,7 @@ gboolean grac_udev_get_node(char *sysname, char *node, int node_size)
 		udev_device_unref(udev_dev);
 	}
 	else {
-		grm_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
 
@@ -147,7 +147,7 @@ int	grac_udev_get_removable(char *sysname)
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return -1;
 	}
 
@@ -156,7 +156,7 @@ int	grac_udev_get_removable(char *sysname)
 		const char *ptr;
 		ptr = udev_device_get_sysattr_value(udev_dev, "removable");
 		if (ptr == NULL) {
-			grm_log_debug("%s() : not defined attr{removable} : %s", __FUNCTION__, sysname);
+			grac_log_debug("%s() : not defined attr{removable} : %s", __FUNCTION__, sysname);
 		}
 		else {
 			if (c_strmatch(ptr, "1"))
@@ -167,7 +167,7 @@ int	grac_udev_get_removable(char *sysname)
 		udev_device_unref(udev_dev);
 	}
 	else {
-		grm_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 	}
 
 	udev_unref(udev);
@@ -185,7 +185,7 @@ gboolean grac_udev_get_parent_sysname(char *sysname, char *parent, int parent_si
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return FALSE;
 	}
 
@@ -193,14 +193,14 @@ gboolean grac_udev_get_parent_sysname(char *sysname, char *parent, int parent_si
 	if (udev_dev) {
 		struct udev_device *p_dev = udev_device_get_parent(udev_dev);
 		if (p_dev == NULL) {
-			grm_log_debug("%s() : Can't get parent device : %s", __FUNCTION__, sysname);
+			grac_log_debug("%s() : Can't get parent device : %s", __FUNCTION__, sysname);
 			done = FALSE;
 		}
 		else {
 			const char *ptr;
 			ptr = udev_device_get_sysname(p_dev);
 			if (ptr == NULL) {
-				grm_log_debug("%s() : Can't get parent sysname : %s", __FUNCTION__, sysname);
+				grac_log_debug("%s() : Can't get parent sysname : %s", __FUNCTION__, sysname);
 				done = FALSE;
 			}
 			else {
@@ -210,7 +210,7 @@ gboolean grac_udev_get_parent_sysname(char *sysname, char *parent, int parent_si
 		udev_device_unref(udev_dev);
 	}
 	else {
-		grm_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
 
@@ -234,20 +234,20 @@ int	grac_udev_get_children_sysnames(char *sysname, char *children, int children_
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return -1;
 	}
 
 	udev_dev = udev_device_new_from_subsystem_sysname(udev, "block", sysname);
 	if (udev_dev == NULL) {
-		grm_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		udev_unref(udev);
 		return -1;
 	}
 
 	parent_dev = udev_device_get_parent(udev_dev);
 	if (parent_dev == NULL) {
-		grm_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		udev_device_unref(udev_dev);
 		udev_unref(udev);
 		return -1;
@@ -256,7 +256,7 @@ int	grac_udev_get_children_sysnames(char *sysname, char *children, int children_
 
 	udev_enum = udev_enumerate_new(udev);
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev_enumerate", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev_enumerate", __FUNCTION__);
 		udev_device_unref(udev_dev);
 		udev_unref(udev);
 		return -1;
@@ -314,7 +314,7 @@ gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return FALSE;
 	}
 
@@ -322,7 +322,7 @@ gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
 	if (udev_dev) {
 		const char *node = udev_device_get_devnode(udev_dev);
 		if (node == NULL) {
-			grm_log_debug("%s() : Can't get device node", __FUNCTION__, sysname);
+			grac_log_debug("%s() : Can't get device node", __FUNCTION__, sysname);
 			done = FALSE;
 		}
 		else {
@@ -336,14 +336,14 @@ gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
 				c_strcpy(mount, buf, mount_size);
 			}
 			else {
-				grm_log_debug("%s() : Can't get mount position", __FUNCTION__, sysname);
+				grac_log_debug("%s() : Can't get mount position", __FUNCTION__, sysname);
 				done = FALSE;
 			}
 		}
 		udev_device_unref(udev_dev);
 	}
 	else {
-		grm_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
 
@@ -363,17 +363,17 @@ static void _wait_udev_finish(long usec)
 	struct udev_monitor *monitor;
 	int	fd;
 
-	grm_log_debug("%s() : start", __FUNCTION__);
+	grac_log_debug("%s() : start", __FUNCTION__);
 
 	udev = udev_new();
 	if (udev == NULL) {
-		grm_log_debug("%s() : Can't create udev", __FUNCTION__);
+		grac_log_debug("%s() : Can't create udev", __FUNCTION__);
 		return;
 	}
 
 	monitor = udev_monitor_new_from_netlink(udev, "udev");
 	if (monitor == NULL) {
-		grm_log_debug("%s() : Can't create monitor", __FUNCTION__);
+		grac_log_debug("%s() : Can't create monitor", __FUNCTION__);
 		udev_unref(udev);
 		return;
 	}
@@ -403,11 +403,11 @@ static void _wait_udev_finish(long usec)
 			if (FD_ISSET(fd, &fds)) {
 				udev_dev = udev_monitor_receive_device(monitor);
 				if (udev_dev) {
-					grm_log_debug("%s() : get device info", __FUNCTION__, udev_device_get_devnode(udev_dev));
+					grac_log_debug("%s() : get device info", __FUNCTION__, udev_device_get_devnode(udev_dev));
 					udev_device_unref(udev_dev);
 				}
 				else {
-					grm_log_debug("%s() : not received the  device info", __FUNCTION__);
+					grac_log_debug("%s() : not received the  device info", __FUNCTION__);
 				}
 			}
 		}
@@ -415,7 +415,7 @@ static void _wait_udev_finish(long usec)
 			break;
 		}
 		else {
-			grm_log_debug("%s() : select error : %s", __FUNCTION__, strerror(errno));
+			grac_log_debug("%s() : select error : %s", __FUNCTION__, strerror(errno));
 			break;
 		}
 	}
@@ -423,7 +423,7 @@ static void _wait_udev_finish(long usec)
 	udev_monitor_unref(monitor);
 	udev_unref(udev);
 
-	grm_log_debug("%s() : end", __FUNCTION__);
+	grac_log_debug("%s() : end", __FUNCTION__);
 }
 
 static gboolean _do_unmount_children(char *sysname)
@@ -473,7 +473,7 @@ static gboolean _do_unmount_children(char *sysname)
 	}
 
 	if (need_unmount == TRUE) {
-		grm_log_error("%s() : unmount error : %s", __FUNCTION__, sysname);
+		grac_log_error("%s() : unmount error : %s", __FUNCTION__, sysname);
 	}
 
 	return done;
@@ -501,7 +501,7 @@ static gboolean _do_eject(char *sysname)
 	}
 
 	if (c_strmatch(dev_type, "partition")) {
-		grm_log_debug("%s() : do not call for partition", __FUNCTION__);
+		grac_log_debug("%s() : do not call for partition", __FUNCTION__);
 		return FALSE;
 	}
 
@@ -527,7 +527,7 @@ static gboolean _do_eject(char *sysname)
 			_wait_udev_finish(delay);
 		}
 		if (retry >= retry_max) {
-			grm_log_error("%s() : eject error : %s", __FUNCTION__, dev_node);
+			grac_log_error("%s() : eject error : %s", __FUNCTION__, dev_node);
 		}
 	}
 	else {
@@ -545,7 +545,7 @@ static gboolean _do_eject(char *sysname)
 			_wait_udev_finish(delay);
 		}
 		if (retry >= retry_max) {
-			grm_log_error("%s() : power-off error : %s", __FUNCTION__, dev_node);
+			grac_log_error("%s() : power-off error : %s", __FUNCTION__, dev_node);
 		}
 	}
 
@@ -565,7 +565,7 @@ gboolean grac_eject(char *p_sysname)
 	else
 		sysname = p_sysname;
 
-	grm_log_debug("%s() : start : %s", __FUNCTION__, sysname);
+	grac_log_debug("%s() : start : %s", __FUNCTION__, sysname);
 
 	int n=10;  // only for test -------------------------------------
 	while (n > 0) {
@@ -578,7 +578,7 @@ gboolean grac_eject(char *p_sysname)
 
 	done = grac_udev_get_type(sysname, dev_type, sizeof(dev_type));
 	if (done == FALSE) {
-		grm_log_debug("%s() : stop by error : %s", __FUNCTION__, sysname);
+		grac_log_debug("%s() : stop by error : %s", __FUNCTION__, sysname);
 		return FALSE;
 	}
 
@@ -586,7 +586,7 @@ gboolean grac_eject(char *p_sysname)
 		char	parent[256];
 		done = grac_udev_get_parent_sysname(sysname, parent, sizeof(parent));
 		if (done == FALSE) {
-			grm_log_debug("%s() : stop by error : %s", __FUNCTION__, sysname);
+			grac_log_debug("%s() : stop by error : %s", __FUNCTION__, sysname);
 			return FALSE;
 		}
 		done = _do_eject(parent);
@@ -595,7 +595,7 @@ gboolean grac_eject(char *p_sysname)
 		done = _do_eject(sysname);
 	}
 
-	grm_log_debug("%s() : end : %s : result = %d", __FUNCTION__, sysname, (int)done);
+	grac_log_debug("%s() : end : %s : result = %d", __FUNCTION__, sysname, (int)done);
 
 	return done;
 }
@@ -633,7 +633,7 @@ static gboolean _init_data()
 	}
 	else {
 		done = FALSE;
-		grm_log_error("grac_block_devCan't create : %s", MONITOR_BLOCK_PATH);
+		grac_log_error("grac_block_devCan't create : %s", MONITOR_BLOCK_PATH);
 	}
 
 	return done;
@@ -653,14 +653,14 @@ static void* block_thread(void *data)
 
 	char	*cmd = "/usr/bin/tail -f " MONITOR_BLOCK_PATH;
 
-	grm_log_debug("start block_thread : pid = %d", getpid());
+	grac_log_debug("start block_thread : pid = %d", getpid());
 
 	fp = sys_popen(cmd, "r", &pid);
 	if (fp == NULL) {
-		grm_log_debug("%s() : can't run - %s", __FUNCTION__, cmd);
+		grac_log_debug("%s() : can't run - %s", __FUNCTION__, cmd);
 		return NULL;
 	}
-	grm_log_debug("block_thread : create child process = %d", pid);
+	grac_log_debug("block_thread : create child process = %d", pid);
 
 	ctrl->p_fp = fp;
 	ctrl->p_pid = pid;
@@ -673,7 +673,7 @@ static void* block_thread(void *data)
 				g_usleep(100*1000);
 				continue;
 			}
-			grm_log_debug("block_thread : %s", buf);
+			grac_log_debug("block_thread : %s", buf);
 
 			c_strtrim(buf, sizeof(buf));
 
@@ -681,7 +681,7 @@ static void* block_thread(void *data)
 				grac_eject(buf);
 	}
 
-	grm_log_debug("out of block_thread");
+	grac_log_debug("out of block_thread");
 
 	if (ctrl->p_fp) {
 		fp = ctrl->p_fp;
@@ -694,7 +694,7 @@ static void* block_thread(void *data)
 
 	ctrl->on_thread = FALSE;
 
-	grm_log_debug("stop block_thread : pid = %d tid=%d", sys_getpid(), sys_gettid());
+	grac_log_debug("stop block_thread : pid = %d tid=%d", sys_getpid(), sys_gettid());
 
 	return NULL;
 }
@@ -710,7 +710,7 @@ static gboolean _start_block_dev_monitor(int perm)
 
 	res = pthread_create(&thread, NULL, block_thread, (void*)&BlockCtrl);
 	if (res != 0) {
-		grm_log_error("can't create avahi_thread : %d", res);
+		grac_log_error("can't create avahi_thread : %d", res);
 		return FALSE;
 	}
 

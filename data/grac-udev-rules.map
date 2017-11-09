@@ -35,9 +35,9 @@ ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{D
 # [grac_rule] usb_memory read_only
 #
 # FAT by blockdev
-SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/usr/bin/grac-apply.sh usb_memory read_only blockdev.ntfs %k $devpath"
+SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/usr/bin/grac-apply.sh usb_memory read_only blockdev.nontfs %k $devpath"
 SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/sbin/blockdev --setro /dev/%k"
-SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/usr/bin/grac-apply.sh usb_memory read_only blockdev.ntfs %k $devpath"
+SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/usr/bin/grac-apply.sh usb_memory read_only blockdev.nontfs %k $devpath"
 SUBSYSTEM=="block", KERNEL=="sd[b-z][1-9]", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", ENV{ID_FS_TYPE}!="ntfs", RUN+="/sbin/blockdev --setro /dev/%k"
 #
 # NTFS by mount
@@ -112,7 +112,7 @@ LABEL="bluetooth_end"
 # [grac_rule]  sound  disallow  pci
 #
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh sound disallow rescan %k $devpath"
-ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
+ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'", GOTO+="sound_end"
 
 #
 # same as Audio Controller (can't control mic separatley from the audio 
@@ -120,6 +120,8 @@ ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devp
 #
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan %k $devpath"
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
+
+LABEL="sound_end"
 
 #
 # PCI Wireless Lan

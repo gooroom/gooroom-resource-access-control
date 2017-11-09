@@ -7,6 +7,8 @@ Type=dbus
 BusName=kr.gooroom.GRACDEVD
 ExecStart=@libexecdir@/grac-device-daemon
 ExecReload=/bin/kill -HUP $MAINPID
+ExecStartPost=/usr/bin/grac-status.sh started $MAINPID 
+ExecStopPost=/usr/bin/grac-status.sh stopped $SERVICE_RESULT $EXIT_CODE $EXIT_STATUS
 
 [Install]
 #Also=

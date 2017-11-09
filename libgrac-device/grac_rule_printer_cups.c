@@ -17,7 +17,7 @@
  */
 
 #include "grac_rule_printer_cups.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 #include "sys_cups.h"
 #include "sys_user.h"

@@ -32,7 +32,7 @@
 #include "sys_user.h"
 #include "sys_etc.h"
 #include "cutility.h"
-#include "grm_log.h"
+#include "grac_log.h"
 
 /**
   @brief   지정된 사용자의 이름의 uid를 구한다.
@@ -192,7 +192,7 @@ static gboolean sys_user_get_login_name_by_who_cmd(char *name, int size)
 	cmd = "who | awk '{print $1}'";
 	done =  sys_run_cmd_get_output(cmd, "by_who_cmd", buffer, buffer_size);
 	if (done == FALSE) {
-		grm_log_error("commamd running error : %s", cmd);
+		grac_log_error("commamd running error : %s", cmd);
 		goto finish;
 	}
 
@@ -209,7 +209,7 @@ static gboolean sys_user_get_login_name_by_who_cmd(char *name, int size)
 	c_strtrim(buffer, buffer_size);
 	c_strcpy(name, buffer, size);
 	if (c_strlen(name, size) <= 0) {
-		grm_log_error("empty data : %s", cmd);
+		grac_log_error("empty data : %s", cmd);
 		done = FALSE;
 	}
 
@@ -233,7 +233,7 @@ static gboolean sys_user_get_login_name_by_users_cmd(char *name, int size)
 	cmd = "users";
 	done =  sys_run_cmd_get_output(cmd, "by_users_cmd", buffer, buffer_size);
 	if (done == FALSE) {
-		grm_log_error("commamd running error : %s", cmd);
+		grac_log_error("commamd running error : %s", cmd);
 		goto finish;
 	}
 
@@ -280,10 +280,10 @@ int sys_user_get_login_uid()
 		if (sys_user_get_login_name(user, user_size) ) {
 			uid = sys_user_get_uid_from_name(user);
 			if (uid < 0)
-				grm_log_debug("%s : login name : %d %d", __FUNCTION__, user, uid);
+				grac_log_debug("%s : login name : %d %d", __FUNCTION__, user, uid);
 		}
 		else {
-			grm_log_debug("%s : can't get login name", __FUNCTION__);
+			grac_log_debug("%s : can't get login name", __FUNCTION__);
 		}
 		c_free(&user);
 	}

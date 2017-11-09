@@ -60,14 +60,14 @@
 			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_map.h</locationURI>
 		</link>
 		<link>
-			<name>src/grm_log.c</name>
+			<name>src/grac_log.c</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grm_log.c</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_log.c</locationURI>
 		</link>
 		<link>
-			<name>src/grm_log.h</name>
+			<name>src/grac_log.h</name>
 			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grm_log.h</locationURI>
+			<locationURI>PARENT-2-PROJECT_LOC/libgrac-common/grac_log.h</locationURI>
 		</link>
 		<link>
 			<name>src/syslib</name>

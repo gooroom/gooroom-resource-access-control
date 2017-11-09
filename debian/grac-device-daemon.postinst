@@ -7,6 +7,7 @@ set -e
 chmod a+x /usr/bin/grac-apply.sh
 chmod a+x /usr/bin/grac-hci.sh
 chmod a+x /usr/bin/grac-block.sh
+chmod a+x /usr/bin/grac-status.sh
 
 # summary of how this script can be called:
 #        * <postinst> `configure' <most-recently-configured-version>

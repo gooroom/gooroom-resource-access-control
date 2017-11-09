@@ -21,19 +21,19 @@
 #include <sys/stat.h>
 #include <pwd.h>
 #include <grp.h>
-#include <errno.h>
-#include <string.h>
 #include <limits.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <sys/syscall.h>
+#include <errno.h>
 
 #include <glib.h>
 #include <glib/gstdio.h>
 
+#include "sys_file.h"
 #include "sys_etc.h"
 #include "cutility.h"
-#include "grm_log.h"
+#include "grac_log.h"
 
 
 /**
@@ -103,75 +103,117 @@ gboolean sys_run_cmd_no_output(gchar *cmd, char *caller)
  */
 gboolean sys_run_cmd_get_output(gchar *cmd, char *caller, char *out, int size)
 {
-	gboolean res = FALSE;
-	char	*out_buf = NULL;
-	char	*err_buf = NULL;
-	int		exit;
-	int		cnt;
+	gboolean done = FALSE;
+	FILE *fp;
+	int		fd;
+	char *buffer;
+	int		buffer_size = 2048;
+	char *tmp_buf;
+	int		tmp_buf_size = 2048;
 
 	if (out == NULL)
 		size = 0;
 	else
 		*out = 0;
 
-	if (c_strlen(cmd, 256) > 0) {	// check null or empty
-		res = g_spawn_command_line_sync(cmd, &out_buf, &err_buf, &exit, NULL);
-		if (res == FALSE) {
-			grm_log_debug("%s : %s : can't run - %s", caller, __FUNCTION__, cmd);
+	buffer = c_alloc(buffer_size);
+	if (buffer == NULL) {
+		grac_log_error("%s() : %s : can't allocate buffer : %s", __FUNCTION__, caller, cmd);
+		return FALSE;
+	}
+	tmp_buf = c_alloc(tmp_buf_size);
+	if (tmp_buf == NULL) {
+		grac_log_error("%s() : %s : can't allocate buffer : %s", __FUNCTION__, caller, cmd);
+		c_free(&buffer);
+		return FALSE;
+	}
+
+	fp = popen(cmd, "r");
+	if (fp == NULL) {
+			grac_log_debug("%s() : %s : can't run - %s", __FUNCTION__, caller, cmd);
+			goto finish;
+	}
+
+	fd = fileno(fp);
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
+		grac_log_debug("%s() : %s : fcntl() : not set NONBLOCK: %s", __FUNCTION__, caller, c_strerror(-1));
+		pclose(fp);
+		goto finish;
+	}
+
+	done = TRUE;
+
+	int data_len, rest;
+	int	res;
+	int nodata = 0;
+
+	data_len = 0;
+	while (1) {
+		rest = buffer_size - data_len -1;
+		if (rest > 0)
+			res = sys_file_read(fd, buffer+data_len, rest);
+		else
+			res = sys_file_read(fd, tmp_buf, tmp_buf_size);
+		if (res == -1) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				if (nodata == 0)
+					grac_log_debug("%s() : %s - no data : retry", __FUNCTION__, caller);
+				nodata++;
+				if (nodata > 10) {
+					grac_log_debug("%s() : %s - no data : stop", __FUNCTION__, caller);
+					break;
+				}
+				g_usleep(100*1000);
+			}
+			else {
+				done = FALSE;
+				grac_log_error("%s() : %s - read error", __FUNCTION__, caller, c_strerror(-1));
+				break;
+			}
+		}
+		else if (res == 0) {  // closed
+			break;
 		}
 		else {
-			if (exit != 0) {
-				res = FALSE;
-			}
-			if (res && size > 1)
-				c_strcpy(out, out_buf, size);
+			nodata = 0;
+			if (rest > 0)
+				data_len += res;
+		}
+	} // while
+	buffer[data_len] = 0;
 
-			// log stdout
-			cnt = c_strlen(out_buf, -1);
-			if (cnt > 0) {
-				char *line, *ptr;
-				line = out_buf;
-				while (1) {
-					if (*line == 0)
-						break;
-					ptr = c_strchr(line, '\n', -1);
-					if (ptr != NULL)
-						*ptr = 0;
-					grm_log_debug("%s : %s - %s", caller, __FUNCTION__, line);
-					if (ptr == NULL)
-						break;
-					*ptr = '\n';
-					line = ptr + 1;
-				}
-			}
 
-			// log stderr
-			cnt = c_strlen(err_buf, -1);
-			if (cnt > 0) {
-				char *line, *ptr;
-				line = err_buf;
-				while (1) {
-					if (*line == 0)
-						break;
-					ptr = c_strchr(line, '\n', -1);
-					if (ptr != NULL)
-						*ptr = 0;
-					grm_log_debug("%s : %s - stderr - %s", caller, __FUNCTION__, line);
-					if (ptr == NULL)
-						break;
-					*ptr = '\n';
-					line = ptr + 1;
-				}
-			}
+	if (size > 1)
+		c_strcpy(out, buffer, size);
 
-			if (out_buf)
-				g_free(out_buf);
-			if (err_buf)
-				g_free(err_buf);
+	// log
+	if (data_len > 0) {
+		char *line, *ptr;
+		line = buffer;
+		while (1) {
+			if (*line == 0)
+				break;
+			ptr = c_strchr(line, '\n', -1);
+			if (ptr != NULL)
+				*ptr = 0;
+			grac_log_debug("%s : %s - %s", caller, __FUNCTION__, line);
+			if (ptr == NULL)
+				break;
+			*ptr = '\n';
+			line = ptr + 1;
 		}
 	}
 
-	return res;
+	pclose(fp);
+
+finish:
+
+	c_free(&buffer);
+	c_free(&tmp_buf);
+
+	//	grac_log_debug("*** end of %s : %s : %s result : %d", caller, func, cmd, (int)done);
+
+	return done;
 }
 
 
@@ -187,7 +229,7 @@ FILE* sys_popen(char *cmd, char *type, int *pid)
 
 	child = fork();
 	if (child == -1) {
-		grm_log_error("%s(): can't fork : %s", __FUNCTION__, cmd);
+		grac_log_error("%s(): can't fork : %s", __FUNCTION__, cmd);
 		close(p_fd[PIPE_READ]);
 		close(p_fd[PIPE_WRITE]);
 		*pid = 0;
@@ -208,7 +250,7 @@ FILE* sys_popen(char *cmd, char *type, int *pid)
 
 		execl("/bin/sh", "/bin/sh", "-c", cmd, NULL);
 
-		grm_log_error("%s(): can't execl : %s", __FUNCTION__, cmd);
+		grac_log_error("%s(): can't execl : %s", __FUNCTION__, cmd);
 		exit(0);
 	}
 

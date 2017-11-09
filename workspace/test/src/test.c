@@ -27,7 +27,7 @@
 
 #include <cups/cups.h>
 
-#include "grm_log.h"
+#include "grac_log.h"
 #include "grac_config.h"
 #include "grac_rule.h"
 #include "grac_resource.h"
@@ -55,6 +55,22 @@ void t_glib()
 
 int main(int argc, char *argv[])
 {
+	gboolean res;
+	char	*cmd = "who | awk '{printf $1}'";
+	char	buf[1024];
+
+	res = sys_run_cmd_get_output(cmd, "test", buf, sizeof(buf));
+	if (res)
+		printf("%s\n", buf);
+	else
+		printf("error\n");
+
+	cmd = "ls 2>&1";
+	res = sys_run_cmd_get_output(cmd, "test", buf, sizeof(buf));
+	if (res)
+		printf("%s\n", buf);
+	else
+		printf("error\n");
 
 	return EXIT_SUCCESS;
 }

@@ -34,7 +34,7 @@
 #include "grac_rule.h"
 #include "grac_config.h"
 #include "grac_adjust_udev_rule.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 
 #include "sys_file.h"
@@ -87,7 +87,7 @@ static gboolean init_proc()
 
 	DaemonCtrl.grac_rule = grac_rule_alloc();
 	if (DaemonCtrl.grac_rule == NULL) {
-		grm_log_error("init_porc(): can't alloc grac_access");
+		grac_log_error("init_porc(): can't alloc grac_access");
 		ret = FALSE;
 	}
 
@@ -177,14 +177,14 @@ static gboolean verify_grac_rule_file(char* path)
 */
 			msg = result;
 			if (msg)
-				grm_log_error("%s() : fail from do_task() : %s", __FUNCTION__, msg);
+				grac_log_error("%s() : fail from do_task() : %s", __FUNCTION__, msg);
 			else
-				grm_log_error("%s() : fail from do_task()", __FUNCTION__);
+				grac_log_error("%s() : fail from do_task()", __FUNCTION__);
 		}
 		free(result);
 	}
 	else {
-		grm_log_error("%s() : no reply from do_task()", __FUNCTION__);
+		grac_log_error("%s() : no reply from do_task()", __FUNCTION__);
 	}
 
 	return done;
@@ -201,12 +201,12 @@ static const char *check_rule_path(gboolean user)
 
 	if (path) {
 		if (sys_file_is_existing(path) == FALSE) {
-			grm_log_warning("%s() : not found rule [%s]", __FUNCTION__, path);
+			grac_log_warning("%s() : not found rule [%s]", __FUNCTION__, path);
 			path = NULL;
 		}
 		else {
 			if (sys_file_get_length(path) <= 0) {
-				grm_log_warning("%s() : empty rule file", __FUNCTION__, path);
+				grac_log_warning("%s() : empty rule file", __FUNCTION__, path);
 				path = NULL;
 			}
 		}
@@ -215,7 +215,7 @@ static const char *check_rule_path(gboolean user)
 	if (path && user) {
 		gboolean res = verify_grac_rule_file((char*)path);
 		if (res == FALSE) {
-			grm_log_error("%s() : not verified rule file [%s]", __FUNCTION__, path);
+			grac_log_error("%s() : not verified rule file [%s]", __FUNCTION__, path);
 			path = NULL;
 		}
 	}
@@ -239,7 +239,7 @@ static gboolean adjust_udev_rule_map_file()
 
 	res = stat(map_org, &st_org);
 	if (res != 0) {
-		grm_log_error("%s() : %s : %s", __FUNCTION__, map_org, strerror(errno));
+		grac_log_error("%s() : %s : %s", __FUNCTION__, map_org, strerror(errno));
 		return FALSE;
 	}
 
@@ -253,14 +253,14 @@ static gboolean adjust_udev_rule_map_file()
 	}
 	else {
 		if (errno != ENOENT) {
-			grm_log_error("%s() : %s : %s", __FUNCTION__, map_org, strerror(errno));
+			grac_log_error("%s() : %s : %s", __FUNCTION__, map_org, strerror(errno));
 			return FALSE;
 		}
 	}
 
 	done = grac_adjust_udev_rule_file(map_org, map_local);
 	if (done == FALSE)
-		grm_log_error("%s() : adjust map error", __FUNCTION__);
+		grac_log_error("%s() : adjust map error", __FUNCTION__);
 
 	return done;
 }
@@ -314,12 +314,12 @@ static void _recover_configurationValue(char *buf, int buf_size)
 				char	cmd[1024];
 				g_snprintf(cmd, sizeof(cmd), "echo 1 > %s/%s", dev_path, attr);
 				if (sys_run_cmd_no_output (cmd, "grac-recover") == FALSE)
-					grm_log_error("command error  : %s", cmd);
+					grac_log_error("command error  : %s", cmd);
 				else
-					grm_log_info("set %s for %s", attr, dev_path);
+					grac_log_info("set %s for %s", attr, dev_path);
 			}
 			else {
-				grm_log_error("invalid recover information : %s", buf);
+				grac_log_error("invalid recover information : %s", buf);
 			}
 		}
 	}
@@ -331,11 +331,11 @@ static gboolean recover_applied_device()
 	gboolean done = TRUE;
 	const char *path;
 
-	grm_log_debug("%s() : start", __FUNCTION__);
+	grac_log_debug("%s() : start", __FUNCTION__);
 
 	path = grac_config_path_recover_info();
 	if (path == NULL) {
-		grm_log_debug("%s() : end : no file name", __FUNCTION__);
+		grac_log_debug("%s() : end : no file name", __FUNCTION__);
 		return TRUE;
 	}
 
@@ -348,7 +348,7 @@ static gboolean recover_applied_device()
 
 	fp = g_fopen(path, "r");
 	if (fp == NULL) {
-		grm_log_debug("%s() : end : no file", __FUNCTION__);
+		grac_log_debug("%s() : end : no file", __FUNCTION__);
 		return TRUE;
 	}
 
@@ -360,7 +360,7 @@ static gboolean recover_applied_device()
 	cmd = "udevadm control --reload";
 	res = sys_run_cmd_no_output (cmd, "apply-rule");
 	if (res == FALSE)
-		grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+		grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 
 
 	// todo : 정밀 검토
@@ -381,7 +381,7 @@ static gboolean recover_applied_device()
 		cmd = "echo 1 > /sys/bus/pci/rescan";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
-			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 	}
 
@@ -390,19 +390,19 @@ static gboolean recover_applied_device()
 		cmd = "udevadm control --reload";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
-			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 
 		cmd = "udevadm trigger -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
-			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 	}
 
 	// 복구를 위한 udev rule 생성된 경우 이 지점에서 삭제
 
-	grm_log_debug("%s() : end", __FUNCTION__);
+	grac_log_debug("%s() : end", __FUNCTION__);
 
 	return done;
 }
@@ -416,15 +416,15 @@ static gboolean load_data_and_apply()
 
 	G_LOCK (load_apply_lock);
 
-	grm_log_info("Apply grac-rule");
-	grm_log_debug("load_data_and_apply() : start");
+	grac_log_info("Apply grac-rule");
+	grac_log_debug("load_data_and_apply() : start");
 
 	if (adjust_udev_rule_map_file() == FALSE)
-		grm_log_error("%s() : can't adjust map file", __FUNCTION__);
+		grac_log_error("%s() : can't adjust map file", __FUNCTION__);
 
 	// 2017.10.12
 	if (recover_applied_device() == FALSE)
-		grm_log_error("%s() : can't recover devices", __FUNCTION__);
+		grac_log_error("%s() : can't recover devices", __FUNCTION__);
 
 	// try to load user.rules
 	grac_rule_clear(DaemonCtrl.grac_rule);
@@ -432,7 +432,7 @@ static gboolean load_data_and_apply()
 	if (rule_path) {
 		load = grac_rule_load(DaemonCtrl.grac_rule, (gchar*)rule_path);
 		if (load == FALSE) {
-			grm_log_error("%s() : load rule error : %s", __FUNCTION__, rule_path);
+			grac_log_error("%s() : load rule error : %s", __FUNCTION__, rule_path);
 		}
 	}
 
@@ -443,7 +443,7 @@ static gboolean load_data_and_apply()
 		if (rule_path) {
 			load = grac_rule_load(DaemonCtrl.grac_rule, (gchar*)rule_path);
 			if (load == FALSE) {
-				grm_log_error("%s() : load rule error : %s", __FUNCTION__, rule_path);
+				grac_log_error("%s() : load rule error : %s", __FUNCTION__, rule_path);
 			}
 		}
 	}
@@ -456,12 +456,12 @@ static gboolean load_data_and_apply()
 	//  정책적용
 	done = grac_rule_apply(DaemonCtrl.grac_rule);
 	if (done == FALSE)
-		grm_log_error("%s() : apply error", __FUNCTION__);
+		grac_log_error("%s() : apply error", __FUNCTION__);
 
 	G_UNLOCK (load_apply_lock);
 
-	grm_log_info("Apply grac-rule : result = %d", (int)done);
-	grm_log_debug("%s() : result = %d", __FUNCTION__, (int)done);
+	grac_log_info("Apply grac-rule : result = %d", (int)done);
+	grac_log_debug("%s() : result = %d", __FUNCTION__, (int)done);
 
 	return done;
 }
@@ -475,12 +475,12 @@ on_bus_acquired (GDBusConnection  *connection,
 	int		res = EXIT_SUCCESS;
 	char	*msg;
 
-	grm_log_debug("on_bus_acquired() : %s", name);
+	grac_log_debug("on_bus_acquired() : %s", name);
 
 	if (init_proc() == FALSE) {
 		msg = "Can't start daemon : ini_proc()";
 		printf("====================%s\n", msg);
-		grm_log_error(msg);
+		grac_log_error(msg);
 		res = EXIT_FAILURE;
 		goto STOP;
 	}
@@ -492,7 +492,7 @@ on_bus_acquired (GDBusConnection  *connection,
 
 	// 2017.10.20
 	if (recover_applied_device() == FALSE)
-		grm_log_error("%s() : can't recover devices", __FUNCTION__);
+		grac_log_error("%s() : can't recover devices", __FUNCTION__);
 
 STOP:
 	if (res == EXIT_FAILURE)
@@ -503,7 +503,7 @@ static void on_name_acquired (GDBusConnection  *connection,
               const gchar      *name,
               gpointer          user_data)
 {
-	grm_log_debug("on_name_acquired() : %s", name);
+	grac_log_debug("on_name_acquired() : %s", name);
 }
 
 
@@ -512,7 +512,7 @@ on_name_lost (GDBusConnection  *connection,
               const gchar      *name,
               gpointer          user_data)
 {
-	grm_log_debug("on_name_lost()");
+	grac_log_debug("on_name_lost()");
 
 	g_main_loop_quit (loop);
 }
@@ -520,7 +520,7 @@ on_name_lost (GDBusConnection  *connection,
 static gboolean
 on_signal_quit (gpointer data)
 {
-	grm_log_debug("on_signal_quit()");
+	grac_log_debug("on_signal_quit()");
 
 	g_main_loop_quit (data);
 
@@ -529,7 +529,7 @@ on_signal_quit (gpointer data)
 
 static gboolean on_signal_reload (gpointer data)
 {
-	grm_log_debug("on_signal_reload()");
+	grac_log_debug("on_signal_reload()");
 
 	load_data_and_apply();
 
@@ -576,7 +576,7 @@ int main(void)
 
 	term_proc();
 
-	grm_log_debug("end of main");
+	grac_log_debug("end of main");
 
 	return 0;
 }

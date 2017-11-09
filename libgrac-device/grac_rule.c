@@ -25,7 +25,7 @@
 #include "grac_blockdev.h"
 #include "grac_map.h"
 #include "grac_config.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 #include "sys_ipt.h"
 #include "sys_user.h"
@@ -79,14 +79,14 @@ GracRule* grac_rule_alloc()
 
 		rule->res_perm_map = grac_map_alloc();
 		if (rule->res_perm_map == NULL) {
-			grm_log_debug("grac_rule_alloc() : out of memory");
+			grac_log_debug("grac_rule_alloc() : out of memory");
 			grac_rule_free(&rule);
 			return NULL;
 		}
 
 		rule->ipt = sys_ipt_alloc();
 		if (rule->ipt == NULL) {
-			grm_log_debug("grac_rule_alloc() : out of memory");
+			grac_log_debug("grac_rule_alloc() : out of memory");
 			grac_rule_free(&rule);
 			return NULL;
 		}
@@ -170,7 +170,7 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 
 	jtype = json_object_get_type(jproto);
 	if (jtype != json_type_object) {
-		grm_log_error("grac_rule.c : invalid rule : need object type for protocol");
+		grac_log_error("grac_rule.c : invalid rule : need object type for protocol");
 		return FALSE;
 	}
 
@@ -180,23 +180,23 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 	// pass 1 - get protocol
 	jres = json_object_object_get_ex(jproto, "protocol", &jobj_proto_name);
 	if (!jres) {
-		grm_log_error("grac_rule.c : invalid rule : not defined protocol key");
+		grac_log_error("grac_rule.c : invalid rule : not defined protocol key");
 		return FALSE;
 	}
 	jtype = json_object_get_type(jobj_proto_name);
 	if (jtype == json_type_null) {
-		grm_log_error("grac_rule.c : invalid rule : omitted protocol name");
+		grac_log_error("grac_rule.c : invalid rule : omitted protocol name");
 		return FALSE;
 	}
 	else if (jtype == json_type_string) {
 		protocol_name = (char*)json_object_get_string(jobj_proto_name);
 		if (c_strlen(protocol_name, 256) <= 0) {
-			grm_log_error("grac_rule.c : invalid rule : omitted protocol name");
+			grac_log_error("grac_rule.c : invalid rule : omitted protocol name");
 			return FALSE;
 		}
 	}
 	else {
-		grm_log_error("grac_rule.c : invalid rule : need string type for protocol name");
+		grac_log_error("grac_rule.c : invalid rule : need string type for protocol name");
 		return FALSE;
 	}
 
@@ -205,7 +205,7 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 	grac_rule_network_add_protocol(rule_net, protocol_name);
 	protocol_idx = grac_rule_network_find_protocol(rule_net, protocol_name);
 	if (protocol_idx < 0) {
-		grm_log_error("grac_rule.c : can't add protocol information (%s)", protocol_name);
+		grac_log_error("grac_rule.c : can't add protocol information (%s)", protocol_name);
 		return FALSE;
 	}
 
@@ -234,12 +234,12 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 						if (c_strlen(port_str, 256) > 0) {
 							add_res = grac_rule_network_add_src_port(rule_net, protocol_idx, port_str);
 							if (add_res == FALSE)
-								grm_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
+								grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 							done &= add_res;
 						}
 					}
 					else {
-						grm_log_error("grac_rule.c : invalid rule : need string type for port");
+						grac_log_error("grac_rule.c : invalid rule : need string type for port");
 					}
 				}
 			}
@@ -249,7 +249,7 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 					gboolean add_res;
 					add_res = grac_rule_network_add_src_port(rule_net, protocol_idx, port_str);
 					if (add_res == FALSE)
-						grm_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
+						grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 					done &= add_res;
 				}
 			}
@@ -257,7 +257,7 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 				;	//  skip
 			}
 			else {
-				grm_log_error("grac_rule.c : invalid rule : need string array type for src_port");
+				grac_log_error("grac_rule.c : invalid rule : need string array type for src_port");
 			}
 		}
 		else if (c_strmatch(key, "dst_port")) {
@@ -277,12 +277,12 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 						if (c_strlen(port_str, 256) > 0) {
 							add_res = grac_rule_network_add_dst_port(rule_net, protocol_idx, port_str);
 							if (add_res == FALSE)
-								grm_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
+								grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 							done &= add_res;
 						}
 					}
 					else {
-						grm_log_error("grac_rule.c : invalid rule : need string type for port");
+						grac_log_error("grac_rule.c : invalid rule : need string type for port");
 					}
 				}
 			}
@@ -292,7 +292,7 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 					gboolean add_res;
 					add_res = grac_rule_network_add_dst_port(rule_net, protocol_idx, port_str);
 					if (add_res == FALSE)
-						grm_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
+						grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 					done &= add_res;
 				}
 			}
@@ -300,11 +300,11 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 				;	//  skip
 			}
 			else {
-				grm_log_error("grac_rule.c : invalid rule : need string array type for src_port");
+				grac_log_error("grac_rule.c : invalid rule : need string array type for src_port");
 			}
 		}
 		else {
-			grm_log_debug("grac_rule.c : invalid rule : unknown key [%s] for protocol", key);
+			grac_log_debug("grac_rule.c : invalid rule : unknown key [%s] for protocol", key);
 		}
 	} // foreach
 
@@ -322,20 +322,20 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 	if (rule->network_array == NULL) {
 		rule->network_array = g_ptr_array_new();
 		if (rule->network_array == NULL) {
-			grm_log_error("%s : can't alloc network array of rule", func);
+			grac_log_error("%s : can't alloc network array of rule", func);
 			return FALSE;
 		}
 	}
 
 	json_type jtype = json_object_get_type(jobj_rule);
 	if (jtype != json_type_object) {
-		grm_log_error("grac_rule.c : invalid format for network rules");
+		grac_log_error("grac_rule.c : invalid format for network rules");
 		return FALSE;
 	}
 
 	GracRuleNetwork	*net_rule = grac_rule_network_alloc();
 	if (net_rule == NULL) {
-		grm_log_error("%s : can't alloc GracRuleNetwork", func);
+		grac_log_error("%s : can't alloc GracRuleNetwork", func);
 		return FALSE;
 	}
 
@@ -353,7 +353,7 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 				grac_rule_network_set_allow(net_rule, FALSE);
 			}
 			else {
-				grm_log_debug("grac_rule.c : unknown state for <network/rules> : %s", perm_str);
+				grac_log_debug("grac_rule.c : unknown state for <network/rules> : %s", perm_str);
 			}
 		}
 		else if (c_strmatch(key, "direction")) {
@@ -368,7 +368,7 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 				grac_rule_network_set_direction(net_rule, GRAC_NETWORK_DIR_OUTBOUND);
 			}
 			else {
-				grm_log_debug("grac_rule.c : unknown direction for <network/rules> : %s", dir_str);
+				grac_log_debug("grac_rule.c : unknown direction for <network/rules> : %s", dir_str);
 			}
 		}
 		else if (c_strmatch(key, "ports")) {
@@ -385,11 +385,11 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 				done &= _grac_rule_load_protocol_rule_json(net_rule, val);
 			}
 			else {
-				grm_log_debug("grac_rule.c : invalid format for <network/rules> : %s", key);
+				grac_log_debug("grac_rule.c : invalid format for <network/rules> : %s", key);
 			}
 		}
 		else {
-			grm_log_debug("grac_rule.c : unknown key [%s] in <network/rules>", key);
+			grac_log_debug("grac_rule.c : unknown key [%s] in <network/rules>", key);
 		}
 	} // foreach
 
@@ -420,7 +420,7 @@ static gboolean _grac_rule_load_network_json(GracRule *rule, json_object *jobj_n
 				done = grac_map_set_data(rule->res_perm_map, res_key, res_perm);
 			}
 			else {
-				grm_log_error("_grac_rule_load_network_json() : invalid json type for %s", key);
+				grac_log_error("_grac_rule_load_network_json() : invalid json type for %s", key);
 				done = FALSE;
 			}
 		}
@@ -438,12 +438,12 @@ static gboolean _grac_rule_load_network_json(GracRule *rule, json_object *jobj_n
 				}
 			}
 			else {
-				grm_log_error("_grac_rule_load_network_json() : invalid json type for %s", key);
+				grac_log_error("_grac_rule_load_network_json() : invalid json type for %s", key);
 				done = FALSE;
 			}
 		}
 		else {
-			grm_log_error("_grac_rule_load_network_json() : invalid key : %s", key);
+			grac_log_error("_grac_rule_load_network_json() : invalid key : %s", key);
 		}
 	}
 
@@ -460,14 +460,14 @@ gboolean _grac_rule_add_bluetooth_mac(GracRule *rule, char *mac_addr)
 		if (rule->bluetooth_mac_array == NULL) {
 			rule->bluetooth_mac_array = g_ptr_array_new();
 			if (rule->bluetooth_mac_array == NULL) {
-				grm_log_error("%s : can't alloc mac address array of rule", func);
+				grac_log_error("%s : can't alloc mac address array of rule", func);
 				return FALSE;
 			}
 		}
 
 		gchar *add_mac_addr = c_strdup(mac_addr, 256);
 		if (add_mac_addr == NULL) {
-			grm_log_error("%s : can't alloc mac address to add", func);
+			grac_log_error("%s : can't alloc mac address to add", func);
 		}
 		else {
 			g_ptr_array_add(rule->bluetooth_mac_array, add_mac_addr);
@@ -491,7 +491,7 @@ gboolean _grac_rule_load_bluetooth_json(GracRule *rule, json_object *jobj)
 
 	jtype = json_object_get_type(jobj);
 	if (jtype != json_type_object) {
-		grm_log_error("%s : invalid json type for bluetooth", func);
+		grac_log_error("%s : invalid json type for bluetooth", func);
 		return FALSE;
 	}
 
@@ -505,7 +505,7 @@ gboolean _grac_rule_load_bluetooth_json(GracRule *rule, json_object *jobj)
 				done &= grac_map_set_data(rule->res_perm_map, res_key, res_perm);
 			}
 			else {
-				grm_log_error("%s : invalid json type for bluetooth/%s", func, key);
+				grac_log_error("%s : invalid json type for bluetooth/%s", func, key);
 				done = FALSE;
 			}
 		}
@@ -525,18 +525,18 @@ gboolean _grac_rule_load_bluetooth_json(GracRule *rule, json_object *jobj)
 						done &= _grac_rule_add_bluetooth_mac(rule, mac);
 					}
 					else {
-						grm_log_error("%s : invalid json type for bluetooth/%s", func, key);
+						grac_log_error("%s : invalid json type for bluetooth/%s", func, key);
 						done = FALSE;
 					}
 				}
 			}
 			else {
-				grm_log_error("%s : invalid json type for bluetooth/%s", func, key);
+				grac_log_error("%s : invalid json type for bluetooth/%s", func, key);
 				done = FALSE;
 			}
 		}
 		else {
-			grm_log_debug("%s : invalid key for bluetooth : %s", func, key);
+			grac_log_debug("%s : invalid key for bluetooth : %s", func, key);
 		}
 	}
 	return done;
@@ -560,7 +560,7 @@ gboolean _grac_rule_load_simple_json(GracRule *rule, char *key, json_object *job
 	case json_type_array :
 	case json_type_object :
 	default:
-		grm_log_error("_grac_rule_load_simple_json() : invalid json type for %s", key);
+		grac_log_error("_grac_rule_load_simple_json() : invalid json type for %s", key);
 		break;
 	}
 
@@ -575,7 +575,7 @@ static gboolean _grac_rule_load_json(GracRule *rule, gchar* path)
 
 
 	if (jroot == NULL) {
-		grm_log_error("_grac_rule_load_json() : not found or inavlide json file");
+		grac_log_error("_grac_rule_load_json() : not found or inavlide json file");
 		return FALSE;
 	}
 
@@ -778,7 +778,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 
 	res = grac_rule_network_get_address(net_rule, &ipaddr);
 	if (res < 0) {
-		grm_log_error("%s : can't get address", func);
+		grac_log_error("%s : can't get address", func);
 		return FALSE;
 	}
 
@@ -792,7 +792,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 
 	ipt_rule = sys_ipt_rule_alloc();
 	if (ipt_rule == NULL) {
-		grm_log_error("%s : out of memory", func);
+		grac_log_error("%s : out of memory", func);
 		return FALSE;
 	}
 
@@ -806,7 +806,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 
 		res = grac_rule_network_get_address_ex(net_rule, &addr, &mask, &ipv6);
 		if (res < 0) {
-			grm_log_error("%s : can't get address info", func);
+			grac_log_error("%s : can't get address info", func);
 			done = FALSE;
 		}
 		else if (res == 1) {
@@ -832,7 +832,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 		grac_network_dir_t dir;
 		res = grac_rule_network_get_direction(net_rule, &dir);
 		if (res < 0) {
-			grm_log_error("%s : can't get direction", func);
+			grac_log_error("%s : can't get direction", func);
 			done = FALSE;
 		}
 		else if (res == 1){
@@ -855,7 +855,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 		gboolean allow;
 		res = grac_rule_network_get_allow(net_rule, &allow);
 		if (res < 0) {
-			grm_log_error("%s : can't get state", func);
+			grac_log_error("%s : can't get state", func);
 			done = FALSE;
 		}
 		else if (res == 1) {
@@ -870,7 +870,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 	}
 
 	if (setB == FALSE) {
-		grm_log_error("%s : making ipt_rule : %s", func, log_addr);
+		grac_log_error("%s : making ipt_rule : %s", func, log_addr);
 	}
 	done &= setB;
 
@@ -885,7 +885,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 	if (protocol_count == 0) {	// ignore ports
 		appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 		if (appB == FALSE) {
-			grm_log_error("%s : applying ipt_rule : %s, all protocols, all ports", func, log_addr);
+			grac_log_error("%s : applying ipt_rule : %s, all protocols, all ports", func, log_addr);
 		}
 		done &= appB;
 	}
@@ -900,13 +900,13 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 			d_port_count = grac_rule_network_dst_port_count(net_rule, protocol_idx);
 			res = grac_rule_network_get_protocol(net_rule, protocol_idx, &protocol_name);
 			if (res < 0) {
-				grm_log_error("%s : can't get protocol", func);
+				grac_log_error("%s : can't get protocol", func);
 				done = FALSE;
 			}
 			else if (res == 1) {
 				setB = sys_ipt_rule_set_protocol_name(ipt_rule, protocol_name);
 				if (setB == FALSE) {
-					grm_log_error("%s : making ipt_rule : %s, %s", func, log_addr, protocol_name);
+					grac_log_error("%s : making ipt_rule : %s, %s", func, log_addr, protocol_name);
 					continue;
 				}
 				sys_ipt_rule_clear_src_port(ipt_rule);
@@ -919,7 +919,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 					if (s_port_count + d_port_count == 0) {
 						appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 						if (appB == FALSE) {
-							grm_log_error("%s : applying ipt_rule : %s, %s, no ports", func, log_addr, protocol_name);
+							grac_log_error("%s : applying ipt_rule : %s, %s, no ports", func, log_addr, protocol_name);
 						}
 					}
 					if (s_port_count > 0) {
@@ -930,7 +930,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 						}
 						appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 						if (appB == FALSE) {
-							grm_log_error("%s : applying ipt_rule : %s, %s, with src_ports", func, log_addr, protocol_name);
+							grac_log_error("%s : applying ipt_rule : %s, %s, with src_ports", func, log_addr, protocol_name);
 						}
 						done &= appB;
 
@@ -945,18 +945,18 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 						}
 						appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 						if (appB == FALSE) {
-							grm_log_error("%s : applying ipt_rule : %s, %s, with dst_ports", func, log_addr, protocol_name);
+							grac_log_error("%s : applying ipt_rule : %s, %s, with dst_ports", func, log_addr, protocol_name);
 						}
 						done &= appB;
 					}
 				}
 				else {
 					if (s_port_count + d_port_count > 0) {
-						grm_log_error("%s : applying ipt_rule : %s, %s, not allowd port : ignore", func, log_addr, protocol_name);
+						grac_log_error("%s : applying ipt_rule : %s, %s, not allowd port : ignore", func, log_addr, protocol_name);
 					}
 					appB = sys_ipt_append_rule(rule->ipt, ipt_rule);
 					if (appB == FALSE) {
-						grm_log_error("%s : applying ipt_rule : %s, %s, no ports", func, log_addr, protocol_name);
+						grac_log_error("%s : applying ipt_rule : %s, %s, no ports", func, log_addr, protocol_name);
 					}
 					done &= appB;
 				}
@@ -975,7 +975,7 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 	gboolean done = TRUE;
 	int	perm_id;
 
-	grm_log_debug("start : %s()", __FUNCTION__);
+	grac_log_debug("start : %s()", __FUNCTION__);
 
 	sys_ipt_set_log(rule->ipt, TRUE, "GRAC: Disallowed Network ");		// Maximunm 29 chars
                                               /* 12345678901234567890123456789 */
@@ -1036,11 +1036,11 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 	char	udev_rule_target[2048];
 	int		uid;
 
-	grm_log_debug("start : %s()", __FUNCTION__);
+	grac_log_debug("start : %s()", __FUNCTION__);
 
 	uid = sys_user_get_login_uid();
 	if (uid < 0) {
-		grm_log_warning("%s(): can't get login name", __FUNCTION__);
+		grac_log_warning("%s(): can't get login name", __FUNCTION__);
 		g_snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%s", grac_config_file_udev_rules());
 		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
 	}
@@ -1077,11 +1077,11 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 				result = rename(tmp_file, udev_rule_target);
 				if (result == -1) {
 					done = FALSE;
-					grm_log_error("%s() : rename error : %s --> %s : %s", __FUNCTION__, tmp_file, udev_rule_target, strerror(errno));
+					grac_log_error("%s() : rename error : %s --> %s : %s", __FUNCTION__, tmp_file, udev_rule_target, strerror(errno));
 				}
 			}
 			else {
-				grm_log_error("%s() : grac_rule_udev_make_rules", __FUNCTION__);
+				grac_log_error("%s() : grac_rule_udev_make_rules", __FUNCTION__);
 			}
 
 			done = made;
@@ -1098,7 +1098,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 			unlink(udev_path_link);
 			result = symlink(udev_rule_target, udev_path_link);
 			if (result != 0) {
-				grm_log_error("%s(): can't make link : %s", __FUNCTION__, strerror(errno) );
+				grac_log_error("%s(): can't make link : %s", __FUNCTION__, strerror(errno) );
 				done = FALSE;
 			}
 		}
@@ -1112,7 +1112,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		cmd = "udevadm control --reload";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
-			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 
 		// no trigger for subsystem==PCI, triggering when setting rescan
@@ -1120,7 +1120,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 			char *cmd = "echo 1 > /sys/bus/pci/rescan";
 			res = sys_run_cmd_no_output (cmd, "apply-rule");
 			if (res == FALSE)
-				grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+				grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 			done &= res;
 		}
 
@@ -1130,12 +1130,12 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		cmd = "udevadm trigger -s bluetooth -s net -s input -s video4linux -s pci -s sound -s hidraw -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
-			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 
 		cmd = "udevadm trigger -s block -p ID_USB_DRIVER=usb-storage -c add";
 		res = sys_run_cmd_no_output (cmd, "apply-rule");
 		if (res == FALSE)
-			grm_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 	}
 
@@ -1147,7 +1147,7 @@ static gboolean _grac_rule_apply_hook(GracRule *rule)
 	gboolean done = FALSE;
 	int	perm_id;
 
-	grm_log_debug("start : %s()", __FUNCTION__);
+	grac_log_debug("start : %s()", __FUNCTION__);
 
 	done = grac_rule_hook_init();
 
@@ -1208,7 +1208,7 @@ static gboolean _grac_rule_apply_cups_printer(GracRule* rule)
 	int			 perm_id;
 	gboolean allow;
 
-	grm_log_debug("start : %s()", __FUNCTION__);
+	grac_log_debug("start : %s()", __FUNCTION__);
 
 	perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_PRINTER);
 	if (perm_id == GRAC_PERMISSION_ALLOW)
@@ -1219,7 +1219,7 @@ static gboolean _grac_rule_apply_cups_printer(GracRule* rule)
 	// 사용자 목록 초기화, 기타 초기 처리
 	done = grac_rule_printer_cups_init();
 	if (done == FALSE) {
-		grm_log_error("%s() : Initialize error for CUPS", __FUNCTION__);
+		grac_log_error("%s() : Initialize error for CUPS", __FUNCTION__);
 		return FALSE;
 	}
 
@@ -1230,7 +1230,7 @@ static gboolean _grac_rule_apply_cups_printer(GracRule* rule)
 	// CUPS에 적용 요청
 	done = grac_rule_printer_cups_apply(allow);
 	if (done == FALSE) {
-		grm_log_error("%s() : Apply error for CUPS", __FUNCTION__);
+		grac_log_error("%s() : Apply error for CUPS", __FUNCTION__);
 	}
 
 	grac_rule_printer_cups_final();
@@ -1245,7 +1245,7 @@ static gboolean _grac_rule_apply_extra(GracRule *rule)
 	gboolean done = TRUE;
 	int res_id, perm_id;
 
-	grm_log_debug("start : %s()", __FUNCTION__);
+	grac_log_debug("start : %s()", __FUNCTION__);
 
 	res_id = grac_resource_first_control_res_id();
 	while (res_id >= 0) {
@@ -1300,7 +1300,7 @@ gboolean grac_rule_apply (GracRule *rule)
 {
 	gboolean done = FALSE;
 
-	grm_log_debug("start : %s()", __FUNCTION__);
+	grac_log_debug("start : %s()", __FUNCTION__);
 	if (rule) {
 
 		done = _grac_rule_apply_network(rule);

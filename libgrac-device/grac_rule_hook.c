@@ -15,7 +15,7 @@
 
 #include "grac_rule_hook.h"
 #include "grac_config.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 #include "sys_user.h"
 #include "sys_file.h"
@@ -43,25 +43,25 @@ static gboolean _create_ld_so_preload()
 
 	uid = sys_user_get_login_uid();
 	if (uid < 0) {
-		grm_log_error("%s(): can't get login name", __FUNCTION__);
+		grac_log_error("%s(): can't get login name", __FUNCTION__);
 		return FALSE;
 	}
 	g_snprintf(preload_target, sizeof(preload_target), "/var/run/user/%d/%s", uid, grac_config_file_ld_so_preload());
 
 	preload_link = grac_config_path_ld_so_preload();
 	if (preload_link == NULL) {
-		grm_log_error("%s(): undefined preload path", __FUNCTION__);
+		grac_log_error("%s(): undefined preload path", __FUNCTION__);
 		return FALSE;
 	}
 
 	hook_clip_path = grac_config_path_hook_clipboard_so();
 	if (hook_clip_path == NULL) {
-		grm_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
+		grac_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
 		done = FALSE;
 	}
 	hook_screen_path = grac_config_path_hook_screenshooter_so();
 	if (hook_screen_path == NULL) {
-		grm_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
+		grac_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
 		done = FALSE;
 	}
 
@@ -103,7 +103,7 @@ static gboolean _create_ld_so_preload()
 			fclose(fp);
 		}
 		else {
-			grm_log_error("%s(): can't open to add the hook module [%s]", __FUNCTION__, preload_target);
+			grac_log_error("%s(): can't open to add the hook module [%s]", __FUNCTION__, preload_target);
 			done = FALSE;
 		}
 	}
@@ -113,7 +113,7 @@ static gboolean _create_ld_so_preload()
 		unlink(preload_link);
 		res = symlink(preload_target, preload_link);
 		if (res != 0) {
-			grm_log_error("%s(): can't make link : %s", __FUNCTION__, strerror(errno) );
+			grac_log_error("%s(): can't make link : %s", __FUNCTION__, strerror(errno) );
 			done = FALSE;
 		}
 	}
@@ -130,18 +130,18 @@ static gboolean _delete_ld_so_preload()
 
 	preload_path = grac_config_path_ld_so_preload();
 	if (preload_path == NULL) {
-		grm_log_error("%s(): undefined preload path", __FUNCTION__);
+		grac_log_error("%s(): undefined preload path", __FUNCTION__);
 		return FALSE;
 	}
 
 	hook_clip_path = grac_config_path_hook_clipboard_so();
 	if (hook_clip_path == NULL) {
-		grm_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
+		grac_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
 		done = FALSE;
 	}
 	hook_screen_path = grac_config_path_hook_screenshooter_so();
 	if (hook_screen_path == NULL) {
-		grm_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
+		grac_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
 		done = FALSE;
 	}
 
@@ -177,7 +177,7 @@ static gboolean _delete_ld_so_preload()
 		fclose(out_fp);
 	}
 	else {
-		grm_log_error("%s(): can't create tmp file for preload [%s]", __FUNCTION__, tmp_file);
+		grac_log_error("%s(): can't create tmp file for preload [%s]", __FUNCTION__, tmp_file);
 		done = FALSE;
 	}
 	fclose(in_fp);
@@ -203,21 +203,21 @@ gboolean grac_rule_hook_init()
 
 	path = grac_config_path_hook_clipboard_so();
 	if (path == NULL) {
-		grm_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
+		grac_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
 		done = FALSE;
 	}
 	else if (sys_file_is_existing((char*)path) == FALSE) {
-		grm_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
+		grac_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
 		done = FALSE;
 	}
 
 	path = grac_config_path_hook_screenshooter_so();
 	if (path == NULL) {
-		grm_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
+		grac_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
 		done = FALSE;
 	}
 	else if (sys_file_is_existing((char*)path) == FALSE) {
-		grm_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
+		grac_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
 		done = FALSE;
 	}
 
@@ -253,7 +253,7 @@ gboolean grac_rule_hook_allow_clipboard(gboolean allow)
 		FILE	*fp;
 		fp = g_fopen(path, "w");
 		if (fp == NULL) {
-			grm_log_error("%s(): can't open [%s]", __FUNCTION__, path);
+			grac_log_error("%s(): can't open [%s]", __FUNCTION__, path);
 		}
 		else {
 			if (allow)
@@ -278,7 +278,7 @@ gboolean grac_rule_hook_allow_screenshooter(gboolean allow)
 		FILE	*fp;
 		fp = g_fopen(path, "w");
 		if (fp == NULL) {
-			grm_log_error("%s(): can't open [%s]", __FUNCTION__, path);
+			grac_log_error("%s(): can't open [%s]", __FUNCTION__, path);
 		}
 		else {
 			if (allow)

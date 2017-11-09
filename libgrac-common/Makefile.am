@@ -12,7 +12,7 @@ libgrac_common_headers =		\
 	sys_ipt.h	\
 	sys_file.h	\
 	sys_etc.h	\
-	grm_log.h	\
+	grac_log.h	\
 	grac_config.h	\
 	grac_map.h
 
@@ -23,7 +23,7 @@ libgrac_common_sources =		\
 	sys_ipt.c	\
 	sys_file.c	\
 	sys_etc.c	\
-	grm_log.c	\
+	grac_log.c	\
 	grac_config.c	\
 	grac_map.c
 

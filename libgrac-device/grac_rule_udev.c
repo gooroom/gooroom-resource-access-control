@@ -14,7 +14,7 @@
  */
 
 #include "grac_rule_udev.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 
 #include <stdio.h>
@@ -73,7 +73,7 @@ GracRuleUdev* grac_rule_udev_alloc(const char *map_path)
 		if (map_path) {
 			rule->map_file_path = c_strdup((char*)map_path, 2048);
 			if (rule->map_file_path == NULL) {
-				grm_log_debug("grac_rule_udev_alloc() : out of memory");
+				grac_log_debug("grac_rule_udev_alloc() : out of memory");
 				grac_rule_udev_free(&rule);
 				return NULL;
 			}
@@ -318,7 +318,7 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 			gboolean	res;
 			res = _parse_map_info_line(buf, sizeof(buf), &res_id, &perm_id, opt, sizeof(opt));
 			if (res == FALSE)
-				grm_log_debug("invalid line : %s", buf);
+				grac_log_debug("invalid line : %s", buf);
 
 			if (res) {
 				check |= _check_if_specified_rule(grac_rule, res_id, perm_id);
@@ -731,26 +731,26 @@ gboolean grac_rule_udev_make_rules(GracRuleUdev *udev_rule, GracRule* grac_rule,
 
 	udev_rule->line_count = get_line_count(udev_rule->map_file_path);
 	if (udev_rule->line_count <= 0) {
-		grm_log_error("grac_rule_udev_make_rules() : not founed or invalid map file");
+		grac_log_error("grac_rule_udev_make_rules() : not founed or invalid map file");
 		return FALSE;
 	}
 
 	udev_rule->line_status = malloc(udev_rule->line_count * sizeof(int));
 	if (udev_rule->line_status == NULL) {
-		grm_log_error("grac_rule_udev_make_rules() : out of memory");
+		grac_log_error("grac_rule_udev_make_rules() : out of memory");
 		return FALSE;
 	}
 	c_memset(udev_rule->line_status, 0, udev_rule->line_count * sizeof(int));
 
 	done = _analyze_map_line_status(udev_rule, grac_rule);
 	if (done == FALSE) {
-		grm_log_error("grac_rule_udev_make_rules() : invalid map file");
+		grac_log_error("grac_rule_udev_make_rules() : invalid map file");
 		return FALSE;
 	}
 
 	done = _make_udev_rule_file(udev_rule, grac_rule, udev_rule_path);
 	if (done == FALSE) {
-		grm_log_error("grac_rule_udev_make_rules() : can't make udev rules file\n");
+		grac_log_error("grac_rule_udev_make_rules() : can't make udev rules file\n");
 		return FALSE;
 	}
 

@@ -19,7 +19,7 @@
 #include "sys_ipt.h"
 #include "sys_etc.h"
 #include "cutility.h"
-#include "grm_log.h"
+#include "grac_log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -155,7 +155,7 @@ gboolean	sys_ipt_rule_set_protocol(sys_ipt_rule *rule, int protocol)
 				done = TRUE;
 			}
 			else {
-				grm_log_error("sys_ipt.c : unknown protocol name");
+				grac_log_error("sys_ipt.c : unknown protocol name");
 			}
 		}
 	}
@@ -183,7 +183,7 @@ gboolean	sys_ipt_rule_set_protocol_name(sys_ipt_rule *rule, char *proto_name)
 				done = TRUE;
 			}
 			else {
-				grm_log_error("sys_ipt.c : unknown protocol number");
+				grac_log_error("sys_ipt.c : unknown protocol number");
 			}
 		}
 	}
@@ -200,13 +200,13 @@ static gboolean	_sys_ipt_rule_set_port_number(sys_ipt_rule *rule, int idx, int p
 
 	if (rule) {
 		if (rule->protocol_type != 1) {
-			grm_log_error("sys_ipt.c : meaningless port : not defined protocol");
+			grac_log_error("sys_ipt.c : meaningless port : not defined protocol");
 			return FALSE;
 		}
 		if (rule->protocol_number != SYS_IPT_PROTOCOL_TCP &&
 				rule->protocol_number != SYS_IPT_PROTOCOL_UDP)
 		{
-			grm_log_error("sys_ipt.c : meaningless port : protocol dose not support ports");
+			grac_log_error("sys_ipt.c : meaningless port : protocol dose not support ports");
 			return FALSE;
 		}
 
@@ -243,13 +243,13 @@ static gboolean	_sys_ipt_rule_set_port_name(sys_ipt_rule *rule, int idx, char *n
 
 	if (rule) {
 		if (rule->protocol_type != 1) {
-			grm_log_error("sys_ipt.c : meaningless port : not defined protocol");
+			grac_log_error("sys_ipt.c : meaningless port : not defined protocol");
 			return FALSE;
 		}
 		if (rule->protocol_number != SYS_IPT_PROTOCOL_TCP &&
 				rule->protocol_number != SYS_IPT_PROTOCOL_UDP)
 		{
-			grm_log_error("sys_ipt.c : meaningless port : protocol dose not support ports");
+			grac_log_error("sys_ipt.c : meaningless port : protocol dose not support ports");
 			return FALSE;
 		}
 
@@ -264,7 +264,7 @@ static gboolean	_sys_ipt_rule_set_port_name(sys_ipt_rule *rule, int idx, char *n
 		else {  // error
 			rule->port_type[idx] = 0;
 			rule->port_name[idx][0] = 0;
-			grm_log_error("sys_ipt.c : unknown port name");
+			grac_log_error("sys_ipt.c : unknown port name");
 		}
 	}
 
@@ -440,7 +440,7 @@ gboolean	sys_ipt_rule_set_addr (sys_ipt_rule *rule, guint8 addr[4])
 		const char *res;
 		res = inet_ntop(AF_INET, rule->addr_data.ip_v4, rule->addr_str, sizeof(rule->addr_str) );
 		if (res == NULL) {
-			grm_log_warning("sys_ipt.c : invalid V4 address data : %s", c_strerror(-1));
+			grac_log_warning("sys_ipt.c : invalid V4 address data : %s", c_strerror(-1));
 			rule->addr_str[0] = 0;
 		}
 
@@ -461,7 +461,7 @@ gboolean	sys_ipt_rule_set_addr6 (sys_ipt_rule *rule, guint16 addr[8])
 		const char *res;
 		res = inet_ntop(AF_INET6, rule->addr_data.ip_v6, rule->addr_str, sizeof(rule->addr_str) );
 		if (res == NULL) {
-			grm_log_warning("sys_ipt.c : invalid V6 address data : %s", c_strerror(-1));
+			grac_log_warning("sys_ipt.c : invalid V6 address data : %s", c_strerror(-1));
 			rule->addr_str[0] = 0;
 		}
 
@@ -486,7 +486,7 @@ gboolean	sys_ipt_rule_set_addr_str (sys_ipt_rule *rule, gchar *addr_str)
 			done = TRUE;
 		}
 		else {
-			grm_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
+			grac_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
 			rule->addr_data_type = 0;
 			rule->addr_version = 1;
 			c_strcpy(rule->addr_str, addr_str, sizeof(rule->addr_str));
@@ -513,7 +513,7 @@ gboolean	sys_ipt_rule_set_addr6_str(sys_ipt_rule *rule, gchar *addr_str)
 			done = TRUE;
 		}
 		else {
-			grm_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
+			grac_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
 			rule->addr_data_type = 0;
 			rule->addr_version = 2;
 			c_strcpy(rule->addr_str, addr_str, sizeof(rule->addr_str));
@@ -609,7 +609,7 @@ gboolean	sys_ipt_rule_set_mac_addr_str(sys_ipt_rule *rule, gchar *mac_str)
 			if (i == 6)
 				done = sys_ipt_rule_set_mac_addr(rule, mac_addr);
 			else
-				grm_log_error("sys_ipt.c : invalid mac address : %s", mac_str);
+				grac_log_error("sys_ipt.c : invalid mac address : %s", mac_str);
 		}
 	}
 
@@ -818,7 +818,7 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 
 	if (ipt->log_on) {
 		g_snprintf(ipt->log_cmd, ipt->log_cmd_size,
-							"%s -j LOG --log-level warning --log-prefix '%s'", ipt->set_cmd, ipt->log_head);
+							"%s -j LOG --log-level error --log-prefix '%s'", ipt->set_cmd, ipt->log_head);
 	}
 
 	// target
@@ -833,7 +833,7 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 
 	len = c_strlen(ipt->set_cmd, ipt->set_cmd_size);
 	if (len <= 0 || ipt->set_cmd[len-1] != '?') {
-		grm_log_error("sys_ipt.c: Made command is invalid [%s]", ipt->set_cmd);
+		grac_log_error("sys_ipt.c: Made command is invalid [%s]", ipt->set_cmd);
 		return FALSE;
 	}
 	ipt->set_cmd[len-1] = 0;
@@ -841,16 +841,16 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 	// actual calling the iptables command for LOG
 	if (ipt->log_on && append == TRUE) {
 		gboolean res = sys_run_cmd_no_output(ipt->log_cmd, "sys_ipt(log)");
-		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->log_cmd, (int)res);
+		grac_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->log_cmd, (int)res);
 	}
 
 	// actual calling the iptables command.
 	done = sys_run_cmd_no_output(ipt->set_cmd, "sys_ipt");
-	grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->set_cmd, (int)done);
+	grac_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->set_cmd, (int)done);
 
 	if (ipt->log_on && append == FALSE) {
 		gboolean res = sys_run_cmd_no_output(ipt->log_cmd, "sys_ipt(log)");
-		grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->log_cmd, (int)res);
+		grac_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->log_cmd, (int)res);
 	}
 
 	return done;
@@ -953,7 +953,7 @@ static gboolean	_sys_ipt_set_policy_sub(sys_ipt* ipt, char *cmd, char *chain, ch
 	g_snprintf(ipt->set_cmd, ipt->set_cmd_size, "%s -P %s %s", cmd, chain, target);
 
 	done = sys_run_cmd_no_output(ipt->set_cmd, "sys_ipt");
-	grm_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->set_cmd, (int)done);
+	grac_log_debug("sys_ipt.c: run command [%s] : res=%d", ipt->set_cmd, (int)done);
 
 	return done;
 }

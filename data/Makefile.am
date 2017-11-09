@@ -9,7 +9,8 @@ gracmap_DATA = grac-udev-rules.map
 
 bin_SCRIPTS = grac-apply.sh	\
 				grac-hci.sh	\
-				grac-block.sh
+				grac-block.sh	\
+				grac-status.sh
 
 servicedir       = $(datadir)/dbus-1/system-services
 service_in_files = kr.gooroom.GRACDEVD.service.in
@@ -45,3 +46,6 @@ grac-hci.sh : Makefile
 
 grac-block.sh : Makefile
 	chmod a+x grac-block.sh
+
+grac-status.sh : Makefile
+	chmod a+x grac-status.sh

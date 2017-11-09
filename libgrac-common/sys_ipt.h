@@ -69,7 +69,7 @@ gboolean	sys_ipt_rule_set_mac_addr_str(sys_ipt_rule *rule, gchar *mac_str);
 // control iptables
 //------------------------------------------------------------------------------------
 
-typedef struct _sys_ipt sys_ipt;
+typedef struct _sys_ipt  sys_ipt;
 
 sys_ipt *sys_ipt_alloc();
 void sys_ipt_free(sys_ipt **pipt);

@@ -17,7 +17,7 @@
  */
 
 #include "grac_config.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "sys_user.h"
 #include "sys_etc.h"
 #include "cutility.h"
@@ -104,7 +104,7 @@ static void _make_directory(char *dir)
 {
 	if (g_access(dir, F_OK) != 0) {
 		if (mkdir(dir, 0755) < 0) {
-			grm_log_error("mkdir : %s", c_strerror(-1));
+			grac_log_error("mkdir : %s", c_strerror(-1));
 		}
 	}
 }

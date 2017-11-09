@@ -27,4 +27,8 @@ gboolean sys_file_make_new_directory(gchar *path, gchar* owner, gchar* group, in
 int			 sys_file_get_length(gchar *path);
 gboolean sys_file_is_existing(gchar *path);
 
+int		sys_file_open(char *path, char *mode);
+int		sys_file_read(int fd, char *buf, int size);
+void	sys_file_close(int *fd);
+
 #endif /* _SYS_FILE_H_ */

@@ -472,3 +472,40 @@ gboolean sys_file_is_existing(gchar *path)
 	return exist;
 }
 
+int		sys_file_open(char *path, char *mode)
+{
+	int	fd = -1;
+
+	if (c_strlen(path, PATH_MAX) > 0) {
+		FILE *fp;
+
+		fp = g_fopen(path, mode);
+		if (fp != NULL) {
+			fd = fileno(fp);
+		}
+	}
+
+	return fd;
+}
+
+int		sys_file_read(int fd, char *buf, int size)
+{
+	int	n = -1;
+
+	if (fd >= 0) {
+		n = read(fd, buf, size);
+	}
+
+	return n;
+}
+
+void	sys_file_close(int *pfd)
+{
+	if (pfd) {
+		int fd = *pfd;
+		if (fd >= 0)
+			g_close(fd, NULL);
+		*pfd = -1;
+	}
+}
+

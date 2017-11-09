@@ -14,7 +14,7 @@
  */
 
 #include "grac_adjust_udev_rule.h"
-#include "grm_log.h"
+#include "grac_log.h"
 #include "cutility.h"
 #include "sys_etc.h"
 
@@ -390,7 +390,7 @@ static gboolean _make_block_device_list_parent()
 	cmd = "/bin/lsblk -d -n -o name";
 	done =  sys_run_cmd_get_output(cmd, "test", output, sizeof(output));
 	if (done == FALSE) {
-		grm_log_error("commamd running error : %s", cmd);
+		grac_log_error("commamd running error : %s", cmd);
 		return FALSE;
 	}
 
@@ -404,18 +404,18 @@ static gboolean _make_block_device_list_parent()
 		if (n > 0) {
 			GracBlockDevice*	dev = grac_block_device_alloc();
 			if (dev == NULL) {
-				grm_log_error("can't alloc data for block device");
+				grac_log_error("can't alloc data for block device");
 				done = FALSE;
 				break;
 			}
 			done = grac_block_device_set_name(dev, ptr);
 			if (done == FALSE) {
-				grm_log_error("can't set device name");
+				grac_log_error("can't set device name");
 				break;
 			}
 			done = grac_block_device_list_add(NULL, dev);
 			if (done == FALSE) {
-				grm_log_error("can't add a device info to list");
+				grac_log_error("can't add a device info to list");
 				break;
 			}
 		}
@@ -425,7 +425,7 @@ static gboolean _make_block_device_list_parent()
 	if (done) {
 		int cnt = grac_block_device_list_count();
 		if (cnt == 0) {
-			grm_log_error("no parent data");
+			grac_log_error("no parent data");
 			done = FALSE;
 		}
 	}
@@ -515,13 +515,13 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 	for (idx=0; idx<fld_cnt; idx++) {
 		used_cnt = _get_key_value(buf+off, key, val, sizeof(key));
 		if (used_cnt <= 0) {
-			grm_log_error("Invalid line : %s", buf);
+			grac_log_error("Invalid line : %s", buf);
 			break;
 		}
 
 		if (idx == 0) {
 			if (c_strimatch(key, "NAME") == 0) {
-				grm_log_error("Invalid line : %s", buf);
+				grac_log_error("Invalid line : %s", buf);
 				break;
 			}
 		}
@@ -532,22 +532,22 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 					GracBlockDevice* parent;
 					parent = grac_block_device_list_find_parent(val);
 					if (parent == NULL) {
-						grm_log_error("unknown parent device for %s", buf);
+						grac_log_error("unknown parent device for %s", buf);
 						break;
 					}
 					blk = grac_block_device_alloc();
 					if (blk == NULL) {
-						grm_log_error("Out of memory : %s", val);
+						grac_log_error("Out of memory : %s", val);
 						break;
 					}
 					res = grac_block_device_list_add(parent, blk);
 					if (res == FALSE) {
-						grm_log_error("Can't add child : %s", val);
+						grac_log_error("Can't add child : %s", val);
 						break;
 					}
 					res = grac_block_device_set_name(blk, val);
 					if (res == FALSE) {
-						grm_log_error("Can't set name : %s", val);
+						grac_log_error("Can't set name : %s", val);
 						break;
 					}
 			}
@@ -555,7 +555,7 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 		else if (c_strimatch(key, "TYPE")) {
 			res = grac_block_device_set_type(blk, val);
 			if (res == FALSE) {
-				grm_log_error("Can't set type : %s", buf);
+				grac_log_error("Can't set type : %s", buf);
 				break;
 			}
 		}
@@ -565,7 +565,7 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 			else
 				res = grac_block_device_set_removable(blk, FALSE);
 			if (res == FALSE) {
-				grm_log_error("Can't set removable : %s", buf);
+				grac_log_error("Can't set removable : %s", buf);
 				break;
 			}
 		}
@@ -575,14 +575,14 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 			else
 				res = grac_block_device_set_readonly(blk, FALSE);
 			if (res == FALSE) {
-				grm_log_error("Can't set readonly : %s", buf);
+				grac_log_error("Can't set readonly : %s", buf);
 				break;
 			}
 		}
 		else if (c_strimatch(key, "MOUNTPOINT")) {
 			res = grac_block_device_set_mount_point(blk, val);
 			if (res == FALSE) {
-				grm_log_error("Can't set mount_point : %s", buf);
+				grac_log_error("Can't set mount_point : %s", buf);
 				break;
 			}
 		}
@@ -593,20 +593,20 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 			else
 				res = grac_block_device_set_hotplug(blk, FALSE);
 			if (res == FALSE) {
-				grm_log_error("Can't set hotplug : %s", buf);
+				grac_log_error("Can't set hotplug : %s", buf);
 				break;
 			}
 		}
 		else if (c_strimatch(key, "SUBSYSTEMS")) {
 			res = grac_block_device_set_sub_system(blk, val);
 			if (res == FALSE) {
-				grm_log_error("Can't set sub_system : %s", buf);
+				grac_log_error("Can't set sub_system : %s", buf);
 				break;
 			}
 		}
 	*/
 		else {
-			grm_log_error("Invalid line  : %s", buf);
+			grac_log_error("Invalid line  : %s", buf);
 			break;
 		}
 
@@ -630,7 +630,7 @@ static gboolean _make_block_device_list_complete()
 	cmd = "/bin/lsblk -P -n -o name,type,rm,ro,mountpoint";
 	done =  sys_run_cmd_get_output(cmd, "test", output, sizeof(output));
 	if (done == FALSE) {
-		grm_log_error("commamd running error : %s", cmd);
+		grac_log_error("commamd running error : %s", cmd);
 		return FALSE;
 	}
 
@@ -647,7 +647,7 @@ static gboolean _make_block_device_list_complete()
 		if (n > 0) {
 			done = _make_block_device_list_complete_one(ptr);
 			if (done == FALSE) {
-				grm_log_error("Invalid line : %s", ptr);
+				grac_log_error("Invalid line : %s", ptr);
 				return FALSE;
 			}
 		}
@@ -692,13 +692,13 @@ static gboolean	do_adjust_udev_rule_file(char *org_path, char *adj_path)
 
 	in = g_fopen(org_path, "r");
 	if (in == NULL) {
-		grm_log_error("%s() : can't open file : %s", __FUNCTION__, org_path);
+		grac_log_error("%s() : can't open file : %s", __FUNCTION__, org_path);
 		return FALSE;
 	}
 
 	out = g_fopen(adj_path, "w");
 	if (out == NULL) {
-		grm_log_error("%s() : can't create file : %s", __FUNCTION__, adj_path);
+		grac_log_error("%s() : can't create file : %s", __FUNCTION__, adj_path);
 		fclose(in);
 		return FALSE;
 	}
