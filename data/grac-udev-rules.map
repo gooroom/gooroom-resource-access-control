@@ -118,6 +118,8 @@ ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devp
 # same as Audio Controller (can't control mic separatley from the audio 
 # [grac_rule]  microphone disallow  pci
 #
+ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_INPUT}=="1", ENV{ID_MODEL}=="*Audio*", ENV{DEVNAME}!="*input/event*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan.4 %k $devpath"
+ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_INPUT}=="1", ENV{ID_MODEL}=="*Audio*", ENV{DEVNAME}!="*input/event*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/../../../../remove'", GOTO+="sound_end"
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/usr/bin/grac-apply.sh microphone disallow rescan %k $devpath"
 ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", RUN+="/bin/sh -c 'echo 1 >/sys/$devpath/remove'"
 
