@@ -1,12 +1,29 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * sys_ipt.h
  *
  *  Created on: 2017. 7. 13.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
-#ifndef _SYS_IPT_H_
-#define _SYS_IPT_H_
+#ifndef LIBGRAC_COMMON_SYS_IPT_H_
+#define LIBGRAC_COMMON_SYS_IPT_H_
 
 #include <glib.h>
 
@@ -32,35 +49,24 @@ sys_ipt_rule *sys_ipt_rule_alloc();
 void sys_ipt_rule_free(sys_ipt_rule **prule);
 
 void	sys_ipt_rule_init(sys_ipt_rule *rule);
-gboolean	sys_ipt_rule_set_target  (sys_ipt_rule *rule, int target);
-gboolean	sys_ipt_rule_set_chain   (sys_ipt_rule *rule, int chain);
+gboolean	sys_ipt_rule_set_target(sys_ipt_rule *rule, int target);
+gboolean	sys_ipt_rule_set_chain(sys_ipt_rule *rule, int chain);
 
 gboolean	sys_ipt_rule_set_protocol(sys_ipt_rule *rule, int protocol);
 gboolean	sys_ipt_rule_set_protocol_name(sys_ipt_rule *rule, char *proto_name);   // special name "all"
 
 // set_port() is  valid for TCP or UDP
-// error if no protocol is specified
-//  if port is -1, the end of valid port number
-//gboolean	sys_ipt_rule_set_port (sys_ipt_rule *rule, int port);
-//gboolean	sys_ipt_rule_set_port2(sys_ipt_rule *rule, int from_port, int to_port);
-//gboolean	sys_ipt_rule_set_port_name (sys_ipt_rule *rule, gchar *name);
-//gboolean	sys_ipt_rule_set_port_name2(sys_ipt_rule *rule, gchar *from_name, gchar *to_name);
-//gboolean	sys_ipt_rule_set_port_str(sys_ipt_rule *rule, gchar *port_str);	// 80,  80-90,  80:90
-
 void			sys_ipt_rule_clear_src_port(sys_ipt_rule *rule);
 void			sys_ipt_rule_clear_dst_port(sys_ipt_rule *rule);
-gboolean	sys_ipt_rule_add_src_port_str (sys_ipt_rule *rule, gchar *port_str);   // single or range
-gboolean	sys_ipt_rule_add_dst_port_str (sys_ipt_rule *rule, gchar *port_str);   // single or range
+gboolean	sys_ipt_rule_add_src_port_str(sys_ipt_rule *rule, gchar *port_str);   // single or range
+gboolean	sys_ipt_rule_add_dst_port_str(sys_ipt_rule *rule, gchar *port_str);   // single or range
 
-gboolean	sys_ipt_rule_set_addr (sys_ipt_rule *rule, guint8 addr[4]);
+gboolean	sys_ipt_rule_set_addr(sys_ipt_rule *rule, guint8 addr[4]);
 gboolean	sys_ipt_rule_set_addr6(sys_ipt_rule *rule, guint16 addr[8]);
-gboolean	sys_ipt_rule_set_addr_str (sys_ipt_rule *rule, gchar *addr_str);
+gboolean	sys_ipt_rule_set_addr_str(sys_ipt_rule *rule, gchar *addr_str);
 gboolean	sys_ipt_rule_set_addr6_str(sys_ipt_rule *rule, gchar *addr_str);
 
-//gboolean	sys_ipt_rule_set_ipset   (sys_ipt_rule *rule, gchar* setname);
-//gboolean	sys_ipt_rule_set_ipset6  (sys_ipt_rule *rule, gchar* setname);
-
-gboolean	sys_ipt_rule_set_mask    (sys_ipt_rule *rule, guchar mask);
+gboolean	sys_ipt_rule_set_mask(sys_ipt_rule *rule, guchar mask);
 
 gboolean	sys_ipt_rule_set_mac_addr(sys_ipt_rule *rule, guint8 mac[6]);
 gboolean	sys_ipt_rule_set_mac_addr_str(sys_ipt_rule *rule, gchar *mac_str);
@@ -87,4 +93,4 @@ gboolean	sys_ipt_append_all_accept_rule(sys_ipt *ipt);
 gboolean	sys_ipt_set_log(sys_ipt *ipt, gboolean log_on, char *header);   // Maximum 29 chars
 gboolean	sys_ipt_set_policy(sys_ipt *ipt, gboolean allow);
 
-#endif /* _SYS_IPT_H_ */
+#endif // LIBGRAC_COMMON_SYS_IPT_H_

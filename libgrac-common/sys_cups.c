@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * sys_cups.c
  *
  *  Created on: 2016. 1. 18.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -15,11 +32,6 @@
  */
 
 
-
-#include "sys_cups.h"
-#include "cutility.h"
-#include "grac_log.h"
-
 #include <malloc.h>
 #include <ctype.h>
 #include <errno.h>
@@ -27,12 +39,15 @@
 
 #include <cups/cups.h>
 
+#include "sys_cups.h"
+#include "cutility.h"
+#include "grac_log.h"
 
 // 2016.5  update by using cups API
 
 static GPtrArray *g_allow_user = NULL;
 static GPtrArray *g_deny_user = NULL;
-//static GPtrArray *g_printer_list = NULL;
+// static GPtrArray *g_printer_list = NULL;
 
 static cups_dest_t *g_printer_dests = NULL;
 static int g_printer_count = 0;
@@ -69,7 +84,6 @@ static void _free_buf()
 		g_ptr_array_free(g_deny_user, TRUE);
 		g_deny_user = NULL;
 	}
-
 }
 
 
@@ -105,7 +119,7 @@ static void _FreePrinterList()
  */
 gboolean sys_cups_access_init()
 {
-	gboolean res = TRUE;
+	gboolean res;
 
 	res = _init_buf();
 
@@ -188,8 +202,7 @@ static int _cups_is_class_type(http_t *http, char *printer)
 	attr = ippFindAttribute(response, "printer-type", IPP_TAG_ENUM);
 	if (attr != NULL) {
     	type = (cups_ptype_t)ippGetInteger(attr, 0);
-	}
-	else {
+	} else {
 		type = CUPS_PRINTER_LOCAL;
 	}
 
@@ -223,19 +236,16 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 		if (user_list == NULL || user_list->len <= 0) {	// 목록이 없는 경우,  allow all users
 			default_user = "all";
 			attr_name = "requesting-user-name-allowed";		// allow:all 로  대치 (모두 허용)
-		}
-		else {
+		} else {
 			default_user = "root";		// add default user "root"
 			attr_name = "requesting-user-name-allowed";
 		}
-	}
-	else {
+	} else {
 		user_list = g_deny_user;
 		if (user_list == NULL || user_list->len <= 0) {	// 목록이 없는 경우, only allow root
 		  default_user = "root";
 		  attr_name = "requesting-user-name-allowed";
-		}
-		else {
+		} else {
 			attr_name = "requesting-user-name-denied";
 		}
 	}
@@ -249,7 +259,7 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 	max_len = 0;
 	if (default_user)
 		max_len = c_strlen(default_user, NAME_MAX);
-	for (i=0; i<user_cnt; i++) {
+	for (i=0; i < user_cnt; i++) {
 		char *ptr = (char*)g_ptr_array_index(user_list, i);
 		max_len += c_strlen(ptr, NAME_MAX)+1;
 	}
@@ -269,7 +279,7 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 	*attr_users = 0;
 	if (default_user)
 		c_strcpy(attr_users, default_user, max_len);
-	for (i=0; i<user_cnt; i++) {
+	for (i=0; i < user_cnt; i++) {
 		char *ptr = (char*)g_ptr_array_index(user_list, i);
 		if (attr_users[0] != 0)
 			c_strcat(attr_users, ",", max_len);
@@ -282,24 +292,21 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 	if (http == NULL) {
 			grac_log_error("Error: cups_apply_acees_printer: httpConnectEncrypt() - %s", strerror(errno));
 			resB = FALSE;
-	}
-	else {
-		ipp_t		*request;
+	} else {
 		char	*prt_uri;
 		int		prt_uri_size = HTTP_MAX_URI;
 
 		prt_uri = c_alloc(prt_uri_size);
 		if (prt_uri == NULL) {
 			resB = FALSE;
-		}
-		else {
+		} else {
+			ipp_t		*request;
 			if (_cups_is_class_type(http, printer)) {
 				httpAssembleURIf(HTTP_URI_CODING_ALL, prt_uri, prt_uri_size,
 													"ipp", NULL, cupsServer(), ippPort(),
 														"/classes/%s", printer);
 				request = ippNewRequest(CUPS_ADD_MODIFY_CLASS);
-			}
-			else {
+			} else {
 				httpAssembleURIf(HTTP_URI_CODING_ALL, prt_uri, prt_uri_size,
 										  "ipp", NULL, cupsServer(), ippPort(),
 											  "/printers/%s", printer);
@@ -328,7 +335,6 @@ static gboolean _cups_apply_acees_printer(char *printer, gboolean allow)
 	free(attr_users);
 
 	return resB;
-
 }
 
 /**
@@ -343,16 +349,15 @@ gboolean sys_cups_access_apply(gboolean allow)
 {
 	gboolean resB = TRUE;
 	int i, count;
-	const char* printer;
 
 	count = sys_cups_printer_count();
-	for (i=0; i<count; i++) {
+	for (i=0; i < count; i++) {
+		const char* printer;
 		printer = sys_cups_get_printer_name(i);
 		if (printer) {
 			resB &= _cups_apply_acees_printer((char*)printer, allow);
 		}
 	}
-
 
 	return resB;
 }
@@ -392,7 +397,6 @@ gboolean sys_cups_access_apply_by_name(char *name, gboolean allow)
 {
 	gboolean resB = FALSE;
 	int i, count;
-	const char* printer;
 
 	if (name == NULL) {
 		grac_log_debug("Debug: sys_cups_access_apply_by_name(): invalid printer (NULL)");
@@ -400,7 +404,8 @@ gboolean sys_cups_access_apply_by_name(char *name, gboolean allow)
 	}
 
 	count = sys_cups_printer_count();
-	for (i=0; i<count; i++) {
+	for (i=0; i < count; i++) {
+		const char* printer;
 		printer = sys_cups_get_printer_name(i);
 		if (printer && !strcmp(printer, name)) {
 			resB = _cups_apply_acees_printer((char*)printer, allow);
@@ -421,7 +426,7 @@ gboolean sys_cups_access_apply_by_name(char *name, gboolean allow)
   @param	[in]	allow 프린터 허용 여부 (TRUE 혹은 FALSE)
   @return gboolean 성공여부
  */
-gboolean sys_cups_access_add_user (gchar *user, gboolean allow)
+gboolean sys_cups_access_add_user(gchar *user, gboolean allow)
 {
 	if (_init_buf() == FALSE) {
 		grac_log_error("Error: sys_cups_access_add_user: out of memory");
@@ -464,10 +469,9 @@ gboolean sys_cups_access_add_group(gchar *group, gboolean allow)
 	if (group[0] != '@') {
 		cups_group[0] = '@';
 		c_strcpy(cups_group+1, group, cups_group_size-1);
-		resB = sys_cups_access_add_user (cups_group, allow);
-	}
-	else {
-		resB = sys_cups_access_add_user (group, allow);
+		resB = sys_cups_access_add_user(cups_group, allow);
+	} else {
+		resB = sys_cups_access_add_user(group, allow);
 	}
 
 	c_free(&cups_group);

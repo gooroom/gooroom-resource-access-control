@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * sys_etc.c
  *
- *  Created on: 2016. 10. 12.
- *      Author: user
+ *  Created on: 2016. 10. 12
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -143,13 +160,13 @@ gboolean sys_run_cmd_get_output(gchar *cmd, char *caller, char *out, int size)
 
 	done = TRUE;
 
-	int data_len, rest;
+	int data_len;
 	int	res;
 	int nodata = 0;
 
 	data_len = 0;
 	while (1) {
-		rest = buffer_size - data_len -1;
+		int rest = buffer_size - data_len -1;
 		if (rest > 0)
 			res = sys_file_read(fd, buffer+data_len, rest);
 		else
@@ -164,17 +181,14 @@ gboolean sys_run_cmd_get_output(gchar *cmd, char *caller, char *out, int size)
 					break;
 				}
 				g_usleep(100*1000);
-			}
-			else {
+			} else {
 				done = FALSE;
 				grac_log_error("%s() : %s - read error", __FUNCTION__, caller, c_strerror(-1));
 				break;
 			}
-		}
-		else if (res == 0) {  // closed
+		} else if (res == 0) {  // closed
 			break;
-		}
-		else {
+		} else {
 			nodata = 0;
 			if (rest > 0)
 				data_len += res;
@@ -211,7 +225,7 @@ finish:
 	c_free(&buffer);
 	c_free(&tmp_buf);
 
-	//	grac_log_debug("*** end of %s : %s : %s result : %d", caller, func, cmd, (int)done);
+	// grac_log_debug("*** end of %s : %s : %s result : %d", caller, func, cmd, (int)done);
 
 	return done;
 }
@@ -240,8 +254,7 @@ FILE* sys_popen(char *cmd, char *type, int *pid)
 		if (c_strmatch(type, "r")) {
 			close(p_fd[PIPE_READ]);
 			dup2(p_fd[PIPE_WRITE], 1);
-		}
-		else {
+		} else {
 			close(p_fd[PIPE_WRITE]);
 			dup2(p_fd[PIPE_READ], 0);
 		}
@@ -260,25 +273,22 @@ FILE* sys_popen(char *cmd, char *type, int *pid)
 	if (c_strmatch(type, "r")) {
 		close(p_fd[PIPE_WRITE]);
 		fp = fdopen(p_fd[PIPE_READ], "r");
-	}
-	else {
+	} else {
 		close(p_fd[PIPE_READ]);
 		fp = fdopen(p_fd[PIPE_WRITE], "w");
 	}
 
 	*pid = child;
 	return fp;
-
 }
 
 gboolean sys_pclose(FILE* fp, int pid)
 {
 	gboolean done = FALSE;
 	int	stat = -1;
-	int	res;
 
 	if (pid > 0) {
-		kill (-pid, SIGKILL);
+		kill(-pid, SIGKILL);
 	}
 
 	if (fp) {
@@ -286,12 +296,11 @@ gboolean sys_pclose(FILE* fp, int pid)
 	}
 
 	if (pid > 0) {
-		res = waitpid(pid, &stat, 0);
+		int res = waitpid(pid, &stat, 0);
 		if (res == -1) {
 			if (errno == EINTR)
 				done = TRUE;
-		}
-		else {
+		} else {
 			done = TRUE;
 		}
 	}

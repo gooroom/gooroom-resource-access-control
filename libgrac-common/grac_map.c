@@ -1,11 +1,26 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * grac_map.c
  *
  *  Created on: 2016. 6. 30.
- *      Author: yang
+ *      Author: gooroom@gooroom.kr
  */
-
-#include "grac_map.h"
 
 /**
   @file 	 	grac_map.c
@@ -23,6 +38,7 @@
 #include <unistd.h>
 
 #include "cutility.h"
+#include "grac_map.h"
 
 struct _GracMap {
 	GHashTable *table;
@@ -68,7 +84,6 @@ GracMap* grac_map_alloc()
 	}
 
 	return map;
-
 }
 
 /**
@@ -123,8 +138,7 @@ gboolean grac_map_set_data(GracMap *map, const char *key, const char *data)
 		if (new_key && new_data) {
 			g_hash_table_insert(map->table, new_key, new_data);  // if key is existed, change value
 			ret = TRUE;
-		}
-		else {
+		} else {
 			if (new_key)
 				str_destroy(new_key);
 			if (new_data)
@@ -207,7 +221,7 @@ const char* grac_map_first_key(GracMap *map)
 	const char *key = NULL;
 	if (map) {
 		g_hash_table_iter_init(&map->iter, map->table);
-		key = grac_map_next_key (map);
+		key = grac_map_next_key(map);
 	}
 
 	return key;
@@ -222,7 +236,7 @@ const char* grac_map_first_key(GracMap *map)
   @param [in]  map  GracMap 객체주소
   @return const char*	키값,  오류 또는 더 이상 없는 경우 NULL
  */
-const char* grac_map_next_key (GracMap *map)
+const char* grac_map_next_key(GracMap *map)
 {
 	const char *key = NULL;
 	if (map) {

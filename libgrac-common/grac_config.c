@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * grac_config.c
  *
  *  Created on: 2016. 6. 13.
- *      Author: yang
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -16,12 +33,6 @@
   		객체지향적으로  구현된 함수와 일반 함수의 혼용 정리 필요
  */
 
-#include "grac_config.h"
-#include "grac_log.h"
-#include "sys_user.h"
-#include "sys_etc.h"
-#include "cutility.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,6 +42,12 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "grac_config.h"
+#include "grac_log.h"
+#include "sys_user.h"
+#include "sys_etc.h"
+#include "cutility.h"
 
 struct _GracConfig {
 	gint  max_path;
@@ -95,7 +112,6 @@ static struct _GracConfig GracConfig = {
 	.dir_ld_so_preload = "/etc",
 
 	.path_recover_info = "/etc/gooroom/grac.d/recover.udev"
-
 };
 
 
@@ -113,8 +129,8 @@ static void _make_directory(char *dir)
 static void _make_directory_tree(char *base_dir)
 {
 	char *make_dir = c_strdup(base_dir, GracConfig.max_path);
-	char *ptr, *res;
 	if (make_dir) {
+		char *ptr, *res;
 		ptr = make_dir;
 		if (*ptr == '/')
 			ptr++;
@@ -125,8 +141,7 @@ static void _make_directory_tree(char *base_dir)
 			if (res == NULL) {
 				_make_directory(make_dir);
 				break;
-			}
-			else {
+			} else {
 				*res = 0;
 				_make_directory(make_dir);
 				*res = '/';
@@ -134,8 +149,7 @@ static void _make_directory_tree(char *base_dir)
 			}
 		}
 		free(make_dir);
-	}
-	else {
+	} else {
 		_make_directory(base_dir);
 	}
 }
@@ -174,8 +188,7 @@ const char*	grac_config_path_grac_rules(char* login_name)
 
 	if (uid < 0) {
 		path = GracConfig.path_default_grac_rule;
-	}
-	else {
+	} else {
 		path = GracConfig.path_user_grac_rule;
 	}
 
@@ -256,7 +269,6 @@ const gchar*	grac_config_path_hook_clipboard_conf()
 const gchar*	grac_config_path_ld_so_preload()
 {
 	return GracConfig.path_ld_so_preload;
-
 }
 
 const gchar*	grac_config_dir_ld_so_preload()

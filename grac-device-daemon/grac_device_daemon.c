@@ -1,11 +1,25 @@
 /*
- ============================================================================
- Name        : grac_device_daemon.c
- Author      : 
- Version     :
- Copyright   :
- Description :
- ============================================================================
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+ /*
+ * grac-device-daemon.c
+ *
+ *  Created on: 2016. 6. 14.
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -30,16 +44,6 @@
   				 단말에 저장된 권한 정보 변경 여부 감지 기능
  */
 
-#include "grac_device_daemon.h"
-#include "grac_rule.h"
-#include "grac_config.h"
-#include "grac_adjust_udev_rule.h"
-#include "grac_log.h"
-#include "cutility.h"
-
-#include "sys_file.h"
-#include "sys_etc.h"
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -57,26 +61,28 @@
 
 #include <grmpycaller.h>
 
+#include "grac_device_daemon.h"
+#include "grac_rule.h"
+#include "grac_config.h"
+#include "grac_adjust_udev_rule.h"
+#include "grac_log.h"
+#include "cutility.h"
+
+#include "sys_file.h"
+#include "sys_etc.h"
+
 static GMainLoop *loop;
 
 // daemon 제어용 변수
 struct _DaemonCtrl {
-
 	GracRule	*grac_rule;
+};
 
-} DaemonCtrl
-= {
+struct _DaemonCtrl DaemonCtrl = {
 		NULL
 };
 
 static GMainLoop *loop;
-
-/*
-static int _gettid()
-{
-	return syscall(__NR_gettid);
-}
-*/
 
 // daemon 수행에 필요한 준비 작업
 //  버퍼 확보, 권한데이터 로드
@@ -94,9 +100,9 @@ static gboolean init_proc()
 	if (ret) {
 		const char *path;
 
-//	path = grac_config_path_user_grac_rules();
-//	if (path)
-//		unlink(path);
+// 	path = grac_config_path_user_grac_rules();
+// 	if (path)
+// 		unlink(path);
 
 		path = grac_config_path_udev_rules();
 		if (path)
@@ -128,12 +134,13 @@ static void	term_proc()
       daemon의 통신 thread를  종료 시키고 .
       daemon 자체를 종료 시킨다.
  */
-void stop_daemon()
+static void stop_daemon(GMainLoop *loop)
 {
-	g_main_loop_quit (loop);
+	if (loop)
+		g_main_loop_quit(loop);
 }
 
-G_LOCK_DEFINE_STATIC (load_apply_lock);
+G_LOCK_DEFINE_STATIC(load_apply_lock);
 
 
 static gboolean verify_grac_rule_file(char* path)
@@ -151,8 +158,7 @@ static gboolean verify_grac_rule_file(char* path)
 		// check result
 		if (c_strstr(result, "\"SUCCESS\"", 1024)) {
 			done = TRUE;
-		}
-		else {
+		} else {
 			char 	*msg = NULL;
 /*
 			char	*ptr;
@@ -182,8 +188,7 @@ static gboolean verify_grac_rule_file(char* path)
 				grac_log_error("%s() : fail from do_task()", __FUNCTION__);
 		}
 		free(result);
-	}
-	else {
+	} else {
 		grac_log_error("%s() : no reply from do_task()", __FUNCTION__);
 	}
 
@@ -192,19 +197,18 @@ static gboolean verify_grac_rule_file(char* path)
 
 static const char *check_rule_path(gboolean user)
 {
-	char *path = NULL;
+	const char *path = NULL;
 
 	if (user)
-		path = (char*)grac_config_path_user_grac_rules();
+		path = grac_config_path_user_grac_rules();
 	else
-		path = (char*)grac_config_path_default_grac_rules();
+		path = grac_config_path_default_grac_rules();
 
 	if (path) {
 		if (sys_file_is_existing(path) == FALSE) {
 			grac_log_warning("%s() : not found rule [%s]", __FUNCTION__, path);
 			path = NULL;
-		}
-		else {
+		}	else {
 			if (sys_file_get_length(path) <= 0) {
 				grac_log_warning("%s() : empty rule file", __FUNCTION__, path);
 				path = NULL;
@@ -250,8 +254,7 @@ static gboolean adjust_udev_rule_map_file()
 		if (st_local.st_mtim.tv_sec == st_org.st_mtim.tv_sec &&
 				st_local.st_mtim.tv_nsec > st_org.st_mtim.tv_nsec)
 			return TRUE;
-	}
-	else {
+	}	else {
 		if (errno != ENOENT) {
 			grac_log_error("%s() : %s : %s", __FUNCTION__, map_org, strerror(errno));
 			return FALSE;
@@ -268,18 +271,17 @@ static gboolean adjust_udev_rule_map_file()
 static void _recover_configurationValue(char *buf, int buf_size)
 {
 	char	*ptr;
-	int		i, n, ch, cnt;
 	char	*attr = "bConfigurationValue";
 
 	ptr = c_stristr(buf, attr, buf_size);
 	if (ptr) {
+		int		cnt;
 		ptr += c_strlen(attr, 256);
 		ptr++;
 		if (*ptr >= '0' && *ptr <= '9') {
 			cnt = *ptr - '0';
 			ptr++;
-		}
-		else {
+		}	else {
 			cnt = 0;
 		}
 
@@ -287,19 +289,20 @@ static void _recover_configurationValue(char *buf, int buf_size)
 		if (ptr) {
 			ptr += 2;
 			char	dev_path[512];
-			for (i=0; i<sizeof(dev_path)-1; i++) {
-				ch = ptr[i] & 0x0ff;
+			int		i, n;
+			for (i=0; i < sizeof(dev_path)-1; i++) {
+				int ch = ptr[i] & 0x0ff;
 				if (ch <= 0x020)
 					break;
 				dev_path[i] = ch;
 			}
-			if (i>0 && dev_path[i-1] == '/')
+			if (i > 0 && dev_path[i-1] == '/')
 				i--;
 			dev_path[i] = 0;
 
 			if (cnt > 0) {
 				n = i;
-				for (i=n-1; i>=0; i--) {
+				for (i=n-1; i >= 0; i--) {
 					if (dev_path[i] == '/') {
 						dev_path[i] = 0;
 						cnt--;
@@ -313,12 +316,11 @@ static void _recover_configurationValue(char *buf, int buf_size)
 			if (n > 0) {
 				char	cmd[1024];
 				g_snprintf(cmd, sizeof(cmd), "echo 1 > %s/%s", dev_path, attr);
-				if (sys_run_cmd_no_output (cmd, "grac-recover") == FALSE)
+				if (sys_run_cmd_no_output(cmd, "grac-recover") == FALSE)
 					grac_log_error("command error  : %s", cmd);
 				else
 					grac_log_info("set %s for %s", attr, dev_path);
-			}
-			else {
+			}	else {
 				grac_log_error("invalid recover information : %s", buf);
 			}
 		}
@@ -358,7 +360,7 @@ static gboolean recover_applied_device()
 	if (path != NULL)
 		unlink(path);
 	cmd = "udevadm control --reload";
-	res = sys_run_cmd_no_output (cmd, "apply-rule");
+	res = sys_run_cmd_no_output(cmd, "apply-rule");
 	if (res == FALSE)
 		grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 
@@ -379,7 +381,7 @@ static gboolean recover_applied_device()
 	// rescan
 	if (rescan) {
 		cmd = "echo 1 > /sys/bus/pci/rescan";
-		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		res = sys_run_cmd_no_output(cmd, "apply-rule");
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
@@ -388,13 +390,13 @@ static gboolean recover_applied_device()
 	// trigger
 	if (trigger) {
 		cmd = "udevadm control --reload";
-		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		res = sys_run_cmd_no_output(cmd, "apply-rule");
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
 
 		cmd = "udevadm trigger -c add";
-		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		res = sys_run_cmd_no_output(cmd, "apply-rule");
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
@@ -414,7 +416,7 @@ static gboolean load_data_and_apply()
 	gboolean load = FALSE;
 	const char	*rule_path;
 
-	G_LOCK (load_apply_lock);
+	G_LOCK(load_apply_lock);
 
 	grac_log_info("Apply grac-rule");
 	grac_log_debug("load_data_and_apply() : start");
@@ -458,7 +460,7 @@ static gboolean load_data_and_apply()
 	if (done == FALSE)
 		grac_log_error("%s() : apply error", __FUNCTION__);
 
-	G_UNLOCK (load_apply_lock);
+	G_UNLOCK(load_apply_lock);
 
 	grac_log_info("Apply grac-rule : result = %d", (int)done);
 	grac_log_debug("%s() : result = %d", __FUNCTION__, (int)done);
@@ -468,7 +470,7 @@ static gboolean load_data_and_apply()
 
 
 static void
-on_bus_acquired (GDBusConnection  *connection,
+on_bus_acquired(GDBusConnection  *connection,
                  const gchar      *name,
                  gpointer          user_data)
 {
@@ -496,10 +498,10 @@ on_bus_acquired (GDBusConnection  *connection,
 
 STOP:
 	if (res == EXIT_FAILURE)
-		g_main_loop_quit (loop);
+		stop_daemon(loop);
 }
 
-static void on_name_acquired (GDBusConnection  *connection,
+static void on_name_acquired(GDBusConnection  *connection,
               const gchar      *name,
               gpointer          user_data)
 {
@@ -508,26 +510,26 @@ static void on_name_acquired (GDBusConnection  *connection,
 
 
 static void
-on_name_lost (GDBusConnection  *connection,
+on_name_lost(GDBusConnection  *connection,
               const gchar      *name,
               gpointer          user_data)
 {
 	grac_log_debug("on_name_lost()");
 
-	g_main_loop_quit (loop);
+	stop_daemon(loop);
 }
 
 static gboolean
-on_signal_quit (gpointer data)
+on_signal_quit(gpointer data)
 {
 	grac_log_debug("on_signal_quit()");
 
-	g_main_loop_quit (data);
+	stop_daemon(data);
 
 	return FALSE;
 }
 
-static gboolean on_signal_reload (gpointer data)
+static gboolean on_signal_reload(gpointer data)
 {
 	grac_log_debug("on_signal_reload()");
 
@@ -548,11 +550,11 @@ int main(void)
 {
 	guint owner_id;
 
-#if !GLIB_CHECK_VERSION (2, 35, 3)
-	g_type_init ();
+#if !GLIB_CHECK_VERSION(2, 35, 3)
+	g_type_init();
 #endif
 
-	owner_id = g_bus_own_name (G_BUS_TYPE_SYSTEM,
+	owner_id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
 			"kr.gooroom.GRACDEVD",
 			G_BUS_NAME_OWNER_FLAGS_NONE,
 			on_bus_acquired,
@@ -561,18 +563,18 @@ int main(void)
 			NULL,
 			NULL);
 
-	loop = g_main_loop_new (NULL, FALSE);
+	loop = g_main_loop_new(NULL, FALSE);
 
-	g_unix_signal_add (SIGINT, on_signal_quit, loop);
-	g_unix_signal_add (SIGTERM, on_signal_quit, loop);
+	g_unix_signal_add(SIGINT, on_signal_quit, loop);
+	g_unix_signal_add(SIGTERM, on_signal_quit, loop);
 
 	// 2017.07.03 service reload signal
-	g_unix_signal_add (SIGHUP, on_signal_reload, loop);
+	g_unix_signal_add(SIGHUP, on_signal_reload, loop);
 
-	g_main_loop_run (loop);
-	g_main_loop_unref (loop);
+	g_main_loop_run(loop);
+	g_main_loop_unref(loop);
 
-	g_bus_unown_name (owner_id);
+	g_bus_unown_name(owner_id);
 
 	term_proc();
 

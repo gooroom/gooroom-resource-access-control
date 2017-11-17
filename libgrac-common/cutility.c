@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * cutility.c
  *
  *  Created on: 2015. 11. 19.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -13,8 +30,6 @@
   				라이브러리:	libgrac.so
  */
 
-#include "cutility.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,6 +39,8 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "cutility.h"
 
 
 #define _MAX_STR_LEN_  65536
@@ -55,15 +72,14 @@ void c_strltrim(char *str, int size)
 	if (str == NULL)
 		return;
 
-	unsigned char ch;
 	int idx, n;
 
 	if (size < 0)
 		size = _MAX_STR_LEN_;
 
 	n = c_strlen(str, size-1);
-	for (idx=0; idx<n; idx++) {
-		ch = str[idx];
+	for (idx=0; idx < n; idx++) {
+		unsigned char ch = str[idx];
 		if (ch > 0x20)
 			break;
 	}
@@ -88,10 +104,10 @@ void c_strrtrim(char *str, int size)
 		size = _MAX_STR_LEN_;
 
 	int idx, n;
-	unsigned char ch;
+
 	n = c_strlen(str, size-1);
-	for (idx=n-1; idx>=0; idx--) {
-		ch = str[idx];
+	for (idx=n-1; idx >= 0; idx--) {
+		unsigned char ch = str[idx];
 		if (ch > 0x20)
 			break;
 	}
@@ -206,7 +222,7 @@ int   c_strmatch(const char *s1, const char *s2)
 	if (n1 != n2 || n1 >= _MAX_STR_LEN_)
 		return 0;
 
-	for (i=0; i<n1; i++) {
+	for (i=0; i < n1; i++) {
 		if (s1[i] != s2[i])
 			return 0;
 	}
@@ -226,7 +242,7 @@ int   c_strimatch(const char *s1, const char *s2)
 	if (n1 != n2 || n1 == _MAX_STR_LEN_)
 		return 0;
 
-	for (i=0; i<n1; i++) {
+	for (i=0; i < n1; i++) {
 		int ch1 = toupper(s1[i]);
 		int ch2 = toupper(s2[i]);
 		if (ch1 != ch2)
@@ -237,7 +253,7 @@ int   c_strimatch(const char *s1, const char *s2)
 }
 
 
-char*	c_strchr (char *src, int ch, int size)		// if not found, return NULL
+char*	c_strchr(char *src, int ch, int size)		// if not found, return NULL
 {
 	char *find = NULL;
 
@@ -247,7 +263,7 @@ char*	c_strchr (char *src, int ch, int size)		// if not found, return NULL
 	if (src) {
 		int	i;
 		int len = c_strlen(src, size-1);
-		for (i=0; i<len; i++) {
+		for (i=0; i < len; i++) {
 			if (src[i] == ch) {
 				find = src + i;
 				break;
@@ -268,7 +284,7 @@ char*	c_strrchr(char *src, int ch, int size)		// if not found, return NULL
 	if (src) {
 		int	i;
 		int len = c_strlen(src, size-1);
-		for (i=len-1; i>=0; i--) {
+		for (i=len-1; i >= 0; i--) {
 			if (src[i] == ch) {
 				find = src + i;
 				break;
@@ -279,7 +295,7 @@ char*	c_strrchr(char *src, int ch, int size)		// if not found, return NULL
 	return find;
 }
 
-char*	c_strstr (char *src, char* str, int size)		// if not found, return NULL
+char*	c_strstr(char *src, char* str, int size)		// if not found, return NULL
 {
 	char *find = NULL;
 	int len1, len2;
@@ -293,18 +309,18 @@ char*	c_strstr (char *src, char* str, int size)		// if not found, return NULL
 	if (len1 > 0 && len2 > 0) {
 		int	i;
 
-		for (i=0; i<= len1-len2; i++) {
+		for (i=0; i <= len1-len2; i++) {
 			if (c_memcmp(src+i, str, len2, -1) == 0) {
 				find = src + i;
 				break;
 			}
 		}
 	}
-	return find;
 
+	return find;
 }
 
-char*	c_stristr (char *src, char* str, int size)		// if not found, return NULL
+char*	c_stristr(char *src, char* str, int size)		// if not found, return NULL
 {
 	char *find = NULL;
 	int len1, len2;
@@ -318,7 +334,7 @@ char*	c_stristr (char *src, char* str, int size)		// if not found, return NULL
 	if (len1 > 0 && len2 > 0) {
 		int	i;
 
-		for (i=0; i<= len1-len2; i++) {
+		for (i=0; i <= len1-len2; i++) {
 			if (c_memicmp(src+i, str, len2, -1) == 0) {
 				find = src + i;
 				break;
@@ -327,7 +343,6 @@ char*	c_stristr (char *src, char* str, int size)		// if not found, return NULL
 	}
 
 	return find;
-
 }
 
 char*	c_strrstr(char *src, char* str, int size)		// if not found, return NULL
@@ -343,7 +358,7 @@ char*	c_strrstr(char *src, char* str, int size)		// if not found, return NULL
 
 	if (len1 > 0 && len2 > 0) {
 		int	i;
-		for (i=len1-len2; i>=0; i--) {
+		for (i=len1-len2; i >= 0; i--) {
 			if (c_memcmp(src+i, str, len2, -1) == 0) {
 				find = src + i;
 				break;
@@ -367,7 +382,7 @@ char*	c_strristr(char *src, char* str, int size)		// if not found, return NULL
 
 	if (len1 > 0 && len2 > 0) {
 		int	i;
-		for (i=len1-len2; i>=0; i--) {
+		for (i=len1-len2; i >= 0; i--) {
 			if (c_memicmp(src+i, str, len2, -1) == 0) {
 				find = src + i;
 				break;
@@ -378,7 +393,7 @@ char*	c_strristr(char *src, char* str, int size)		// if not found, return NULL
 	return find;
 }
 
-void	c_strcat (char *dest, char* src, int size)
+void	c_strcat(char *dest, char* src, int size)
 {
 	if (size < 0)
 		size = _MAX_STR_LEN_;
@@ -415,7 +430,6 @@ int 	c_memcmp(void *buf1, void* buf2, int len, int ret_both_null)
 		return 1;
 
 	return memcmp(buf1, buf2, len);
-
 }
 
 int 	c_memicmp(void *buf1, void* buf2, int len, int ret_both_null)
@@ -431,7 +445,7 @@ int 	c_memicmp(void *buf1, void* buf2, int len, int ret_both_null)
 	int i;
 	char *b1 = buf1;
 	char *b2 = buf2;
-	for (i=0; i<len; i++) {
+	for (i=0; i < len; i++) {
 		int ch1 = toupper(b1[i]);
 		int ch2 = toupper(b2[i]);
 		if (ch1 < ch2)
@@ -542,7 +556,7 @@ int	c_get_number(char *str, int size,  int* value)
   @param [in]		wsize	결과를 담을 버퍼 크기 (string 종료문자 0 포함)
   @return	int	변환에 사용된 버퍼 길이
 */
-int	c_get_word  (char *buf, int bsize, char* delemeter, char *word, int wsize)
+int	c_get_word(char *buf, int bsize, char* delemeter, char *word, int wsize)
 {
 	int idx, ch, len, cnt;
 
@@ -550,14 +564,14 @@ int	c_get_word  (char *buf, int bsize, char* delemeter, char *word, int wsize)
 		return 0;
 
 	len = c_strlen(buf, bsize-1);
-	for (idx=0; idx<len; idx++) {
+	for (idx=0; idx < len; idx++) {
 		ch = buf[idx] & 0x0ff;
 		if (ch > 0x20)
 			break;
 	}
 
 	cnt = 0;
-	for (; idx<len; idx++) {
+	for (; idx < len; idx++) {
 		ch = buf[idx] & 0x0ff;
 		if (ch <= 0x20)
 			break;
@@ -581,10 +595,10 @@ int	c_get_word  (char *buf, int bsize, char* delemeter, char *word, int wsize)
 
 int c_strchr_idx(char *str, int find_ch, int max)
 {
-	int	i, ch;
+	int	i;
 
-	for (i=0; i<max; i++) {
-		ch = str[i] & 0x0ff;
+	for (i=0; i < max; i++) {
+		int ch = str[i] & 0x0ff;
 		if (ch == 0)
 			break;
 		if (ch == find_ch)

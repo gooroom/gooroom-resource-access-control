@@ -1,11 +1,25 @@
 /*
- ============================================================================
- Name        : grac_resource.c
- Author      : 
- Version     :
- Copyright   :
- Description :
- ============================================================================
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
+ * grac_resource.c
+ *
+ *  Created on: 2017. 8. 16.
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -16,17 +30,16 @@
  */
 
 
-#include "grac_rule.h"
-#include "grac_resource.h"
-#include "grac_log.h"
-#include "cutility.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
+
+#include "grac_rule.h"
+#include "grac_resource.h"
+#include "grac_log.h"
+#include "cutility.h"
 
 struct _GracResIter
 {
@@ -107,13 +120,13 @@ static struct _GracNameIdMap GracPemissionInfo[]
 		{ NULL, -1 }
 };
 
-static int get_id(char *name, struct _GracNameIdMap *map)
+static int get_id(char *name, struct _GracNameIdMap *map, int count)
 {
 	int id = -1;
 
 	if (name && map) {
 		int idx;
-		for (idx=0; idx >= 0; idx++) {
+		for (idx=0; idx < count; idx++) {
 			if (map->name == NULL)
 				break;
 			if (c_strimatch(name, map->name)) {
@@ -127,13 +140,13 @@ static int get_id(char *name, struct _GracNameIdMap *map)
 	return id;
 }
 
-static char* get_name(int id, struct _GracNameIdMap *map)
+static char* get_name(int id, struct _GracNameIdMap *map, int count)
 {
 	char* name = NULL;
 
 	if (map) {
 		int idx;
-		for (idx=0; idx >= 0; idx++) {
+		for (idx=0; idx < count; idx++) {
 			if (map->name == NULL)
 				break;
 			if (id == map->id) {
@@ -152,9 +165,10 @@ static char* get_name(int id, struct _GracNameIdMap *map)
  @return char* 	리소스명
  */
 
-char* grac_resource_get_resource_name  (int res_id)
+char* grac_resource_get_resource_name(int res_id)
 {
-	return get_name(res_id, GracResourceInfo);
+	int count = sizeof(GracResourceInfo) / sizeof(GracResourceInfo[0]);
+	return get_name(res_id, GracResourceInfo, count);
 }
 
 /**
@@ -164,7 +178,8 @@ char* grac_resource_get_resource_name  (int res_id)
  */
 char* grac_resource_get_permission_name(int perm_id)
 {
-	return get_name(perm_id, GracPemissionInfo);
+	int count = sizeof(GracPemissionInfo) / sizeof(GracPemissionInfo[0]);
+	return get_name(perm_id, GracPemissionInfo, count);
 }
 
 /**
@@ -172,9 +187,10 @@ char* grac_resource_get_permission_name(int perm_id)
  @param [in] res_name		리소스 명
  @return int 	리소스ID
  */
-int		grac_resource_get_resource_id (char* res_name)
+int		grac_resource_get_resource_id(char* res_name)
 {
-	return get_id(res_name, GracResourceInfo);
+	int count = sizeof(GracResourceInfo) / sizeof(GracResourceInfo[0]);
+	return get_id(res_name, GracResourceInfo, count);
 }
 
 /**
@@ -184,7 +200,8 @@ int		grac_resource_get_resource_id (char* res_name)
  */
 int		grac_resource_get_permission_id(char* perm_name)
 {
-	return get_id(perm_name, GracPemissionInfo);
+	int count = sizeof(GracPemissionInfo) / sizeof(GracPemissionInfo[0]);
+	return get_id(perm_name, GracPemissionInfo, count);
 }
 
 /**
@@ -200,8 +217,7 @@ char* grac_resource_find_first_resource()
 
 	if (GracResourceInfo[idx].name == NULL) {
 		GracResIter.cur_idx_res = -1;
-	}
-	else {
+	} else {
 		GracResIter.cur_idx_res = idx;
 		name = GracResourceInfo[idx].name;
 	}
@@ -224,8 +240,7 @@ char* grac_resource_find_next_resource()
 
 		if (GracResourceInfo[idx].name == NULL) {
 			GracResIter.cur_idx_res = -1;
-		}
-		else {
+		} else {
 			GracResIter.cur_idx_res = idx;
 			name = GracResourceInfo[idx].name;
 		}
@@ -246,8 +261,10 @@ char* grac_resource_find_first_permission(int res_id)
 	char *name = NULL;
 	int idx_res = -1;
 	int idx = 0;
+	int	count;
 
-	for (idx=0; idx >= 0 ;idx++) {
+	count = sizeof(GracResourceInfo) / sizeof(GracResourceInfo[0]);
+	for (idx=0; idx < count ; idx++) {
 		if (GracResourceInfo[idx].id == res_id) {
 			idx_res = idx;
 			break;
@@ -259,8 +276,7 @@ char* grac_resource_find_first_permission(int res_id)
 	if (idx_res == -1) {
 		GracResIter.cur_perm.res_id = -1;
 		GracResIter.cur_perm.perm_idx = -1;
-	}
-	else {
+	} else {
 		GracResIter.cur_perm.res_id = res_id;
 		GracResIter.cur_perm.perm_idx = 0;
 		name = grac_resource_get_permission_name(GRAC_PERMISSION_DISALLOW);
@@ -276,7 +292,7 @@ char* grac_resource_find_first_permission(int res_id)
  Todo:
  	 경우수사 많아지면 테이블로 구현
  */
-char* grac_resource_find_next_permission ()
+char* grac_resource_find_next_permission()
 {
 	char *name = NULL;
 
@@ -296,8 +312,7 @@ char* grac_resource_find_next_permission ()
 					GracResIter.cur_perm.perm_idx = -1;
 					break;
 				}
-		}
-		else {
+		} else {
 				switch (GracResIter.cur_perm.perm_idx) {
 				case 0:
 					GracResIter.cur_perm.perm_idx++;
@@ -319,7 +334,7 @@ gboolean grac_resource_is_kind_of_storage(int res_id)
 {
 	if (res_id == GRAC_RESOURCE_USB_MEMORY ||
 			res_id == GRAC_RESOURCE_CD_DVD)
-	{
+    {
 			return TRUE;
 	}
 

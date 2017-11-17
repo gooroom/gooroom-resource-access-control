@@ -1,11 +1,25 @@
 /*
- ============================================================================
- Name        : grac_rule.c
- Author      : 
- Version     :
- Copyright   :
- Description :
- ============================================================================
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
+ * grac_rule.c
+ *
+ *  Created on: 2016. 8. 3.
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -15,6 +29,18 @@
   				헤더파일 :  	grac_rule.h	\n
   				라이브러리:	libgrac-device.so
  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <json-c/json.h>
+#include <json-c/json_util.h>
 
 #include "grac_rule.h"
 #include "grac_rule_network.h"
@@ -30,20 +56,6 @@
 #include "sys_ipt.h"
 #include "sys_user.h"
 #include "sys_etc.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <json-c/json.h>
-#include <json-c/json_util.h>
-
 
 struct _GracRule
 {
@@ -75,7 +87,7 @@ GracRule* grac_rule_alloc()
 {
 	GracRule *rule = malloc(sizeof(GracRule));
 	if (rule) {
-		memset(rule, 0, sizeof(GracRule));
+		c_memset(rule, 0, sizeof(GracRule));
 
 		rule->res_perm_map = grac_map_alloc();
 		if (rule->res_perm_map == NULL) {
@@ -127,7 +139,7 @@ void grac_rule_clear(GracRule *rule)
 		if (rule->network_array) {
 			int	i;
 			for (i=0; i < rule->network_count; i++) {
-				GracRuleNetwork *net_rule = g_ptr_array_index (rule->network_array, i);
+				GracRuleNetwork *net_rule = g_ptr_array_index(rule->network_array, i);
 				grac_rule_network_free(&net_rule);
 			}
 			g_ptr_array_free(rule->network_array, TRUE);
@@ -138,28 +150,23 @@ void grac_rule_clear(GracRule *rule)
 		if (rule->bluetooth_mac_array) {
 			int i;
 			for (i=0; i < rule->bluetooth_mac_count; i++) {
-				char *mac_addr = g_ptr_array_index (rule->bluetooth_mac_array, i);
+				char *mac_addr = g_ptr_array_index(rule->bluetooth_mac_array, i);
 				c_free(&mac_addr);
 			}
 			g_ptr_array_free(rule->bluetooth_mac_array, TRUE);
 			rule->bluetooth_mac_count = 0;
 			rule->bluetooth_mac_array = NULL;
 		}
-
 	}
 }
 
-//static gboolean _validate_resource  		(char *resource);
-//static gboolean _validate_permission		(char *permission);
-//static gboolean _validate_net_addr  	  (char *addr, gboolean ipv6);
-//static gboolean _validate_net_protocol	(char *protocol);
-//static gboolean _validate_net_port    	(char *protocol, char *port);
-//static gboolean _validate_net_direction	(char *direction);
-//static gboolean _validate_mac_addr  	  (char *addr);
+static void nop()
+{
+}
 
 static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, json_object *jproto)
 {
-	//char *func = (char*)__FUNCTION__;
+	// char *func = (char*)__FUNCTION__;
 	gboolean done = TRUE;
 
 	if (rule_net == NULL || jproto == NULL)
@@ -187,15 +194,13 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 	if (jtype == json_type_null) {
 		grac_log_error("grac_rule.c : invalid rule : omitted protocol name");
 		return FALSE;
-	}
-	else if (jtype == json_type_string) {
+	} else if (jtype == json_type_string) {
 		protocol_name = (char*)json_object_get_string(jobj_proto_name);
 		if (c_strlen(protocol_name, 256) <= 0) {
 			grac_log_error("grac_rule.c : invalid rule : omitted protocol name");
 			return FALSE;
 		}
-	}
-	else {
+	} else {
 		grac_log_error("grac_rule.c : invalid rule : need string type for protocol name");
 		return FALSE;
 	}
@@ -213,23 +218,21 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 	done = TRUE;
 
 	json_object_object_foreach(jproto, key, val)
-	{
+    {
 		if (c_strmatch(key, "protocol")) {
-			;	// no operation
-		}
-		else if (c_strmatch(key, "src_port")) {
+			nop();	// no operation
+		} else if (c_strmatch(key, "src_port")) {
 			jtype = json_object_get_type(val);
 			if (jtype == json_type_array) {
 				int  count = json_object_array_length(val);
 				int  idx;
-				for (idx=0; idx<count; idx++) {
+				for (idx=0; idx < count; idx++) {
 					json_object* jentry = json_object_array_get_idx(val, idx);
 					json_type jentry_type = json_object_get_type(jentry);
 					gboolean add_res;
 					if (jentry_type == json_type_null) {
-						;	// skip
-					}
-					else if (jentry_type == json_type_string) {
+						nop();	// skip
+					} else if (jentry_type == json_type_string) {
 						char *port_str = (char*)json_object_get_string(jentry);
 						if (c_strlen(port_str, 256) > 0) {
 							add_res = grac_rule_network_add_src_port(rule_net, protocol_idx, port_str);
@@ -237,13 +240,11 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 								grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 							done &= add_res;
 						}
-					}
-					else {
+					} else {
 						grac_log_error("grac_rule.c : invalid rule : need string type for port");
 					}
 				}
-			}
-			else if (jtype == json_type_string) {
+			} else if (jtype == json_type_string) {
 				char *port_str = (char*)json_object_get_string(val);
 				if (c_strlen(port_str, 256) > 0) {
 					gboolean add_res;
@@ -252,27 +253,23 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 						grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 					done &= add_res;
 				}
-			}
-			else if (jtype == json_type_null) {
-				;	//  skip
-			}
-			else {
+			} else if (jtype == json_type_null) {
+				nop();	//  skip
+			} else {
 				grac_log_error("grac_rule.c : invalid rule : need string array type for src_port");
 			}
-		}
-		else if (c_strmatch(key, "dst_port")) {
+		} else if (c_strmatch(key, "dst_port")) {
 			jtype = json_object_get_type(val);
 			if (jtype == json_type_array) {
 				int  count = json_object_array_length(val);
 				int  idx;
-				for (idx=0; idx<count; idx++) {
+				for (idx=0; idx < count; idx++) {
 					json_object* jentry = json_object_array_get_idx(val, idx);
 					json_type jentry_type = json_object_get_type(jentry);
 					gboolean add_res;
 					if (jentry_type == json_type_null) {
-						;	// skip
-					}
-					else if (jentry_type == json_type_string) {
+						nop();	// skip
+					} else if (jentry_type == json_type_string) {
 						char *port_str = (char*)json_object_get_string(jentry);
 						if (c_strlen(port_str, 256) > 0) {
 							add_res = grac_rule_network_add_dst_port(rule_net, protocol_idx, port_str);
@@ -280,13 +277,11 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 								grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 							done &= add_res;
 						}
-					}
-					else {
+					} else {
 						grac_log_error("grac_rule.c : invalid rule : need string type for port");
 					}
 				}
-			}
-			else if (jtype == json_type_string) {
+			} else if (jtype == json_type_string) {
 				char *port_str = (char*)json_object_get_string(val);
 				if (c_strlen(port_str, 256) > 0) {
 					gboolean add_res;
@@ -295,15 +290,12 @@ static gboolean _grac_rule_load_protocol_rule_json(GracRuleNetwork *rule_net, js
 						grac_log_error("grac_rule.c : can't add port (%s:%s)", protocol_name, port_str);
 					done &= add_res;
 				}
-			}
-			else if (jtype == json_type_null) {
-				;	//  skip
-			}
-			else {
+			} else if (jtype == json_type_null) {
+				nop();	//  skip
+			} else {
 				grac_log_error("grac_rule.c : invalid rule : need string array type for src_port");
 			}
-		}
-		else {
+		} else {
 			grac_log_debug("grac_rule.c : invalid rule : unknown key [%s] for protocol", key);
 		}
 	} // foreach
@@ -343,52 +335,41 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 		if (c_strmatch(key, "ipaddress")) {
 			char *addr_str = (char*)json_object_get_string(val);
 			done &= grac_rule_network_set_address(net_rule, addr_str);
-		}
-		else if (c_strmatch(key, "state")) {
+		} else if (c_strmatch(key, "state")) {
 			char *perm_str = (char*)json_object_get_string(val);
 			if (c_strimatch(perm_str, "allow")) {
 				grac_rule_network_set_allow(net_rule, TRUE);
-			}
-			else if (c_strimatch(perm_str, "disallow")) {
+			} else if (c_strimatch(perm_str, "disallow")) {
 				grac_rule_network_set_allow(net_rule, FALSE);
-			}
-			else {
+			} else {
 				grac_log_debug("grac_rule.c : unknown state for <network/rules> : %s", perm_str);
 			}
-		}
-		else if (c_strmatch(key, "direction")) {
+		} else if (c_strmatch(key, "direction")) {
 			char *dir_str = (char*)json_object_get_string(val);
 			if (c_strimatch(dir_str, "all")) {
 				grac_rule_network_set_direction(net_rule, GRAC_NETWORK_DIR_ALL);
-			}
-			else if (c_strimatch(dir_str, "inbound")) {
+			} else if (c_strimatch(dir_str, "inbound")) {
 				grac_rule_network_set_direction(net_rule, GRAC_NETWORK_DIR_INBOUND);
-			}
-			else if (c_strimatch(dir_str, "outbound")) {
+			} else if (c_strimatch(dir_str, "outbound")) {
 				grac_rule_network_set_direction(net_rule, GRAC_NETWORK_DIR_OUTBOUND);
-			}
-			else {
+			} else {
 				grac_log_debug("grac_rule.c : unknown direction for <network/rules> : %s", dir_str);
 			}
-		}
-		else if (c_strmatch(key, "ports")) {
+		} else if (c_strmatch(key, "ports")) {
 			jtype = json_object_get_type(val);
 			if (jtype == json_type_array) {
 				int  count = json_object_array_length(val);
 				int  idx;
-				for (idx=0; idx<count; idx++) {
+				for (idx=0; idx < count; idx++) {
 					json_object* jentry = json_object_array_get_idx(val, idx);
 					done &= _grac_rule_load_protocol_rule_json(net_rule, jentry);
 				}
-			}
-			else if (jtype == json_type_object) {
+			} else if (jtype == json_type_object) {
 				done &= _grac_rule_load_protocol_rule_json(net_rule, val);
-			}
-			else {
+			} else {
 				grac_log_debug("grac_rule.c : invalid format for <network/rules> : %s", key);
 			}
-		}
-		else {
+		} else {
 			grac_log_debug("grac_rule.c : unknown key [%s] in <network/rules>", key);
 		}
 	} // foreach
@@ -396,8 +377,7 @@ static gboolean _grac_rule_load_network_rule_json(GracRule *rule, json_object *j
 	if (done) {
 		g_ptr_array_add(rule->network_array, net_rule);
 		rule->network_count++;
-	}
-	else {
+	} else {
 		grac_rule_network_free(&net_rule);
 	}
 
@@ -418,31 +398,26 @@ static gboolean _grac_rule_load_network_json(GracRule *rule, json_object *jobj_n
 				const char *res_perm = json_object_get_string(val);
 				char *res_key = grac_resource_get_resource_name(GRAC_RESOURCE_NETWORK);
 				done = grac_map_set_data(rule->res_perm_map, res_key, res_perm);
-			}
-			else {
+			} else {
 				grac_log_error("_grac_rule_load_network_json() : invalid json type for %s", key);
 				done = FALSE;
 			}
-		}
-		else if (c_strmatch(key, "rules")) {
+		} else if (c_strmatch(key, "rules")) {
 			json_type jtype = json_object_get_type(val);
 			if (jtype == json_type_object) {	// single rule
 				done &= _grac_rule_load_network_rule_json(rule, val);
-			}
-			else if (jtype == json_type_array) { // multiple rules
+			} else if (jtype == json_type_array) { // multiple rules
 				int  count = json_object_array_length(val);
 				int  idx;
-				for (idx=0; idx<count; idx++) {
+				for (idx=0; idx < count; idx++) {
 					json_object* jentry = json_object_array_get_idx(val, idx);
 					done &= _grac_rule_load_network_rule_json(rule, jentry);
 				}
-			}
-			else {
+			} else {
 				grac_log_error("_grac_rule_load_network_json() : invalid json type for %s", key);
 				done = FALSE;
 			}
-		}
-		else {
+		} else {
 			grac_log_error("_grac_rule_load_network_json() : invalid key : %s", key);
 		}
 	}
@@ -452,7 +427,6 @@ static gboolean _grac_rule_load_network_json(GracRule *rule, json_object *jobj_n
 
 gboolean _grac_rule_add_bluetooth_mac(GracRule *rule, char *mac_addr)
 {
-	char *func = "_grac_rule_add_bluetooth_mac()";
 	gboolean done = FALSE;
 
 	if (rule && mac_addr) {
@@ -460,16 +434,15 @@ gboolean _grac_rule_add_bluetooth_mac(GracRule *rule, char *mac_addr)
 		if (rule->bluetooth_mac_array == NULL) {
 			rule->bluetooth_mac_array = g_ptr_array_new();
 			if (rule->bluetooth_mac_array == NULL) {
-				grac_log_error("%s : can't alloc mac address array of rule", func);
+				grac_log_error("%s : can't alloc mac address array of rule", __FUNCTION__);
 				return FALSE;
 			}
 		}
 
 		gchar *add_mac_addr = c_strdup(mac_addr, 256);
 		if (add_mac_addr == NULL) {
-			grac_log_error("%s : can't alloc mac address to add", func);
-		}
-		else {
+			grac_log_error("%s : can't alloc mac address to add", __FUNCTION__);
+		} else {
 			g_ptr_array_add(rule->bluetooth_mac_array, add_mac_addr);
 			rule->bluetooth_mac_count++;
 			done = TRUE;
@@ -477,7 +450,6 @@ gboolean _grac_rule_add_bluetooth_mac(GracRule *rule, char *mac_addr)
 	}
 
 	return done;
-
 }
 
 gboolean _grac_rule_load_bluetooth_json(GracRule *rule, json_object *jobj)
@@ -503,42 +475,37 @@ gboolean _grac_rule_load_bluetooth_json(GracRule *rule, json_object *jobj)
 				char *res_perm = (char*)json_object_get_string(val);
 				char *res_key = grac_resource_get_resource_name(GRAC_RESOURCE_BLUETOOTH);
 				done &= grac_map_set_data(rule->res_perm_map, res_key, res_perm);
-			}
-			else {
+			} else {
 				grac_log_error("%s : invalid json type for bluetooth/%s", func, key);
 				done = FALSE;
 			}
-		}
-		else if (c_strmatch(key, "mac_address")) {
+		} else if (c_strmatch(key, "mac_address")) {
 			jtype = json_object_get_type(val);
 			if (jtype == json_type_string) {
 				char *mac = (char*)json_object_get_string(val);
 				done &= _grac_rule_add_bluetooth_mac(rule, mac);
-			}
-			else if (jtype == json_type_array) {
+			} else if (jtype == json_type_array) {
 				int  count = json_object_array_length(val);
 				int  idx;
-				for (idx=0; idx<count; idx++) {
+				for (idx=0; idx < count; idx++) {
 					json_object* jentry = json_object_array_get_idx(val, idx);
 					if (json_object_get_type(jentry) == json_type_string) {
 						char *mac = (char*)json_object_get_string(jentry);
 						done &= _grac_rule_add_bluetooth_mac(rule, mac);
-					}
-					else {
+					} else {
 						grac_log_error("%s : invalid json type for bluetooth/%s", func, key);
 						done = FALSE;
 					}
 				}
-			}
-			else {
+			} else {
 				grac_log_error("%s : invalid json type for bluetooth/%s", func, key);
 				done = FALSE;
 			}
-		}
-		else {
+		} else {
 			grac_log_debug("%s : invalid key for bluetooth : %s", func, key);
 		}
 	}
+
 	return done;
 }
 
@@ -581,20 +548,17 @@ static gboolean _grac_rule_load_json(GracRule *rule, gchar* path)
 
 	grac_rule_clear(rule);
 
-	//json_object *jobj_network;
-	//json_bool res = json_object_object_get_ex(jroot, "network", &jobj_network);
+	// json_object *jobj_network;
+	// json_bool res = json_object_object_get_ex(jroot, "network", &jobj_network);
 
 	json_object_object_foreach(jroot, key, val) {
 		if (c_strmatch(key, "network")) {
 			done &= _grac_rule_load_network_json(rule, val);
-		}
-		else if (c_strmatch(key, "bluetooth")) {
+		} else if (c_strmatch(key, "bluetooth")) {
 			done &= _grac_rule_load_bluetooth_json(rule, val);
-		}
-		else {
+		} else {
 			done &= _grac_rule_load_simple_json(rule, key, val);
 		}
-
 	} // foreach
 
 	json_object_put(jroot);
@@ -603,7 +567,7 @@ static gboolean _grac_rule_load_json(GracRule *rule, gchar* path)
 }
 
 // only to test
-void _grac_rule_network_dump (GracRuleNetwork *net_rule, int seq, FILE *out_fp)
+void _grac_rule_network_dump(GracRuleNetwork *net_rule, int seq, FILE *out_fp)
 {
 	if (net_rule == NULL) {
 		fprintf(out_fp, "%d: null data\n", seq);
@@ -625,7 +589,7 @@ void _grac_rule_network_dump (GracRuleNetwork *net_rule, int seq, FILE *out_fp)
 	get_res = grac_rule_network_get_allow(net_rule, &allow);
 	if (get_res < 0)
 		fprintf(out_fp, "%d: state : <error>\n", seq);
-	else	if (get_res == 0)
+	else if (get_res == 0)
 		fprintf(out_fp, "%d: state : <not set>\n", seq);
 	else
 		fprintf(out_fp, "%d: state : %d\n", seq, (int)allow);
@@ -648,11 +612,10 @@ void _grac_rule_network_dump (GracRuleNetwork *net_rule, int seq, FILE *out_fp)
 		fprintf(out_fp, "%d: direction : %s\n", seq, set_data);
 
 	int cnt, ix;
-	int	port_cnt, port_idx;
 
 	cnt = grac_rule_network_protocol_count(net_rule);
 	fprintf(out_fp, "%d: protocol count=%d\n", seq, cnt);
-	for (ix = 0; ix<cnt; ix++) {
+	for (ix = 0; ix < cnt; ix++) {
 		get_res = grac_rule_network_get_protocol(net_rule, ix, &set_data);
 		if (get_res < 0)
 			fprintf(out_fp, "\t<error>");
@@ -662,9 +625,10 @@ void _grac_rule_network_dump (GracRuleNetwork *net_rule, int seq, FILE *out_fp)
 			fprintf(out_fp, "\t[%s]", set_data);
 		fprintf(out_fp, "\n");
 
-		port_cnt = grac_rule_network_src_port_count(net_rule, ix);
+		int port_idx;
+		int port_cnt = grac_rule_network_src_port_count(net_rule, ix);
 		fprintf(out_fp, "\t\tsrc_port count=%d", port_cnt);
-		for (port_idx = 0; port_idx<port_cnt; port_idx++) {
+		for (port_idx = 0; port_idx < port_cnt; port_idx++) {
 			get_res = grac_rule_network_get_src_port(net_rule, ix, port_idx, &set_data);
 			if (get_res < 0)
 				fprintf(out_fp, "  <error>");
@@ -677,7 +641,7 @@ void _grac_rule_network_dump (GracRuleNetwork *net_rule, int seq, FILE *out_fp)
 
 		port_cnt = grac_rule_network_dst_port_count(net_rule, ix);
 		fprintf(out_fp, "\t\tdst_port count=%d", port_cnt);
-		for (port_idx = 0; port_idx<port_cnt; port_idx++) {
+		for (port_idx = 0; port_idx < port_cnt; port_idx++) {
 			get_res = grac_rule_network_get_dst_port(net_rule, ix, port_idx, &set_data);
 			if (get_res < 0)
 				fprintf(out_fp, "  <error>");
@@ -694,7 +658,7 @@ void _grac_rule_network_dump (GracRuleNetwork *net_rule, int seq, FILE *out_fp)
 
 
 // only to test
-void grac_rule_dump (GracRule *rule, FILE *out_fp)
+void grac_rule_dump(GracRule *rule, FILE *out_fp)
 {
 	if (rule == NULL)
 		return;
@@ -705,21 +669,20 @@ void grac_rule_dump (GracRule *rule, FILE *out_fp)
 	fprintf(out_fp, "<<<Network>>>\n");
 	if (rule->network_count == 0) {
 			fprintf(out_fp, "-- no data --\n");
-	}
-	else {
+	} else {
 			int	idx;
 			fprintf(out_fp, "count of network rules : %d\n", rule->network_count);
-			for (idx=0; idx<rule->network_count; idx++) {
-				GracRuleNetwork *net_rule = g_ptr_array_index (rule->network_array, idx);
-				_grac_rule_network_dump (net_rule, idx, out_fp);
+			for (idx=0; idx < rule->network_count; idx++) {
+				GracRuleNetwork *net_rule = g_ptr_array_index(rule->network_array, idx);
+				_grac_rule_network_dump(net_rule, idx, out_fp);
 			}
 	}
 	fprintf(out_fp, "\n");
 
-	const char *key, *data;
+	const char *key;
 	key = grac_map_first_key(rule->res_perm_map);
 	while (key) {
-		data = grac_map_get_data(rule->res_perm_map, key);
+		const char* data = grac_map_get_data(rule->res_perm_map, key);
 		fprintf(out_fp, "<%s> = <%s>\n", key, data);
 		key = grac_map_next_key(rule->res_perm_map);
 	}
@@ -727,21 +690,20 @@ void grac_rule_dump (GracRule *rule, FILE *out_fp)
 
 	fprintf(out_fp, "<<<MAC address for bluetooth>>>\n");
 	if (rule->bluetooth_mac_count == 0) {
-			fprintf(out_fp, "-- no data --\n");
-	}
-	else {
-			int	idx;
-			fprintf(out_fp, "count of macc adddress for bluetooth : %d\n", rule->bluetooth_mac_count);
-			for (idx=0; idx < rule->bluetooth_mac_count; idx++) {
-				char *mac = g_ptr_array_index (rule->bluetooth_mac_array, idx);
-				fprintf(out_fp, "\t[%s]", mac);
-			}
-			fprintf(out_fp, "\n");
+		fprintf(out_fp, "-- no data --\n");
+	} else {
+		int	idx;
+		fprintf(out_fp, "count of macc adddress for bluetooth : %d\n", rule->bluetooth_mac_count);
+		for (idx=0; idx < rule->bluetooth_mac_count; idx++) {
+			char *mac = g_ptr_array_index(rule->bluetooth_mac_array, idx);
+			fprintf(out_fp, "\t[%s]", mac);
+		}
+		fprintf(out_fp, "\n");
 	}
 }
 
 
-gboolean grac_rule_load (GracRule *data, gchar* path)
+gboolean grac_rule_load(GracRule *data, gchar* path)
 {
 	gboolean done = FALSE;
 
@@ -754,8 +716,8 @@ gboolean grac_rule_load (GracRule *data, gchar* path)
 		}
 	}
 
-//	if (done)
-//		grac_rule_dump (data, NULL);
+// if (done)
+// 		grac_rule_dump (data, NULL);
 
 	return done;
 }
@@ -785,8 +747,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 	if (res == 0) {
 		log_addr = "All Addresses";
 		ipaddr = NULL;
-	}
-	else {
+	} else {
 		log_addr = ipaddr;
 	}
 
@@ -808,64 +769,59 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 		if (res < 0) {
 			grac_log_error("%s : can't get address info", func);
 			done = FALSE;
-		}
-		else if (res == 1) {
+		} else if (res == 1) {
 			if (ipv6)
 				setB &= sys_ipt_rule_set_addr6_str(ipt_rule, addr);
 			else
-				setB &= sys_ipt_rule_set_addr_str (ipt_rule, addr);
+				setB &= sys_ipt_rule_set_addr_str(ipt_rule, addr);
 
 			if (mask > 0)
-				setB &= sys_ipt_rule_set_mask (ipt_rule, mask);
+				setB &= sys_ipt_rule_set_mask(ipt_rule, mask);
 		}
 	}
 
 	// mac address
-	//{
-	//	char *mac;
-	//	res = grac_rule_network_get_mac(net_rule, &mac);
-	//	setB &= sys_ipt_rule_set_mac_addr_str(ipt_rule, mac);
-	//}
+	// {
+	// 	char *mac;
+	// 	res = grac_rule_network_get_mac(net_rule, &mac);
+	// 	setB &= sys_ipt_rule_set_mac_addr_str(ipt_rule, mac);
+	// }
 
 	// direction
-	{
+    {
 		grac_network_dir_t dir;
 		res = grac_rule_network_get_direction(net_rule, &dir);
 		if (res < 0) {
 			grac_log_error("%s : can't get direction", func);
 			done = FALSE;
-		}
-		else if (res == 1){
+		} else if (res == 1) {
 			if (dir == GRAC_NETWORK_DIR_ALL)
-				setB &= sys_ipt_rule_set_chain (ipt_rule, SYS_IPT_CHAIN_B_INOUT);
+				setB &= sys_ipt_rule_set_chain(ipt_rule, SYS_IPT_CHAIN_B_INOUT);
 			else if (dir == GRAC_NETWORK_DIR_INBOUND)
-				setB &= sys_ipt_rule_set_chain (ipt_rule, SYS_IPT_CHAIN_B_INPUT);
+				setB &= sys_ipt_rule_set_chain(ipt_rule, SYS_IPT_CHAIN_B_INPUT);
 			else if (dir == GRAC_NETWORK_DIR_OUTBOUND)
-				setB &= sys_ipt_rule_set_chain (ipt_rule, SYS_IPT_CHAIN_B_OUTPUT);
+				setB &= sys_ipt_rule_set_chain(ipt_rule, SYS_IPT_CHAIN_B_OUTPUT);
 			else
-				setB &= sys_ipt_rule_set_chain (ipt_rule, SYS_IPT_CHAIN_B_INOUT);
-		}
-		else {
-			setB &= sys_ipt_rule_set_chain (ipt_rule, SYS_IPT_CHAIN_B_INOUT);
+				setB &= sys_ipt_rule_set_chain(ipt_rule, SYS_IPT_CHAIN_B_INOUT);
+		} else {
+			setB &= sys_ipt_rule_set_chain(ipt_rule, SYS_IPT_CHAIN_B_INOUT);
 		}
 	}
 
 	// permission (state)
-	{
+    {
 		gboolean allow;
 		res = grac_rule_network_get_allow(net_rule, &allow);
 		if (res < 0) {
 			grac_log_error("%s : can't get state", func);
 			done = FALSE;
-		}
-		else if (res == 1) {
+		} else if (res == 1) {
 			if (allow)
-				setB &= sys_ipt_rule_set_target (ipt_rule, SYS_IPT_TARGET_ACCEPT);
+				setB &= sys_ipt_rule_set_target(ipt_rule, SYS_IPT_TARGET_ACCEPT);
 			else
-				setB &= sys_ipt_rule_set_target (ipt_rule, SYS_IPT_TARGET_DROP);
-		}
-		else {
-			setB &= sys_ipt_rule_set_target (ipt_rule, SYS_IPT_TARGET_DROP);
+				setB &= sys_ipt_rule_set_target(ipt_rule, SYS_IPT_TARGET_DROP);
+		} else {
+			setB &= sys_ipt_rule_set_target(ipt_rule, SYS_IPT_TARGET_DROP);
 		}
 	}
 
@@ -888,22 +844,18 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 			grac_log_error("%s : applying ipt_rule : %s, all protocols, all ports", func, log_addr);
 		}
 		done &= appB;
-	}
-	else {
+	} else {
 		int protocol_idx;
 		gchar *protocol_name;
-		int	s_port_count;
-		int	d_port_count;
 
-		for (protocol_idx=0; protocol_idx<protocol_count; protocol_idx++) {
-			s_port_count = grac_rule_network_src_port_count(net_rule, protocol_idx);
-			d_port_count = grac_rule_network_dst_port_count(net_rule, protocol_idx);
+		for (protocol_idx=0; protocol_idx < protocol_count; protocol_idx++) {
+			int s_port_count = grac_rule_network_src_port_count(net_rule, protocol_idx);
+			int d_port_count = grac_rule_network_dst_port_count(net_rule, protocol_idx);
 			res = grac_rule_network_get_protocol(net_rule, protocol_idx, &protocol_name);
 			if (res < 0) {
 				grac_log_error("%s : can't get protocol", func);
 				done = FALSE;
-			}
-			else if (res == 1) {
+			} else if (res == 1) {
 				setB = sys_ipt_rule_set_protocol_name(ipt_rule, protocol_name);
 				if (setB == FALSE) {
 					grac_log_error("%s : making ipt_rule : %s, %s", func, log_addr, protocol_name);
@@ -949,8 +901,7 @@ static gboolean _grac_network_apply_one(GracRule *rule, GracRuleNetwork *net_rul
 						}
 						done &= appB;
 					}
-				}
-				else {
+				} else {
 					if (s_port_count + d_port_count > 0) {
 						grac_log_error("%s : applying ipt_rule : %s, %s, not allowd port : ignore", func, log_addr, protocol_name);
 					}
@@ -977,17 +928,24 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 
 	grac_log_debug("start : %s()", __FUNCTION__);
 
-	sys_ipt_set_log(rule->ipt, TRUE, "GRAC: Disallowed Network ");		// Maximunm 29 chars
-                                              /* 12345678901234567890123456789 */
-
 	// no data
 	if (rule == NULL) {
 		// set deny
-		done &= sys_ipt_clear_all(rule->ipt);
-		done &= sys_ipt_set_policy(rule->ipt, FALSE);
-//	done &= sys_ipt_insert_all_drop_rule();
+		sys_ipt* ipt = sys_ipt_alloc();
+		if (ipt) {
+			sys_ipt_set_log(ipt, TRUE, "GRAC: Disallowed Network ");		// Maximunm 29 chars
+			done &= sys_ipt_clear_all(ipt);
+			done &= sys_ipt_set_policy(ipt, FALSE);
+			// done &= sys_ipt_insert_all_drop_rule(ipt);
+			sys_ipt_free(&ipt);
+		} else {
+			done = FALSE;
+		}
 		return done;
 	}
+
+	sys_ipt_set_log(rule->ipt, TRUE, "GRAC: Disallowed Network ");		// Maximunm 29 chars
+                                              /* 12345678901234567890123456789 */
 
 	// set only default
 	if (rule->network_count == 0) {
@@ -1011,7 +969,7 @@ static gboolean _grac_rule_apply_network(GracRule* rule)
 	int	idx;
 	for (idx=0; idx < rule->network_count; idx++) {
 		GracRuleNetwork *net_rule;
-		net_rule = g_ptr_array_index (rule->network_array, idx);
+		net_rule = g_ptr_array_index(rule->network_array, idx);
 		if (net_rule == NULL)
 			continue;
 
@@ -1043,8 +1001,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		grac_log_warning("%s(): can't get login name", __FUNCTION__);
 		g_snprintf(udev_rule_target, sizeof(udev_rule_target), "/var/run/user/%s", grac_config_file_udev_rules());
 		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
-	}
-	else {
+	} else {
 		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/%s", grac_config_file_udev_rules());
 		unlink(tmp_file);
 		g_snprintf(tmp_file, sizeof(tmp_file), "/var/run/user/grac_tmp_udev");
@@ -1079,8 +1036,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 					done = FALSE;
 					grac_log_error("%s() : rename error : %s --> %s : %s", __FUNCTION__, tmp_file, udev_rule_target, strerror(errno));
 				}
-			}
-			else {
+			} else {
 				grac_log_error("%s() : grac_rule_udev_make_rules", __FUNCTION__);
 			}
 
@@ -1092,8 +1048,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 	char *udev_path_link = (char*)grac_config_path_udev_rules();
 	if (udev_path_link == NULL) {
 		done = FALSE;
-	}
-	else {
+	} else {
 		if (done == TRUE) {
 			unlink(udev_path_link);
 			result = symlink(udev_rule_target, udev_path_link);
@@ -1110,7 +1065,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		char	*cmd;
 
 		cmd = "udevadm control --reload";
-		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		res = sys_run_cmd_no_output(cmd, "apply-rule");
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
@@ -1118,7 +1073,7 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		// no trigger for subsystem==PCI, triggering when setting rescan
 		 {
 			char *cmd = "echo 1 > /sys/bus/pci/rescan";
-			res = sys_run_cmd_no_output (cmd, "apply-rule");
+			res = sys_run_cmd_no_output(cmd, "apply-rule");
 			if (res == FALSE)
 				grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 			done &= res;
@@ -1128,12 +1083,12 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		// resinserting USB sets bAuthorized=1 automatically
 
 		cmd = "udevadm trigger -s bluetooth -s net -s input -s video4linux -s pci -s sound -s hidraw -c add";
-		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		res = sys_run_cmd_no_output(cmd, "apply-rule");
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 
 		cmd = "udevadm trigger -s block -p ID_USB_DRIVER=usb-storage -c add";
-		res = sys_run_cmd_no_output (cmd, "apply-rule");
+		res = sys_run_cmd_no_output(cmd, "apply-rule");
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 		done &= res;
@@ -1144,15 +1099,14 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 
 static gboolean _grac_rule_apply_hook(GracRule *rule)
 {
-	gboolean done = FALSE;
-	int	perm_id;
+	gboolean done;
 
 	grac_log_debug("start : %s()", __FUNCTION__);
 
 	done = grac_rule_hook_init();
 
 	if (done) {
-		perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_CLIPBOARD);
+		int perm_id = grac_rule_get_perm_id(rule, GRAC_RESOURCE_CLIPBOARD);
 		if (perm_id == GRAC_PERMISSION_ALLOW)
 			done &= grac_rule_hook_allow_clipboard(TRUE);
 		else
@@ -1165,8 +1119,8 @@ static gboolean _grac_rule_apply_hook(GracRule *rule)
 			done &= grac_rule_hook_allow_screenshooter(FALSE);
 	}
 
-//if (done == FALSE)
-//	done = grac_rule_hook_clear();
+// if (done == FALSE)
+// 	done = grac_rule_hook_clear();
 
 	return done;
 }
@@ -1189,8 +1143,8 @@ static gboolean _grac_rule_disallow_network_printer(GracRule *rule, int port)
 
 		sys_ipt_set_log(rule->ipt, TRUE, "GRAC: Disallowed Printer ");		// Maximunm 29 chars
                                                   /* 12345678901234567890123456789 */
-		done &= sys_ipt_rule_set_target  (ipt_rule, SYS_IPT_TARGET_DROP);
-		done &= sys_ipt_rule_set_chain   (ipt_rule, SYS_IPT_CHAIN_B_OUTPUT);
+		done &= sys_ipt_rule_set_target(ipt_rule, SYS_IPT_TARGET_DROP);
+		done &= sys_ipt_rule_set_chain(ipt_rule, SYS_IPT_CHAIN_B_OUTPUT);
 		done &= sys_ipt_rule_set_protocol(ipt_rule, SYS_IPT_PROTOCOL_TCP);
 		done &= sys_ipt_rule_add_dst_port_str(ipt_rule, port_str);
 
@@ -1243,13 +1197,13 @@ static gboolean _grac_rule_apply_cups_printer(GracRule* rule)
 static gboolean _grac_rule_apply_extra(GracRule *rule)
 {
 	gboolean done = TRUE;
-	int res_id, perm_id;
+	int res_id;
 
 	grac_log_debug("start : %s()", __FUNCTION__);
 
 	res_id = grac_resource_first_control_res_id();
 	while (res_id >= 0) {
-		perm_id = grac_rule_get_perm_id(rule, res_id);
+		int perm_id = grac_rule_get_perm_id(rule, res_id);
 		switch (res_id) {
 		case GRAC_RESOURCE_NETWORK :	// already done by _grac_network_apply();
 			break;
@@ -1257,9 +1211,6 @@ static gboolean _grac_rule_apply_extra(GracRule *rule)
 		case GRAC_RESOURCE_S_CAPTURE :
 			break;
 		case GRAC_RESOURCE_BLUETOOTH :
-			if (perm_id >= 0) {
-				; // udev rule + MAC
-			}
 			break;
 		case GRAC_RESOURCE_PRINTER :
 			if (perm_id == GRAC_PERMISSION_ALLOW)
@@ -1296,7 +1247,7 @@ static gboolean _grac_rule_apply_extra(GracRule *rule)
 	return done;
 }
 
-gboolean grac_rule_apply (GracRule *rule)
+gboolean grac_rule_apply(GracRule *rule)
 {
 	gboolean done = FALSE;
 
@@ -1379,12 +1330,14 @@ gboolean grac_rule_set_default_of_guest(GracRule* rule)
 	if (rule) {
 		done = TRUE;
 
-		char *res_name, *perm_name;
-		int	 res_id, perm_id;
-		grac_rule_clear (rule);
+		char *res_name;
+		grac_rule_clear(rule);
 
 		res_name = grac_resource_find_first_resource();
 		while (res_name) {
+			int	 res_id, perm_id;
+			char *perm_name;
+
 			res_id = grac_resource_get_resource_id(res_name);
 			perm_id = -1;
 
@@ -1412,7 +1365,7 @@ gboolean grac_rule_set_default_of_guest(GracRule* rule)
 
 			perm_name = grac_resource_get_permission_name(perm_id);
 			if (perm_name) {
-				done &= grac_rule_set_perm_by_name (rule, res_name, perm_name);
+				done &= grac_rule_set_perm_by_name(rule, res_name, perm_name);
 			}
 
 			res_name = grac_resource_find_next_resource();
@@ -1434,12 +1387,14 @@ gboolean grac_rule_set_default_of_admin(GracRule* rule)
 	if (rule) {
 		done = TRUE;
 
-		char *res_name, *perm_name;
-		int	 res_id, perm_id;
-		grac_rule_clear (rule);
+		char *res_name;
+		grac_rule_clear(rule);
 
 		res_name = grac_resource_find_first_resource();
 		while (res_name) {
+			int	 res_id, perm_id;
+			char *perm_name;
+
 			res_id = grac_resource_get_resource_id(res_name);
 			perm_id = -1;
 
@@ -1460,7 +1415,7 @@ gboolean grac_rule_set_default_of_admin(GracRule* rule)
 
 			perm_name = grac_resource_get_permission_name(perm_id);
 			if (perm_name) {
-				done &= grac_rule_set_perm_by_name (rule, res_name, perm_name);
+				done &= grac_rule_set_perm_by_name(rule, res_name, perm_name);
 			}
 
 			res_name = grac_resource_find_next_resource();
@@ -1487,10 +1442,9 @@ gboolean grac_rule_set_perm_by_name(GracRule *rule, gchar* res_name, gchar* perm
 		done = grac_map_set_data(rule->res_perm_map, res_name, perm_name);
 
 	return done;
-
 }
 
-gboolean grac_rule_set_perm_by_id  (GracRule *rule, int res_id, int perm_id)
+gboolean grac_rule_set_perm_by_id(GracRule *rule, int res_id, int perm_id)
 {
 	gboolean done = FALSE;
 
@@ -1521,7 +1475,7 @@ gboolean grac_rule_bluetooth_mac_get_addr(GracRule *rule, int idx, char *addr, i
 
 	if (rule) {
 		if (idx >= 0 && idx < rule->bluetooth_mac_count) {
-			char *ptr = g_ptr_array_index (rule->bluetooth_mac_array, idx);
+			char *ptr = g_ptr_array_index(rule->bluetooth_mac_array, idx);
 			if (c_strlen(ptr, addr_size+1) < addr_size-1) {
 				c_strcpy(addr, ptr, addr_size);
 				done = TRUE;

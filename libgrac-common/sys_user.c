@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * sys_user.c
  *
  *  Created on: 2015. 11. 19.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -79,13 +96,12 @@ gboolean sys_user_get_name_from_uid(int uid, gchar *name, int maxlen)
 	struct passwd  *res_pwd;
 	char	 *buf;
 	int		 buf_size = 2048;
-	int    res = -1;
 
 	buf = c_alloc(buf_size);
 
 	if (buf) {
 		errno = 0;
-		res = getpwuid_r(uid, &get_pwd, buf, buf_size, &res_pwd);
+		int res = getpwuid_r(uid, &get_pwd, buf, buf_size, &res_pwd);
 		if (res == 0) {
 			if (res_pwd != NULL) {
 				c_strcpy(name, get_pwd.pw_name, maxlen);
@@ -142,17 +158,16 @@ gboolean sys_user_get_name_from_gid(int gid, gchar *name, int maxlen)
 	struct group  *res_grp;
 	char	 *buf;
 	int		 buf_size = 2048;
-	int    res = -1;
 
 	buf = c_alloc(buf_size);
 
 	if (buf) {
 		errno = 0;
-		res = getgrgid_r(gid, &get_grp, buf, buf_size, &res_grp);
+		int res = getgrgid_r(gid, &get_grp, buf, buf_size, &res_grp);
 		if (res == 0) {
 			if (res_grp != NULL) {
 				c_strcpy(name, get_grp.gr_name, maxlen);
-				res = TRUE;
+				done = TRUE;
 			}
 		}
 		c_free(&buf);
@@ -276,13 +291,12 @@ int sys_user_get_login_uid()
 	int		user_size = NAME_MAX;
 
 	user = c_alloc(user_size);
-	if (user) {
-		if (sys_user_get_login_name(user, user_size) ) {
+	if (user != NULL) {
+		if (sys_user_get_login_name(user, user_size)) {
 			uid = sys_user_get_uid_from_name(user);
 			if (uid < 0)
 				grac_log_debug("%s : login name : %d %d", __FUNCTION__, user, uid);
-		}
-		else {
+		} else {
 			grac_log_debug("%s : can't get login name", __FUNCTION__);
 		}
 		c_free(&user);

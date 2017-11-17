@@ -1,11 +1,25 @@
 /*
- ============================================================================
- Name        : grac_printer.c
- Author      : 
- Version     :
- Copyright   :
- Description :
- ============================================================================
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
+ * grac_printer.c
+ *
+ *  Created on: 2017. 10. 30.
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -15,12 +29,6 @@
   				헤더파일 :  	grac_printer.h	\n
   				라이브러리:	libgrac-device.so
  */
-
-#include "grac_printer.h"
-#include "grac_log.h"
-#include "cutility.h"
-#include "sys_file.h"
-#include "sys_etc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +44,12 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "grac_printer.h"
+#include "grac_log.h"
+#include "cutility.h"
+#include "sys_file.h"
+#include "sys_etc.h"
 
 struct _WatchCtrl {
 	gboolean	stop;
@@ -67,7 +81,7 @@ static struct _PrtCtrl  PrtCtrl = { 0 };
 static gboolean _delete_current_printer_list(gboolean fromThread);
 
 
-G_LOCK_DEFINE_STATIC (watch_thread_lock);
+G_LOCK_DEFINE_STATIC(watch_thread_lock);
 
 static void* _watch_thread(void *data)
 {
@@ -92,13 +106,12 @@ static void* _watch_thread(void *data)
 	ctrl->i_fd = fd;
 	ctrl->i_wd = wd;
 
-	int n;
 	char	buf[1024];
 
 	grac_log_debug("%s() : start of watching %s, pid=%d, tid=%d", __FUNCTION__,  ctrl->target, sys_getpid(), sys_gettid());
 
 	while (ctrl->stop == FALSE) {
-		n = sys_file_read(fd, buf, sizeof(buf));
+		int n = sys_file_read(fd, buf, sizeof(buf));
 		if (n <= 0)
 				break;
 
@@ -161,8 +174,7 @@ static gboolean _start_watch_thread(gboolean ppd)
 		ctrl = &PrtCtrl.ppd_watch;
 		c_memset(ctrl, 0, sizeof(struct _WatchCtrl));
 		ctrl->pair = &PrtCtrl.conf_watch;
-	}
-	else {
+	} else {
 		target = "/etc/cups/printers.conf";
 		if (sys_file_is_existing(target) == FALSE) {
 			FILE *fp = g_fopen(target, "w");
@@ -210,8 +222,7 @@ static void _stop_watch_thread(gboolean ppd)
 
 	if (ppd == TRUE) {
 		ctrl = &PrtCtrl.ppd_watch;
-	}
-	else {
+	} else {
 		ctrl = &PrtCtrl.conf_watch;
 	}
 
@@ -321,7 +332,6 @@ static gboolean _delete_printer(char *prt_name)
 {
 	gboolean done = TRUE;
 	char	cmd[1024];
-	int		loop;
 
 	if (_existing_printer(prt_name, TRUE, TRUE) == FALSE) {
 		grac_log_error("%s() : not existing printer", __FUNCTION__);
@@ -332,22 +342,19 @@ static gboolean _delete_printer(char *prt_name)
 	done = sys_run_cmd_no_output(cmd, "del-printer");
 	if (done == FALSE) {
 		grac_log_error("%s() : can't run  : %s", __FUNCTION__, cmd);
-	}
-	else {
+	} else {
 		gboolean res;
+		int loop = 10;
 		done = FALSE;
-		loop = 10;
 		while (loop > 0) {
 			res = _existing_printer(prt_name, TRUE, FALSE);
 			if (res == TRUE) {
 				grac_log_debug("%s() : deleted cmd but exiting cups api : %s", __FUNCTION__, prt_name);
-			}
-			else {
+			} else {
 				res = _existing_printer(prt_name, FALSE, TRUE);
 				if (res == TRUE) {
 					grac_log_debug("%s() : deleted cmd but exiting ppd  : %s", __FUNCTION__, prt_name);
-				}
-				else {
+				} else {
 					g_snprintf(cmd, sizeof(cmd), "/usr/bin/grac-apply.sh printer.%s disallow cups printer %s", prt_name, prt_name);
 					res = sys_run_cmd_no_output(cmd, "del-printer");
 					if (res == FALSE)
@@ -370,14 +377,14 @@ static gboolean _start_printer_monitor()
 	c_memset(&PrtCtrl, 0, sizeof(PrtCtrl));
 
 	_start_watch_thread(TRUE);
-	//_start_watch_thread(FALSE);  only for debug
+	// _start_watch_thread(FALSE);  only for debug
 
 	return TRUE;
 }
 
 static void _stop_printer_monitor()
 {
-	//_stop_watch_thread(FALSE);  only for debug
+	// _stop_watch_thread(FALSE);  only for debug
 	_stop_watch_thread(TRUE);
 }
 
@@ -406,12 +413,11 @@ static int _save_printer(char *prt_name)
 		if ((st_save.st_mtim.tv_sec > st_cups.st_mtim.tv_sec) ||
 	      (st_save.st_mtim.tv_sec == st_cups.st_mtim.tv_sec &&
 				 st_save.st_mtim.tv_nsec >= st_cups.st_mtim.tv_nsec) )
-		{
+	    {
 			grac_log_debug("%s() : no need to save printer : %s", __FUNCTION__, prt_name);
 			return 1;
 		}
-	}
-	else {
+	} else {
 		if (errno != ENOENT) {
 			grac_log_error("%s() : %s : %s", __FUNCTION__, save_ppd, c_strerror(-1));
 			return -1;
@@ -426,8 +432,7 @@ static int _save_printer(char *prt_name)
 	if (done == FALSE) {
 		grac_log_error("%s() : can't run  : %s", __FUNCTION__, cmd);
 		return -1;
-	}
-	else {
+	} else {
 		grac_log_debug("%s() : save printer : %s", __FUNCTION__, prt_name);
 		return 1;
 	}
@@ -457,12 +462,11 @@ static gboolean _recover_printer(char *prt_name)
 		if ((st_cups.st_mtim.tv_sec > st_save.st_mtim.tv_sec) ||
 		   (st_cups.st_mtim.tv_sec == st_save.st_mtim.tv_sec &&
 				st_cups.st_mtim.tv_nsec >= st_save.st_mtim.tv_nsec) )
-		{
+	    {
 			grac_log_debug("%s() : no need to recover printer : %s", __FUNCTION__, prt_name);
 			return TRUE;
 		}
-	}
-	else {
+	} else {
 		if (errno != ENOENT) {
 			grac_log_error("%s() : %s : %s", __FUNCTION__, cups_ppd, strerror(errno));
 			return FALSE;
@@ -474,8 +478,7 @@ static gboolean _recover_printer(char *prt_name)
 	done = sys_run_cmd_no_output(cmd, "recover-ppd");
 	if (done == FALSE) {
 		grac_log_error("%s() : can't run  : %s", __FUNCTION__, cmd);
-	}
-	else {
+	} else {
 		grac_log_debug("%s() : recover printer : %s", __FUNCTION__, prt_name);
 	}
 
@@ -505,16 +508,16 @@ static gboolean _save_current_printer_list()
 	g_snprintf(path_prt_list, sizeof(path_prt_list), "%s/%s", dir_path, file_prt_list);
 	fp = g_fopen(path_prt_list, "w");
 	if (fp == NULL) {
-		grac_log_error("%s() : can't create : %s",__FUNCTION__,  path_prt_list);
+		grac_log_error("%s() : can't create : %s", __FUNCTION__,  path_prt_list);
 		done = FALSE;
 	}
 
 	if (fp != NULL) {
-		int idx, res;
-		char *prt_name;
+		int idx;
+
 		for (idx=0; idx < printer_count; idx++) {
-			prt_name = printer_dests[idx].name;
-			res = _save_printer(prt_name);
+			char *prt_name = printer_dests[idx].name;
+			int res = _save_printer(prt_name);
 			if (res < 0)
 				done = FALSE;
 			else if (res > 0)
@@ -563,7 +566,6 @@ static gboolean _delete_current_printer_list(gboolean fromThread)
 {
 	gboolean done = FALSE;
 	cups_dest_t *printer_dests = NULL;
-	int printer_count = 0;
 	int	loop = 10;
 	gboolean again = FALSE;
 
@@ -586,7 +588,7 @@ static gboolean _delete_current_printer_list(gboolean fromThread)
 	loop = 10;
 
 	while (loop > 0 && done == FALSE) {
-		printer_count = cupsGetDests(&printer_dests);
+		int printer_count = cupsGetDests(&printer_dests);
 		if (printer_count == 0) {
 			grac_log_debug("%s() : there is no printer", __FUNCTION__);
 			done = TRUE;
@@ -602,12 +604,11 @@ static gboolean _delete_current_printer_list(gboolean fromThread)
 			if (again == FALSE) {
 				again = TRUE;
 				grac_log_debug("%s() : OK retry check", __FUNCTION__);
-			}
-			else if (_existing_any_printer(TRUE, TRUE) == FALSE)
+			} else if (_existing_any_printer(TRUE, TRUE) == FALSE) {
 				break;
+			}
 			g_usleep(500*1000);
-		}
-		else {
+		} else {
 			g_usleep(100*1000);
 			again = FALSE;
 			loop--;

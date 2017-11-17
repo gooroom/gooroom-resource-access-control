@@ -1,12 +1,27 @@
 /*
- ============================================================================
- Name        : grac_rule_printer_cups.c
- Author      : 
- Version     :
- Copyright   :
- Description :
- ============================================================================
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+/*
+ * grac_rule_printer_cups.c
+ *
+ *  Created on: 2017. 10. 23.
+ *      Author: gooroom@gooroom.kr
+*/
+
 
 /**
   @file 	 	grac_rule_printer_cups.c
@@ -16,18 +31,17 @@
   				라이브러리:	libgrac-device.so
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+
 #include "grac_rule_printer_cups.h"
 #include "grac_log.h"
 #include "cutility.h"
 #include "sys_cups.h"
 #include "sys_user.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
 
 /*
  *  Printer
@@ -60,15 +74,14 @@ static GrmPrinterAccData* _alloc_data(int nameSize)
 		if (data->name == NULL) {
 			free(data);
 			data = NULL;
-		}
-		else {
+		} else {
 			*data->name = 0;
 		}
 	}
 	return data;
 }
 
-static void _free_data (GrmPrinterAccData* data)
+static void _free_data(GrmPrinterAccData* data)
 {
 	if (data != NULL) {
 		if (data->name == NULL) {
@@ -83,7 +96,7 @@ static void _free_buf()
 {
 	if (G_PrinterAccess.list != NULL) {
 		int	i;
-		for (i=0; i<G_PrinterAccess.list->len; i++) {
+		for (i=0; i < G_PrinterAccess.list->len; i++) {
 			GrmPrinterAccData* data;
 			data = (GrmPrinterAccData*)g_ptr_array_index(G_PrinterAccess.list, i);
 			_free_data(data);
@@ -158,14 +171,13 @@ gboolean grac_rule_printer_cups_apply(gboolean allow)
 	int	i;
 	gboolean res = TRUE;
 
-	for (i=0; i<G_PrinterAccess.list->len; i++) {
+	for (i=0; i < G_PrinterAccess.list->len; i++) {
 		GrmPrinterAccData* data;
 		data = g_ptr_array_index(G_PrinterAccess.list, i);
 		if (data->allow == allow) {
 			if (data->isUserID == TRUE) {
-				res &= sys_cups_access_add_user (data->name, allow);
-			}
-			else {
+				res &= sys_cups_access_add_user(data->name, allow);
+			} else {
 				res &= sys_cups_access_add_group(data->name, allow);
 			}
 		}
@@ -200,9 +212,9 @@ static gboolean _printer_access_add_data(gboolean userB, int id, char* name, gbo
   @param	[in]	allow	접근 허용 여부
   @return gboolean	성공여부
 */
-gboolean grac_rule_printer_cups_add_uid  (uid_t uid, gboolean allow)
+gboolean grac_rule_printer_cups_add_uid(uid_t uid, gboolean allow)
 {
-	gboolean res = FALSE;
+	gboolean res;
 	gchar	name[128];
 
 	res = sys_user_get_name_from_uid(uid, name, sizeof(name));
@@ -220,9 +232,9 @@ gboolean grac_rule_printer_cups_add_uid  (uid_t uid, gboolean allow)
   @param	[in]	allow	접근 허용 여부
   @return gboolean	성공여부
 */
-gboolean grac_rule_printer_cups_add_gid  (uid_t gid, gboolean allow)
+gboolean grac_rule_printer_cups_add_gid(uid_t gid, gboolean allow)
 {
-	gboolean res = FALSE;
+	gboolean res;
 	gchar	name[128];
 
 	res = sys_user_get_name_from_gid(gid, name, sizeof(name));
@@ -240,7 +252,7 @@ gboolean grac_rule_printer_cups_add_gid  (uid_t gid, gboolean allow)
   @param	[in]	allow	접근 허용 여부
   @return gboolean	성공여부
 */
-gboolean grac_rule_printer_cups_add_user (char *user,  gboolean allow)
+gboolean grac_rule_printer_cups_add_user(char *user,  gboolean allow)
 {
 	gboolean res = FALSE;
 	uid_t uid = sys_user_get_uid_from_name(user);
@@ -270,17 +282,15 @@ gboolean grac_rule_printer_cups_add_group(char *group, gboolean allow)
 
 static gboolean _printer_access_del_data(gboolean userB, int id, char* name)
 {
-	GrmPrinterAccData* data;
-
 	if (G_PrinterAccess.list == NULL)
 		return FALSE;
 
 	int idx;
-	for (idx=0; idx<G_PrinterAccess.list->len; idx++) {
-		data = g_ptr_array_index(G_PrinterAccess.list, idx);
+	for (idx=0; idx < G_PrinterAccess.list->len; idx++) {
+		GrmPrinterAccData* data = g_ptr_array_index(G_PrinterAccess.list, idx);
 		if (data->isUserID == userB) {
 			if ((id > 0 && id == data->id) || (name != NULL && c_strmatch(name, data->name)) )
-			{
+		    {
 				g_ptr_array_remove_index(G_PrinterAccess.list, idx);
 				idx--;
 				_free_data(data);
@@ -296,7 +306,7 @@ static gboolean _printer_access_del_data(gboolean userB, int id, char* name)
   @param	[in]	uid	사용자 ID (리눅스 사용자 ID)
   @return gboolean	성공여부
 */
-gboolean grac_rule_printer_cups_del_uid  (uid_t uid)
+gboolean grac_rule_printer_cups_del_uid(uid_t uid)
 {
 	return _printer_access_del_data(TRUE, uid, NULL);
 }
@@ -306,7 +316,7 @@ gboolean grac_rule_printer_cups_del_uid  (uid_t uid)
   @param	[in]	gid	그룹 ID (리눅스 그룹 ID)
   @return gboolean	성공여부
 */
-gboolean grac_rule_printer_cups_del_gid  (uid_t gid)
+gboolean grac_rule_printer_cups_del_gid(uid_t gid)
 {
 	return _printer_access_del_data(FALSE, gid, NULL);
 }
@@ -316,7 +326,7 @@ gboolean grac_rule_printer_cups_del_gid  (uid_t gid)
   @param	[in]	user	사용자명 (리눅스 사용자명)
   @return gboolean	성공여부
 */
-gboolean grac_rule_printer_cups_del_user (char *user)
+gboolean grac_rule_printer_cups_del_user(char *user)
 {
 	return _printer_access_del_data(TRUE, -1, user);
 }

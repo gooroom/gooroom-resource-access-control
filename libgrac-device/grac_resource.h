@@ -1,12 +1,29 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * grac_resource.h
  *
  *  Created on: 2017. 8. 16.
- *      Author: yang
+ *      Author: gooroom@gooroom.kr
  */
 
-#ifndef _GRAC_RESOURCE_H_
-#define _GRAC_RESOURCE_H_
+#ifndef LIBGRAC_DEVICE_GRAC_RESOURCE_H_
+#define LIBGRAC_DEVICE_GRAC_RESOURCE_H_
 
 #include <glib.h>
 
@@ -39,10 +56,10 @@
 #define GRAC_PERMISSION_READWRITE	3
 
 
-char* grac_resource_get_resource_name  (int res_id);
+char* grac_resource_get_resource_name(int res_id);
 char* grac_resource_get_permission_name(int perm_id);
 
-int		grac_resource_get_resource_id  (char* res_name);
+int		grac_resource_get_resource_id(char* res_name);
 int		grac_resource_get_permission_id(char* perm_name);
 
 char* grac_resource_find_first_resource();
@@ -57,4 +74,4 @@ int	grac_resource_first_control_res_id();
 int	grac_resource_next_control_res_id();
 
 
-#endif /* _GRAC_RESOURCE_H_ */
+#endif // LIBGRAC_DEVICE_GRAC_RESOURCE_H_

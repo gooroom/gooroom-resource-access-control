@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * grac_rule_udev.c
  *
  *  Created on: 2017. 8. 16.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -13,10 +30,6 @@
   				라이브러리:	libgrac-device.so
  */
 
-#include "grac_rule_udev.h"
-#include "grac_log.h"
-#include "cutility.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,6 +39,10 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "grac_rule_udev.h"
+#include "grac_log.h"
+#include "cutility.h"
 
 typedef enum {
 	GRAC_RULE_MAP_LINE_ERROR = -1,
@@ -98,8 +115,8 @@ void grac_rule_udev_free(GracRuleUdev **pRule)
 		c_free(&rule->map_file_path);
 
 		free(rule->line_status);
-		//rule->line_max = 0;
-		//rule->line_count = 0;
+		// rule->line_max = 0;
+		// rule->line_count = 0;
 
 		free(rule);
 
@@ -116,12 +133,13 @@ static gboolean	_parse_map_info_line(
 	gboolean done = FALSE;
 
 	if (buf && res_id && perm_id && opt) {
-		char word[256];
 		char *ptr;
-		int len;
 
 		ptr = c_stristr(buf, GRAC_RULE_MAP_KEY, buf_size);
 		if (ptr) {
+			char word[256];
+			int len;
+
 			done = TRUE;
 
 			// rule map keyword
@@ -136,8 +154,7 @@ static gboolean	_parse_map_info_line(
 					*res_id = id;
 				else
 					done = FALSE;
-			}
-			else {
+			} else {
 				done = FALSE;
 			}
 			ptr += len;
@@ -146,12 +163,13 @@ static gboolean	_parse_map_info_line(
 			len = c_get_word(ptr, buf_size, NULL, word, sizeof(word));
 			if (len > 0) {
 				int id = grac_resource_get_permission_id(word);
-				if (perm_id >= 0)
-					*perm_id = id;
-				else
+				if (id >= 0) {
+					if (perm_id)
+						*perm_id = id;
+				} else {
 					done = FALSE;
-			}
-			else {
+				}
+			} else {
 				done = FALSE;
 			}
 			ptr += len;
@@ -159,8 +177,7 @@ static gboolean	_parse_map_info_line(
 			len = c_get_word(ptr, buf_size, NULL, word, sizeof(word));
 			if (len > 0) {
 				c_strcpy(opt, word, opt_size);
-			}
-			else {
+			}	else {
 				*opt = 0;
 			}
 		}  // if (ptr)
@@ -196,8 +213,7 @@ static int	_check_line_kind(char *buf, int buf_size)
 				kind = GRAC_RULE_MAP_LINE_MAPINFO;
 			else
 				kind = GRAC_RULE_MAP_LINE_COMMENT;
-		}
-		else if (ch > 0x20) {
+		}	else if (ch > 0x20) {
 			if (c_memcmp(buf, "LABEL=", 6, -1) == 0)
 				kind = GRAC_RULE_MAP_LINE_SPECIAL;
 			else
@@ -226,11 +242,11 @@ static gboolean _check_if_specified_rule(GracRule *rule, int res_id, int perm_id
 static int	get_line_count(char *file)
 {
 	FILE 	*fp;
-	char	buf[2048];
 	int		count = 0;
 
 	fp = g_fopen(file, "r");
 	if (fp != NULL) {
+		char	buf[2048];
 		while (1) {
 			if (fgets(buf, sizeof(buf), fp) == NULL)
 				break;
@@ -247,7 +263,6 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 	FILE 	*fp;
 	char	buf[1024];
 	int		idx;
-	int 	kind;
 	int		rule_seq = 0;
 	int 	map_on = 0;
 	int		header_status = 0;	// 0: not start 1:collecting -1:end of header
@@ -261,43 +276,37 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 	if (fp == NULL)
 		return FALSE;
 
-	for (idx=0; idx<udev_rule->line_count; idx++) {
+	for (idx=0; idx < udev_rule->line_count; idx++) {
 		if (fgets(buf, sizeof(buf), fp) == NULL)
 				break;
 
 		c_strtrim(buf, sizeof(buf));
-		kind = _check_line_kind(buf, sizeof(buf));
+		int kind = _check_line_kind(buf, sizeof(buf));
 
 		out_line = FALSE;
 
 		if (header_status == 0) {
 			if (kind == GRAC_RULE_MAP_LINE_EMPTY) {
 				out_line = TRUE;
-			}
-			else if (kind == GRAC_RULE_MAP_LINE_COMMENT) {
+			} else if (kind == GRAC_RULE_MAP_LINE_COMMENT) {
 				out_line = TRUE;
 				header_status = 1;
-			}
-			else {
+			}	else {
 				header_status = -1;
 			}
-		}
-		else if (header_status == 1) {
+		} else if (header_status == 1) {
 			if (kind == GRAC_RULE_MAP_LINE_EMPTY) {
 				out_line = TRUE;
 				header_status = -1;
-			}
-			else if (kind == GRAC_RULE_MAP_LINE_COMMENT) {
+			}	else if (kind == GRAC_RULE_MAP_LINE_COMMENT) {
 				out_line = TRUE;
-			}
-			else {
+			}	else {
 				header_status = -1;
 			}
 		}
 
-		if (kind == GRAC_RULE_MAP_LINE_MAPINFO ||
- 			  kind == GRAC_RULE_MAP_LINE_SPECIAL)
-		{
+		if (kind == GRAC_RULE_MAP_LINE_MAPINFO || kind == GRAC_RULE_MAP_LINE_SPECIAL)
+	    {
 			if (map_on == 0) {
 				check = FALSE;
 				rule_seq++;
@@ -325,7 +334,7 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 				// adjust flag for previous lines
 				if (check) {
 					int prev;
-					for (prev=idx-1; prev>=0; prev--) {
+					for (prev=idx-1; prev >= 0; prev--) {
 						int pseq = udev_rule->line_status[prev] & 0x3fff;
 						if (pseq == rule_seq || (udev_rule->line_status[prev] & 0x4000))
 							udev_rule->line_status[prev] |= 0x8000;
@@ -334,11 +343,10 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 					}
 				}
 			}
-		}
-		else if (kind == GRAC_RULE_MAP_LINE_SPECIAL) {
+		} else if (kind == GRAC_RULE_MAP_LINE_SPECIAL) {
 			int prev;
 			check = TRUE;
-			for (prev=idx-1; prev>=0; prev--) {
+			for (prev=idx-1; prev >= 0; prev--) {
 				int pseq = udev_rule->line_status[prev] & 0x3fff;
 				if (pseq == rule_seq || (udev_rule->line_status[prev] & 0x4000))
 					udev_rule->line_status[prev] |= 0x8000;
@@ -358,7 +366,6 @@ static gboolean _analyze_map_line_status(GracRuleUdev* udev_rule, GracRule* grac
 			map_on = 0;
 			check = FALSE;
 		}
-
 	}
 
 	fclose(fp);
@@ -379,7 +386,7 @@ static void _out_udev_rule_file_header(FILE *fp)
 static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
 {
 	gboolean res = FALSE;
-	//char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
+	// char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
 	char	*addr_key;
 	char	*addr_key1 = "ATTR{uniq}==\"";
 	char	*addr_key2 = "ATTRS{uniq}==\"";
@@ -387,19 +394,17 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 	char	*ptr2;
 	int		n, ch;
 
-	//if (c_strstr(buf, subsystem, bsize) == NULL)
-	//	return FALSE;
+	// if (c_strstr(buf, subsystem, bsize) == NULL)
+	// 	return FALSE;
 
 	ptr1 = c_strstr(buf, addr_key1, bsize);
 	if (ptr1 != NULL) {
 		addr_key = addr_key1;
-	}
-	else {
+	} else {
 		ptr1 = c_strstr(buf, addr_key2, bsize);
 		if (ptr1 != NULL) {
 			addr_key = addr_key2;
-		}
-		else {
+		} else {
 			return FALSE;
 		}
 	}
@@ -428,21 +433,18 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 	fidx = 0;
 
 	n = c_strlen(buf, fsize);
-	for (i=0; i<n; i++) {
+	for (i=0; i < n; i++) {
 		if (buf[i] == '%') {
 			if (fidx < fsize-2) {
 				format[fidx++] = '%';
 				format[fidx++] = '%';
-			}
-			else {
+			} else {
 				break;
 			}
-		}
-		else {
+		} else {
 			if (fidx < fsize-1) {
 				format[fidx++] = buf[i];
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -459,21 +461,18 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 	fidx = c_strlen(format, fsize);
 
 	n = c_strlen(ptr2, fsize);
-	for (i=0; i<n; i++) {
+	for (i=0; i < n; i++) {
 		if (ptr2[i] == '%') {
 			if (fidx < fsize-2) {
 				format[fidx++] = '%';
 				format[fidx++] = '%';
-			}
-			else {
+			} else {
 				break;
 			}
-		}
-		else {
+		}	else {
 			if (fidx < fsize-1) {
 				format[fidx++] = ptr2[i];
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -492,8 +491,7 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 				format[n+1] = 0;
 				res = TRUE;
 			}
-		}
-		else {
+		} else {
 			res = TRUE;
 		}
 	}
@@ -507,7 +505,7 @@ static gboolean _check_bluetooth_addr_line(char *buf, int bsize, char *format, i
 gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsize)
 {
 	gboolean res = FALSE;
-	//char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
+	// char	*subsystem = "SUBSYSTEM==\"bluetooth\"";
 	char	*addr_key;
 	char	*addr_key1 = "ATTR{uniq}==\"";
 	char	*addr_key2 = "ATTRS{uniq}==\"";
@@ -515,15 +513,14 @@ gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsi
 	char	*ptr2;
 	int		n, ch;
 
-//	if (c_strstr(buf, subsystem, bsize) == NULL)
-//		return FALSE;
+// 	if (c_strstr(buf, subsystem, bsize) == NULL)
+// 		return FALSE;
 
 	// ATTRS가 없으므로 전체가 유효하다.
 	ptr1 = c_strstr(buf, addr_key1, bsize);
 	if (ptr1 != NULL) {
 		addr_key = addr_key1;
-	}
-	else {
+	} else {
 		ptr1 = c_strstr(buf, addr_key2, bsize);
 		if (ptr1 != NULL) {
 			addr_key = addr_key2;
@@ -534,8 +531,7 @@ gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsi
 		if (n < fsize-1) {
 			c_strcpy(format, buf, fsize);
 			return TRUE;
-		}
-		else {
+		} else {
 			return FALSE;
 		}
 	}
@@ -592,8 +588,7 @@ gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsi
 				format[n+1] = 0;
 				res = TRUE;
 			}
-		}
-		else {
+		} else {
 			res = TRUE;
 		}
 	}
@@ -603,22 +598,20 @@ gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsi
 		int i, cnt;
 		n = c_strlen(format, fsize);
 		cnt = 0;
-		for (i=0; i<n; i++) {
+		for (i=0; i < n; i++) {
 			if (format[i] == '%')
 				cnt++;
 		}
 		if (cnt > 0) {
 			if (cnt + n > fsize-1) {
 				res = FALSE;
-			}
-			else {
-				for (i=n; i>=0; i--) {
+			} else {
+				for (i=n; i >= 0; i--) {
 					if (format[i] == '%') {
 						format[i+cnt] = '%';
 						format[i+cnt-1] = '%';
 						cnt--;
-					}
-					else {
+					} else {
 						format[i+cnt] = format[i];
 					}
 					if (cnt == 0)
@@ -633,11 +626,11 @@ gboolean _delete_bluetooth_addr_line(char *buf, int bsize, char *format, int fsi
 
 static void _adjust_mac_addr(char *mac_addr)
 {
-	int	i, n, ch;
+	int	i, n;
 
 	n = c_strlen(mac_addr, 256);
-	for (i=0; i<n; i++) {
-		ch = mac_addr[i];
+	for (i=0; i < n; i++) {
+		int ch = mac_addr[i];
 		if (ch == '.')
 			mac_addr[i] = ':';
 		else
@@ -671,29 +664,30 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 
 	int rule_idx;
 	int	out;
-	//int	seq;
+	// int	seq;
 
-	for (rule_idx=0; rule_idx<udev_rule->line_count; rule_idx++) {
+	for (rule_idx=0; rule_idx < udev_rule->line_count; rule_idx++) {
 		if (fgets(buf, sizeof(buf), in_fp) == NULL)
 				break;
 
-		//seq = udev_rule->line_status[rule_idx] & 0x3fff;
+		// seq = udev_rule->line_status[rule_idx] & 0x3fff;
 		if (udev_rule->line_status[rule_idx] & 0x8000)
 			out = 1;
 		else
 			out = 0;
 
 		if (out) {
-			if (_check_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format)) ) {
+			if (_check_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format))) {
 				int count;
 				count = grac_rule_bluetooth_mac_count(grac_rule);
+				/*
 				if (count == 0) {	// MAC 주소 지정 부분을 제거한다 -> 모든  bluetooh가  대상이 된다
-					;
 					// bluetooth 전체 장치를 위한 rule은 별도로 있다고 가정
 					// _delete_bluetooth_addr_line(buf, sizeof(buf), out_format, sizeof(out_format));
-					//g_fprintf(out_fp, "%s", out_format);
+					// g_fprintf(out_fp, "%s", out_format);
 				}
-				else {
+				*/
+				if (count > 0) {
 					int		mac_idx;
 					char	mac_addr[256];
 					for (mac_idx=0; mac_idx < count; mac_idx++) {
@@ -702,8 +696,7 @@ static gboolean _make_udev_rule_file(GracRuleUdev *udev_rule, GracRule* grac_rul
 						g_fprintf(out_fp, out_format, mac_addr);
 					}
 				}
-			}
-			else {
+			} else {
 				g_fprintf(out_fp, "%s", buf);
 			}
 		}

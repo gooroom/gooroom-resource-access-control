@@ -1,12 +1,29 @@
 /*
- * grac_rule_network_network.h
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
+ * grac_rule_network.h
  *
  *  Created on: 2016. 8. 3.
- *      Author: yang
+ *      Author: gooroom@gooroom.kr
  */
 
-#ifndef _GRAC_RULE_NETWORK_H_
-#define _GRAC_RULE_NETWORK_H_
+#ifndef LIBGRAC_DEVICE_GRAC_RULE_NETWORK_H_
+#define LIBGRAC_DEVICE_GRAC_RULE_NETWORK_H_
 
 #include <glib.h>
 
@@ -19,7 +36,7 @@ typedef enum {
 } grac_network_dir_t;
 
 // return value of get function
-//	-1: error
+// 	-1: error
 //   0: not setting
 //   1: OK
 
@@ -54,4 +71,4 @@ gboolean grac_rule_network_add_dst_port(GracRuleNetwork *rule, int ptoto_idx, ch
 int			 grac_rule_network_dst_port_count(GracRuleNetwork *rule, int ptoto_idx);
 int			 grac_rule_network_get_dst_port(GracRuleNetwork *rule, int ptoto_idx, int port_idx, char **port); // port : single or range
 
-#endif /* _GRAC_RULE_NETWORK_H_ */
+#endif // LIBGRAC_DEVICE_GRAC_RULE_NETWORK_H_

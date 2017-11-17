@@ -1,11 +1,25 @@
 /*
- ============================================================================
- Name        : grac_blockdev.c
- Author      : 
- Version     :
- Copyright   :
- Description :
- ============================================================================
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
+ * grac_blockdev.c
+ *
+ *  Created on: 2017. 10. 30.
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -16,17 +30,10 @@
   				라이브러리:	libgrac-device.so
  */
 
-#include "grac_blockdev.h"
-#include "grac_log.h"
-#include "cutility.h"
-#include "sys_file.h"
-#include "sys_etc.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
 #include <signal.h>
 #include <sys/syscall.h>
@@ -36,6 +43,12 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "grac_blockdev.h"
+#include "grac_log.h"
+#include "cutility.h"
+#include "sys_file.h"
+#include "sys_etc.h"
 
 /**********************************************************************
     get udev data
@@ -85,13 +98,11 @@ gboolean grac_udev_get_type(char *sysname, char *type, int type_size)
 		if (ptr == NULL) {
 			grac_log_debug("%s() : Can't get device type : %s", __FUNCTION__, sysname);
 			done = FALSE;
-		}
-		else {
+		} else {
 			c_strcpy(type, (char*)ptr, type_size);
 		}
 		udev_device_unref(udev_dev);
-	}
-	else {
+	} else {
 		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
@@ -122,13 +133,11 @@ gboolean grac_udev_get_node(char *sysname, char *node, int node_size)
 		if (ptr == NULL) {
 			grac_log_debug("%s() : Can't get device node : %s", __FUNCTION__, sysname);
 			done = FALSE;
-		}
-		else {
+		} else {
 			c_strcpy(node, (char*)ptr, node_size);
 		}
 		udev_device_unref(udev_dev);
-	}
-	else {
+	} else {
 		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
@@ -157,16 +166,14 @@ int	grac_udev_get_removable(char *sysname)
 		ptr = udev_device_get_sysattr_value(udev_dev, "removable");
 		if (ptr == NULL) {
 			grac_log_debug("%s() : not defined attr{removable} : %s", __FUNCTION__, sysname);
-		}
-		else {
+		} else {
 			if (c_strmatch(ptr, "1"))
 				removable = 1;
 			else
 				removable = 0;
 		}
 		udev_device_unref(udev_dev);
-	}
-	else {
+	} else {
 		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 	}
 
@@ -195,21 +202,18 @@ gboolean grac_udev_get_parent_sysname(char *sysname, char *parent, int parent_si
 		if (p_dev == NULL) {
 			grac_log_debug("%s() : Can't get parent device : %s", __FUNCTION__, sysname);
 			done = FALSE;
-		}
-		else {
+		} else {
 			const char *ptr;
 			ptr = udev_device_get_sysname(p_dev);
 			if (ptr == NULL) {
 				grac_log_debug("%s() : Can't get parent sysname : %s", __FUNCTION__, sysname);
 				done = FALSE;
-			}
-			else {
+			} else {
 				c_strcpy(parent, (char*)ptr, parent_size);
 			}
 		}
 		udev_device_unref(udev_dev);
-	}
-	else {
+	} else {
 		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
@@ -268,7 +272,7 @@ int	grac_udev_get_children_sysnames(char *sysname, char *children, int children_
 	udev_enumerate_scan_devices(udev_enum);
 
 	dev_list = udev_enumerate_get_list_entry(udev_enum);
-	udev_list_entry_foreach (dev_entry, dev_list) {
+	udev_list_entry_foreach(dev_entry, dev_list) {
 		struct udev_device  *ch_dev;
 		const char	*name;
 		name = udev_list_entry_get_name(dev_entry);
@@ -296,7 +300,7 @@ int	grac_udev_get_children_sysnames(char *sysname, char *children, int children_
 // if parent, "lsblk" get all children's point
 gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
 {
-	gboolean done = TRUE;
+	gboolean done;
 	struct udev *udev;
 	struct udev_device  *udev_dev;
 	char	dev_type[32];
@@ -324,8 +328,7 @@ gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
 		if (node == NULL) {
 			grac_log_debug("%s() : Can't get device node", __FUNCTION__, sysname);
 			done = FALSE;
-		}
-		else {
+		} else {
 			gboolean res;
 			char cmd[1024], buf[1024];
 
@@ -334,15 +337,13 @@ gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
 			if (res) {
 				c_strtrim(buf, sizeof(buf));
 				c_strcpy(mount, buf, mount_size);
-			}
-			else {
+			} else {
 				grac_log_debug("%s() : Can't get mount position", __FUNCTION__, sysname);
 				done = FALSE;
 			}
 		}
 		udev_device_unref(udev_dev);
-	}
-	else {
+	} else {
 		grac_log_debug("%s() : Can't get device info : %s", __FUNCTION__, sysname);
 		done = FALSE;
 	}
@@ -356,7 +357,7 @@ gboolean grac_udev_get_mount_point(char *sysname, char *mount, int mount_size)
     eject process
 **********************************************************************/
 
-static void _wait_udev_finish(long usec)
+static void _wait_udev_finish(int usec)
 {
 	struct udev *udev;
 	struct udev_device *udev_dev;
@@ -405,16 +406,13 @@ static void _wait_udev_finish(long usec)
 				if (udev_dev) {
 					grac_log_debug("%s() : get device info", __FUNCTION__, udev_device_get_devnode(udev_dev));
 					udev_device_unref(udev_dev);
-				}
-				else {
+				} else {
 					grac_log_debug("%s() : not received the  device info", __FUNCTION__);
 				}
 			}
-		}
-		else if (ret == 0) {
+		} else if (ret == 0) {
 			break;
-		}
-		else {
+		} else {
 			grac_log_debug("%s() : select error : %s", __FUNCTION__, strerror(errno));
 			break;
 		}
@@ -429,31 +427,30 @@ static void _wait_udev_finish(long usec)
 static gboolean _do_unmount_children(char *sysname)
 {
 	gboolean done = FALSE;
-	int		count, idx;
+	int		idx;
 	char	children[1024];
-	char	*ch_name;
 	gboolean res;
 	gboolean need_unmount;
 	int	  retry, retry_max = 10;
-	long	delay = 1000*1000;
+	int		delay = 1000*1000;
 	char	cmd[1024];
 
 	for (retry=0; retry < retry_max; retry++)  {
 		need_unmount = FALSE;
-		count = grac_udev_get_children_sysnames(sysname, children, sizeof(children));
-		ch_name = children;
-		for (idx=0; idx<count; idx++) {
+		int count = grac_udev_get_children_sysnames(sysname, children, sizeof(children));
+		char* ch_name = children;
+		for (idx=0; idx < count; idx++) {
 			char	*ptr;
-			char	mount[1024];
-			char	ch_node[256];
 			ptr = c_strchr(ch_name, ';', sizeof(children));
 			if (ptr) {
 				*ptr = 0;
 				ptr++;
 			}
 			if (ch_name[0] != 0) {
+				char	mount[1024];
 				res = grac_udev_get_mount_point(ch_name, mount, sizeof(mount));
 				if (res && mount[0]) { 			// unmount
+					char	ch_node[256];
 					grac_udev_get_node(ch_name, ch_node, sizeof(ch_node));
 					g_snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl unmount -b %s", ch_node);
 					sys_run_cmd_no_output(cmd, (char*)__FUNCTION__);
@@ -488,7 +485,7 @@ static gboolean _do_eject(char *sysname)
 	char	cmd[1024];
 	int 	removable;
 	int	  retry, retry_max = 10;
-	long	delay = 1000*1000;
+	int		delay = 1000*1000;
 	gboolean res;
 
 	res = grac_udev_get_type(sysname, dev_type, sizeof(dev_type));
@@ -529,8 +526,7 @@ static gboolean _do_eject(char *sysname)
 		if (retry >= retry_max) {
 			grac_log_error("%s() : eject error : %s", __FUNCTION__, dev_node);
 		}
-	}
-	else {
+	} else {
 		g_snprintf(cmd, sizeof(cmd), "/usr/bin/udisksctl power-off -b %s", dev_node);
 		for (retry=0; retry < retry_max; retry++)  {
 			res = _do_unmount_children(sysname);
@@ -567,7 +563,7 @@ gboolean grac_eject(char *p_sysname)
 
 	grac_log_debug("%s() : start : %s", __FUNCTION__, sysname);
 
-	int n=10;  // only for test -------------------------------------
+	int n = 10;  // only for test -------------------------------------
 	while (n > 0) {
 		done = grac_udev_get_type(sysname, dev_type, sizeof(dev_type));
 		if (done)
@@ -590,8 +586,7 @@ gboolean grac_eject(char *p_sysname)
 			return FALSE;
 		}
 		done = _do_eject(parent);
-	}
-	else {
+	} else {
 		done = _do_eject(sysname);
 	}
 
@@ -631,8 +626,7 @@ static gboolean _init_data()
 	FILE *fp = g_fopen(MONITOR_BLOCK_PATH, "w");
 	if (fp) {
 		fclose(fp);
-	}
-	else {
+	} else {
 		done = FALSE;
 		grac_log_error("grac_block_devCan't create : %s", MONITOR_BLOCK_PATH);
 	}
@@ -642,7 +636,6 @@ static gboolean _init_data()
 
 static void _free_data()
 {
-
 }
 
 static void* block_thread(void *data)
@@ -756,7 +749,7 @@ static void _stop_block_dev_monitor()
 
 gboolean grac_blockdev_init()
 {
-	gboolean done = TRUE;
+	gboolean done;
 
 	done = _init_data();
 
@@ -765,7 +758,7 @@ gboolean grac_blockdev_init()
 
 gboolean grac_blockdev_apply_disallow()
 {
-	gboolean done = TRUE;
+	gboolean done;
 
 	done = _init_data();
 	_stop_block_dev_monitor();
@@ -777,7 +770,7 @@ gboolean grac_blockdev_apply_disallow()
 
 gboolean grac_blockdev_apply_readonly()
 {
-	gboolean done = TRUE;
+	gboolean done;
 
 	done = _init_data();
 	_stop_block_dev_monitor();
@@ -789,7 +782,7 @@ gboolean grac_blockdev_apply_readonly()
 
 gboolean grac_blockdev_apply_normal()
 {
-	gboolean done = TRUE;
+	gboolean done;
 
 	done = _init_data();
 	_stop_block_dev_monitor();

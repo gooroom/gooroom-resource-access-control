@@ -1,9 +1,27 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * grac_log.c
  *
- *  Created on: 2016. 5. 17.
- *      Author: user
+ *  Created on: 2017. 5. 17.
+ *      Author: gooroom@gooroom.kr
  */
+
 
 /**
  @mainpage
@@ -35,10 +53,6 @@
 
 // 주의 : grac_log의 중첩 호출을 방지하기 위하여 이곳에서는 시스템에서 제공하는 함수만 사용한다.
 
-#include "grac_log.h"
-#include "sys_etc.h"
-#include "cutility.h"
-
 #include <stdio.h>
 #include <unistd.h>
 #include <syslog.h>
@@ -48,6 +62,10 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "grac_log.h"
+#include "sys_etc.h"
+#include "cutility.h"
 
 typedef enum
 {
@@ -59,12 +77,12 @@ typedef enum
 } GrmLogLevel;
 
 
-G_LOCK_DEFINE_STATIC (grac_log_lock);
+G_LOCK_DEFINE_STATIC(grac_log_lock);
 
 static gchar G_AppName[128] = {0};
 static int   G_AppNameSize = sizeof(G_AppName);
 
-void grac_log_set_name (gchar *appname)
+void grac_log_set_name(gchar *appname)
 {
 	c_strcpy(G_AppName, appname, G_AppNameSize);
 }
@@ -90,8 +108,8 @@ static gboolean _limit_log_file_size()
 
 		size = finfo.st_size;
 		if (size > LOG_FILE_MAX_SIZE) {
-				res = unlink(PATH_LOG_BACK);
-				res = rename(PATH_LOG_FILE, PATH_LOG_BACK);
+				unlink(PATH_LOG_BACK);
+				rename(PATH_LOG_FILE, PATH_LOG_BACK);
 				FILE *fp = g_fopen(PATH_LOG_FILE, "w");
 				if (fp)
 					fclose(fp);
@@ -118,9 +136,9 @@ static void _do_file_log(char *msg)
 	GTimeVal current;
 	struct tm *now_tm;
 	gchar time_str[128];
-	g_get_current_time (&current);
-	now_tm = localtime (&current.tv_sec);
-	strftime (time_str, sizeof(time_str), "%m.%d %H:%M:%S", now_tm);
+	g_get_current_time(&current);
+	now_tm = localtime(&current.tv_sec);
+	strftime(time_str, sizeof(time_str), "%m.%d %H:%M:%S", now_tm);
 
 	char	module[1024];
 	if (sys_get_current_process_name(module, sizeof(module)) == FALSE)
@@ -162,12 +180,11 @@ static void _do_sys_log(GrmLogLevel level, char *message)
 	gint log_priority;
 
 	if (log_opened == FALSE) {
-	  openlog (NULL, LOG_CONS | LOG_NDELAY | LOG_PID, LOG_USER);
+	  openlog(NULL, LOG_CONS | LOG_NDELAY | LOG_PID, LOG_USER);
 	  log_opened = TRUE;
 	}
 
-	switch (level)
-	{
+	switch (level) {
 	case GRM_LOG_LEVEL_DEBUG:
 		log_priority = LOG_DEBUG;
 		break;
@@ -189,12 +206,12 @@ static void _do_sys_log(GrmLogLevel level, char *message)
 		break;
 
 	default:
-		g_assert_not_reached ();
+		g_assert_not_reached();
 		break;
 	}
 
 	if (message != NULL) {
-		syslog (log_priority, "%s", message);
+		syslog(log_priority, "%s", message);
 	}
 
 	// closelog();  // calling is optional
@@ -202,13 +219,12 @@ static void _do_sys_log(GrmLogLevel level, char *message)
 
 static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 {
-	G_LOCK (grac_log_lock);
+	G_LOCK(grac_log_lock);
 
 	gchar *kind_str;
 	gchar *message;
 
-	switch (level)
-	{
+	switch (level) {
 	case GRM_LOG_LEVEL_DEBUG:
 		kind_str = "Debug";
 		break;
@@ -230,7 +246,7 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 		break;
 
 	default:
-		g_assert_not_reached ();
+		g_assert_not_reached();
 		break;
 	}
 
@@ -239,80 +255,77 @@ static void _grm_do_log(GrmLogLevel level, gchar* format, va_list var_args)
 	int		new_size;
 
 	new_size = c_strlen(G_AppName, G_AppNameSize)+2
-						+ c_strlen(kind_str,G_AppNameSize)+2
+						+ c_strlen(kind_str, G_AppNameSize)+2
 						+ c_strlen(format, G_AppNameSize)
 						+ 1;
 	if (new_size > sizeof(new_format)) {
-		message = g_strdup_vprintf (format, var_args);
-	}
-	else {
+		message = g_strdup_vprintf(format, var_args);
+	} else {
 		if (G_AppName[0] == 0)
 			g_snprintf(new_format, sizeof(new_format), "%s: %s", kind_str, format);
 		else
 			g_snprintf(new_format, sizeof(new_format), "%s: %s: %s", G_AppName, kind_str, format);
-		message = g_strdup_vprintf (new_format, var_args);
+		message = g_strdup_vprintf(new_format, var_args);
 		if (message != NULL) {
 			if (G_AppName[0] == 0)
 				g_snprintf(sys_message, sizeof(sys_message), "app=\"GRAC\" msg=\"%s\"", message);
 			else
 				g_snprintf(sys_message, sizeof(sys_message), "app=\"%s\" msg=\"%s\"", G_AppName, message);
 		}
-
 	}
 
 	if (message != NULL) {
-		_do_sys_log (level, sys_message);
+		_do_sys_log(level, sys_message);
 		_do_file_log(message);
 
-		g_free (message);
+		g_free(message);
 	}
 
-	G_UNLOCK (grac_log_lock);
-
+	G_UNLOCK(grac_log_lock);
 }
 
 void grac_log(GrmLogLevel level, gchar *format, ...)
 {
 	va_list var_args;
-	va_start (var_args, format);
+	va_start(var_args, format);
 	_grm_do_log(level, format, var_args);
-	va_end (var_args);
+	va_end(var_args);
 }
 
 /**
  @brief   DEBUG 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grac_log_debug  (gchar *format, ...)
+void grac_log_debug(gchar *format, ...)
 {
 	va_list var_args;
-	va_start (var_args, format);
+	va_start(var_args, format);
 	_grm_do_log(GRM_LOG_LEVEL_DEBUG, format, var_args);
-	va_end (var_args);
+	va_end(var_args);
 }
 
 /**
  @brief   INFO 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grac_log_info   (gchar *format, ...)
+void grac_log_info(gchar *format, ...)
 {
 	va_list var_args;
-	va_start (var_args, format);
+	va_start(var_args, format);
 	_grm_do_log(GRM_LOG_LEVEL_INFO, format, var_args);
-	va_end (var_args);
+	va_end(var_args);
 }
 
 /**
  @brief  NOTICE 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grac_log_notice (gchar *format, ...)
+void grac_log_notice(gchar *format, ...)
 {
 	va_list var_args;
-	va_start (var_args, format);
+	va_start(var_args, format);
 	_grm_do_log(GRM_LOG_LEVEL_NOTICE, format, var_args);
-	va_end (var_args);
+	va_end(var_args);
 }
 
 /**
@@ -322,19 +335,19 @@ void grac_log_notice (gchar *format, ...)
 void grac_log_warning(gchar *format, ...)
 {
 	va_list var_args;
-	va_start (var_args, format);
+	va_start(var_args, format);
 	_grm_do_log(GRM_LOG_LEVEL_WARNING, format, var_args);
-	va_end (var_args);
+	va_end(var_args);
 }
 
 /**
  @brief   ERROR 레벨 로그 저장
  @param	format 	출력 포맷
  */
-void grac_log_error  (gchar *format, ...)
+void grac_log_error(gchar *format, ...)
 {
 	va_list var_args;
-	va_start (var_args, format);
+	va_start(var_args, format);
 	_grm_do_log(GRM_LOG_LEVEL_ERROR, format, var_args);
-	va_end (var_args);
+	va_end(var_args);
 }

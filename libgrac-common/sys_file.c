@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * sys_file.c
  *
  *  Created on: 2015. 11. 19.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -64,8 +81,7 @@ gboolean sys_file_get_default_home_dir(gchar *user, gchar *home_dir, int home_di
 			return FALSE;
 		}
 		g_snprintf(home_dir, home_dir_size, "%s%s/", base, user);
-	}
-	else {
+	} else {
 		if (home_dir_size < c_strlen(get_pwd.pw_dir, PATH_MAX) + 2) {
 			c_free(&buffer);
 			return FALSE;
@@ -167,8 +183,7 @@ gboolean sys_file_change_owner_group(gchar *path, gchar* owner, gchar* group)
 	if (c_strlen(owner, NAME_MAX) <= 0) {
 		owner = org_pwd;
 		new_uid = -1;
-	}
-	else {
+	} else {
 		res = getpwnam_r(owner, &get_pwd, pwd_buf, pwd_buf_size, &res_pwd);
 		if (res < 0 || res_pwd == NULL) {
 			goto finish;
@@ -179,8 +194,7 @@ gboolean sys_file_change_owner_group(gchar *path, gchar* owner, gchar* group)
 	if (c_strlen(group, NAME_MAX) <= 0) {
 		group = org_grp;
 		new_gid = -1;
-	}
-	else {
+	} else {
 		res = getgrnam_r(group, &get_grp, grp_buf, grp_buf_size, &res_grp);
 		if (res < 0 || res_grp == NULL)
 			goto finish;
@@ -192,18 +206,15 @@ gboolean sys_file_change_owner_group(gchar *path, gchar* owner, gchar* group)
 		if (c_strcmp(org_grp, group, NAME_MAX, -1) == 0) {
 			// no change
 			done = TRUE;
-		}
-		else { // different group
+		} else { // different group
 			if (s_chown(path, -1, new_gid) < 0)
 				done = FALSE;
 		}
-	}
-	else {
+	} else {
 		if (c_strcmp(org_grp, group, NAME_MAX, -1) == 0) { // different owner
 			if (s_chown(path, new_uid, -1) < 0)
 				done = FALSE;
-		}
-		else { // different owner, group
+		} else { // different owner, group
 			if (s_chown(path, new_uid, new_gid) < 0)
 				done = FALSE;
 		}
@@ -363,16 +374,6 @@ gboolean sys_file_set_mode_other(gchar *path, gchar *modeStr)
 }
 
 
-// a size of modee size is 10 bytes at least
-//gboolean sys_file_get_mode(gchar *path, gchar *mode);
-// a size of modee size is 4 bytes at least
-//gboolean sys_file_get_mode_user(gchar *path, gchar *mode);
-// a size of modee size is 4 bytes at least
-//gboolean sys_file_get_mode_group(gchar *path, gchar *mode);
-// a size of modee size is 4 bytes at least
-//gboolean sys_file_get_mode_other(gchar *path, gchar *mode);
-
-
 static gboolean _do_make_directory(gchar *path, gchar* owner, gchar* group, int mode)
 {
 	gboolean done = TRUE;
@@ -398,8 +399,7 @@ static gboolean _do_make_directory(gchar *path, gchar* owner, gchar* group, int 
 
 	if (mkdir(path, mode) != 0) {
 		done = FALSE;
-	}
-	else {
+	} else {
 		if (c_strlen(owner, NAME_MAX) && c_strlen(group, NAME_MAX)) {
 			done &= sys_file_change_owner_group(path, owner, group);
 		}
@@ -444,14 +444,13 @@ gboolean sys_file_make_new_directory(gchar *path, gchar* owner, gchar* group, in
 	return done;
 }
 
-int sys_file_get_length(gchar *path)
+int sys_file_get_length(const gchar *path)
 {
 	int	length = -1;
-	int	res;
 	struct stat st;
 
 	if (path) {
-		res = stat(path, &st);
+		int res = stat(path, &st);
 		if (res == 0)
 			length = st.st_size;
 	}
@@ -459,7 +458,7 @@ int sys_file_get_length(gchar *path)
 	return length;
 }
 
-gboolean sys_file_is_existing(gchar *path)
+gboolean sys_file_is_existing(const gchar *path)
 {
 	gboolean exist = FALSE;
 
@@ -472,7 +471,7 @@ gboolean sys_file_is_existing(gchar *path)
 	return exist;
 }
 
-int		sys_file_open(char *path, char *mode)
+int		sys_file_open(const char *path, char *mode)
 {
 	int	fd = -1;
 

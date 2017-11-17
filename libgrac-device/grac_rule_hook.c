@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * grac_rule_hook.c
  *
  *  Created on: 2017. 8. 16.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -12,13 +29,6 @@
   				헤더파일 :  	grac_rule_hook.h	\n
   				라이브러리:	libgrac-device.so
  */
-
-#include "grac_rule_hook.h"
-#include "grac_config.h"
-#include "grac_log.h"
-#include "cutility.h"
-#include "sys_user.h"
-#include "sys_file.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +41,13 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "grac_rule_hook.h"
+#include "grac_config.h"
+#include "grac_log.h"
+#include "cutility.h"
+#include "sys_user.h"
+#include "sys_file.h"
 
 static gboolean _create_ld_so_preload()
 {
@@ -73,11 +90,10 @@ static gboolean _create_ld_so_preload()
 
 	fp = g_fopen(preload_target, "r");
 	if (fp != NULL) {
-		int n;
 		while (1) {
 			if (fgets(buf, sizeof(buf), fp) == NULL)
 				break;
-			n = c_strlen(buf, sizeof(buf));
+			int n = c_strlen(buf, sizeof(buf));
 			if (n == 0)
 				continue;
 			last_char = buf[n-1];
@@ -101,8 +117,7 @@ static gboolean _create_ld_so_preload()
 			if (exist_screen_path == FALSE && hook_screen_path != NULL)
 				fprintf(fp, "%s\n", hook_screen_path);
 			fclose(fp);
-		}
-		else {
+		} else {
 			grac_log_error("%s(): can't open to add the hook module [%s]", __FUNCTION__, preload_target);
 			done = FALSE;
 		}
@@ -147,8 +162,6 @@ static gboolean _delete_ld_so_preload()
 
 	char	tmp_file[2048];
 	FILE	*in_fp, *out_fp;
-	char	buf1[2048];
-	char	buf2[2048];
 	gboolean out_data = FALSE;
 
 	g_snprintf(tmp_file, sizeof(tmp_file), "%s/grac_preload.tmp", (char*)grac_config_dir_grac_data());
@@ -158,6 +171,8 @@ static gboolean _delete_ld_so_preload()
 
 	out_fp = g_fopen(tmp_file, "w");
 	if (out_fp != NULL) {
+		char	buf1[2048];
+		char	buf2[2048];
 		while (1) {
 			if (fgets(buf1, sizeof(buf1), in_fp) == NULL)
 				break;
@@ -175,8 +190,7 @@ static gboolean _delete_ld_so_preload()
 			fprintf(out_fp, "%s", buf1);
 		}
 		fclose(out_fp);
-	}
-	else {
+	} else {
 		grac_log_error("%s(): can't create tmp file for preload [%s]", __FUNCTION__, tmp_file);
 		done = FALSE;
 	}
@@ -186,8 +200,7 @@ static gboolean _delete_ld_so_preload()
 		if (out_data) {
 			unlink(preload_path);
 			rename(tmp_file, preload_path);
-		}
-		else {
+		} else {
 			unlink(preload_path);
 			unlink(tmp_file);
 		}
@@ -205,8 +218,7 @@ gboolean grac_rule_hook_init()
 	if (path == NULL) {
 		grac_log_error("%s(): undefined hook module for clipboard", __FUNCTION__);
 		done = FALSE;
-	}
-	else if (sys_file_is_existing((char*)path) == FALSE) {
+	} else if (sys_file_is_existing((char*)path) == FALSE) {
 		grac_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
 		done = FALSE;
 	}
@@ -215,8 +227,7 @@ gboolean grac_rule_hook_init()
 	if (path == NULL) {
 		grac_log_error("%s(): undefined hook module for screenshooter", __FUNCTION__);
 		done = FALSE;
-	}
-	else if (sys_file_is_existing((char*)path) == FALSE) {
+	} else if (sys_file_is_existing((char*)path) == FALSE) {
 		grac_log_error("%s(): not found hook module [%s]", __FUNCTION__, path);
 		done = FALSE;
 	}
@@ -254,8 +265,7 @@ gboolean grac_rule_hook_allow_clipboard(gboolean allow)
 		fp = g_fopen(path, "w");
 		if (fp == NULL) {
 			grac_log_error("%s(): can't open [%s]", __FUNCTION__, path);
-		}
-		else {
+		} else {
 			if (allow)
 				fprintf(fp, "0\n");
 			else
@@ -279,8 +289,7 @@ gboolean grac_rule_hook_allow_screenshooter(gboolean allow)
 		fp = g_fopen(path, "w");
 		if (fp == NULL) {
 			grac_log_error("%s(): can't open [%s]", __FUNCTION__, path);
-		}
-		else {
+		} else {
 			if (allow)
 				fprintf(fp, "0\n");
 			else

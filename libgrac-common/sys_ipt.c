@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * sys_ipt.c
  *
  *  Created on: 2017. 7. 13.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -16,11 +33,6 @@
   	 	 	 	 	 	 (공식사이트에서 libiptc사용을 하지말라고 권고함)
  */
 
-#include "sys_ipt.h"
-#include "sys_etc.h"
-#include "cutility.h"
-#include "grac_log.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -29,6 +41,11 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+
+#include "sys_ipt.h"
+#include "sys_etc.h"
+#include "cutility.h"
+#include "grac_log.h"
 
 #define MAX_PORT_COUNT 100
 
@@ -44,11 +61,11 @@ struct _sys_ipt_rule {
 	// don't use
 	// old method --> this may be deleted
 	// port [0]:from  [1]:to
-	int		port_type  [2];				// 0:not set 1:normal(well-known)  2:not well-known
+	int		port_type[2];				// 0:not set 1:normal(well-known)  2:not well-known
 	int		port_number[2];
-	char	port_name  [2][32];
+	char	port_name[2][32];
 
-	//address
+	// address
 	int	addr_data_type;		// 0:no data 1:addr_data 2: set_name (ipset)
 	int	addr_version;			// 0:not set 1:data IPv4 2:IPv6
 	union {
@@ -70,7 +87,6 @@ struct _sys_ipt_rule {
 	char *src_port_str[MAX_PORT_COUNT];
 	int	dst_port_count;
 	char *dst_port_str[MAX_PORT_COUNT];
-
 };
 
 
@@ -89,9 +105,8 @@ sys_ipt_rule *sys_ipt_rule_alloc()
 
 void sys_ipt_rule_free(sys_ipt_rule **prule)
 {
-	sys_ipt_rule *rule;
-
 	if (prule) {
+		sys_ipt_rule *rule;
 		rule = *prule;
 		if (rule) {
 			sys_ipt_rule_clear_src_port(rule);
@@ -109,7 +124,7 @@ void	sys_ipt_rule_init(sys_ipt_rule *rule)
 	}
 }
 
-gboolean	sys_ipt_rule_set_target  (sys_ipt_rule *rule, int target)
+gboolean	sys_ipt_rule_set_target(sys_ipt_rule *rule, int target)
 {
 	gboolean done = FALSE;
 
@@ -123,7 +138,7 @@ gboolean	sys_ipt_rule_set_target  (sys_ipt_rule *rule, int target)
 	return done;
 }
 
-gboolean	sys_ipt_rule_set_chain   (sys_ipt_rule *rule, int chain)
+gboolean	sys_ipt_rule_set_chain(sys_ipt_rule *rule, int chain)
 {
 	gboolean done = FALSE;
 
@@ -145,16 +160,14 @@ gboolean	sys_ipt_rule_set_protocol(sys_ipt_rule *rule, int protocol)
 			rule->protocol_number = -1;
 			rule->protocol_name[0] = 0;
 			done = TRUE;
-		}
-		else {
+		} else {
 			struct protoent *ent = getprotobynumber(protocol);
 			if (ent) {
 				rule->protocol_type = 1;
 				rule->protocol_number = protocol;
 				c_strcpy(rule->protocol_name, ent->p_name, sizeof(rule->protocol_name));
 				done = TRUE;
-			}
-			else {
+			} else {
 				grac_log_error("sys_ipt.c : unknown protocol name");
 			}
 		}
@@ -168,21 +181,19 @@ gboolean	sys_ipt_rule_set_protocol_name(sys_ipt_rule *rule, char *proto_name)
 	gboolean done = FALSE;
 
 	if (rule) {
-		if (c_strcmp(proto_name, "all", 4, -2) == 0 || c_strcmp(proto_name, "ALL", 4, -2) == 0 ) {
+		if (c_strcmp(proto_name, "all", 4, -2) == 0 || c_strcmp(proto_name, "ALL", 4, -2) == 0) {
 			rule->protocol_type = 0;
 			rule->protocol_number = -1;
 			rule->protocol_name[0] = 0;
 			done = TRUE;
-		}
-		else {
+		} else {
 			struct protoent *ent = getprotobyname(proto_name);
 			if (ent) {
 				rule->protocol_type = 1;
 				rule->protocol_number = ent->p_proto;
 				c_strcpy(rule->protocol_name, ent->p_name, sizeof(rule->protocol_name));
 				done = TRUE;
-			}
-			else {
+			} else {
 				grac_log_error("sys_ipt.c : unknown protocol number");
 			}
 		}
@@ -205,7 +216,7 @@ static gboolean	_sys_ipt_rule_set_port_number(sys_ipt_rule *rule, int idx, int p
 		}
 		if (rule->protocol_number != SYS_IPT_PROTOCOL_TCP &&
 				rule->protocol_number != SYS_IPT_PROTOCOL_UDP)
-		{
+        {
 			grac_log_error("sys_ipt.c : meaningless port : protocol dose not support ports");
 			return FALSE;
 		}
@@ -219,8 +230,7 @@ static gboolean	_sys_ipt_rule_set_port_number(sys_ipt_rule *rule, int idx, int p
 			rule->port_type[idx] = 1;
 			rule->port_number[idx] = ent->s_port;
 			c_strcpy(rule->port_name[idx], ent->s_name, sizeof(rule->port_name[idx]));
-		}
-		else {  // no error
+		} else {  // no error
 			rule->port_type[idx] = 2;
 			rule->port_number[idx] = port;
 			rule->port_name[idx][0] = 0;
@@ -248,7 +258,7 @@ static gboolean	_sys_ipt_rule_set_port_name(sys_ipt_rule *rule, int idx, char *n
 		}
 		if (rule->protocol_number != SYS_IPT_PROTOCOL_TCP &&
 				rule->protocol_number != SYS_IPT_PROTOCOL_UDP)
-		{
+        {
 			grac_log_error("sys_ipt.c : meaningless port : protocol dose not support ports");
 			return FALSE;
 		}
@@ -260,8 +270,7 @@ static gboolean	_sys_ipt_rule_set_port_name(sys_ipt_rule *rule, int idx, char *n
 			rule->port_number[idx] = ent->s_port;
 			c_strcpy(rule->port_name[idx], ent->s_name, sizeof(rule->port_name[idx]));
 			done = TRUE;
-		}
-		else {  // error
+		} else {  // error
 			rule->port_type[idx] = 0;
 			rule->port_name[idx][0] = 0;
 			grac_log_error("sys_ipt.c : unknown port name");
@@ -269,15 +278,14 @@ static gboolean	_sys_ipt_rule_set_port_name(sys_ipt_rule *rule, int idx, char *n
 	}
 
 	return done;
-
 }
 
-gboolean	sys_ipt_rule_set_port (sys_ipt_rule *rule, int port)
+gboolean	sys_ipt_rule_set_port(sys_ipt_rule *rule, int port)
 {
 	gboolean done = FALSE;
 
 	if (rule) {
-		done = _sys_ipt_rule_set_port_number (rule, 0, port);
+		done = _sys_ipt_rule_set_port_number(rule, 0, port);
 		rule->port_type[1] = 0;
 		rule->port_name[1][0] = 0;
 	}
@@ -290,19 +298,19 @@ gboolean	sys_ipt_rule_set_port2(sys_ipt_rule *rule, int from_port, int to_port)
 	gboolean done = FALSE;
 
 	if (rule) {
-		done  = _sys_ipt_rule_set_port_number (rule, 0, from_port);
-		done &= _sys_ipt_rule_set_port_number (rule, 1, to_port);
+		done  = _sys_ipt_rule_set_port_number(rule, 0, from_port);
+		done &= _sys_ipt_rule_set_port_number(rule, 1, to_port);
 	}
 
 	return done;
 }
 
-gboolean	sys_ipt_rule_set_port_name (sys_ipt_rule *rule, gchar *name)
+gboolean	sys_ipt_rule_set_port_name(sys_ipt_rule *rule, gchar *name)
 {
 	gboolean done = FALSE;
 
 	if (rule) {
-		done = _sys_ipt_rule_set_port_name (rule, 0, name);
+		done = _sys_ipt_rule_set_port_name(rule, 0, name);
 		rule->port_type[1] = 0;
 		rule->port_name[1][0] = 0;
 	}
@@ -336,8 +344,7 @@ gboolean	sys_ipt_rule_set_port_str(sys_ipt_rule *rule, gchar *port_str)
 
 		if (ptr == NULL) {
 			done  = _sys_ipt_rule_set_port_name(rule, 0, port_str);
-		}
-		else {
+		} else {
 			char ch = *ptr;
 			*ptr = 0;
 			done  = _sys_ipt_rule_set_port_name(rule, 0, port_str);
@@ -347,14 +354,12 @@ gboolean	sys_ipt_rule_set_port_str(sys_ipt_rule *rule, gchar *port_str)
 	}
 
 	return done;
-
 }
 
 void			sys_ipt_rule_clear_src_port(sys_ipt_rule *rule)
 {
-	int	i;
-
 	if (rule) {
+		int	i;
 		for (i=0; i < rule->src_port_count; i++) {
 			if (rule->src_port_str[i])
 				free(rule->src_port_str[i]);
@@ -366,9 +371,8 @@ void			sys_ipt_rule_clear_src_port(sys_ipt_rule *rule)
 
 void			sys_ipt_rule_clear_dst_port(sys_ipt_rule *rule)
 {
-	int	i;
-
 	if (rule) {
+		int	i;
 		for (i=0; i < rule->dst_port_count; i++) {
 			if (rule->dst_port_str[i])
 				free(rule->dst_port_str[i]);
@@ -379,7 +383,7 @@ void			sys_ipt_rule_clear_dst_port(sys_ipt_rule *rule)
 }
 
 // single or range
-gboolean	sys_ipt_rule_add_src_port_str (sys_ipt_rule *rule, gchar *port_str)
+gboolean	sys_ipt_rule_add_src_port_str(sys_ipt_rule *rule, gchar *port_str)
 {
 	gboolean done = FALSE;
 
@@ -404,7 +408,7 @@ gboolean	sys_ipt_rule_add_src_port_str (sys_ipt_rule *rule, gchar *port_str)
 }
 
 // single or range
-gboolean	sys_ipt_rule_add_dst_port_str (sys_ipt_rule *rule, gchar *port_str)
+gboolean	sys_ipt_rule_add_dst_port_str(sys_ipt_rule *rule, gchar *port_str)
 {
 	gboolean done = FALSE;
 
@@ -429,7 +433,7 @@ gboolean	sys_ipt_rule_add_dst_port_str (sys_ipt_rule *rule, gchar *port_str)
 }
 
 
-gboolean	sys_ipt_rule_set_addr (sys_ipt_rule *rule, guint8 addr[4])
+gboolean	sys_ipt_rule_set_addr(sys_ipt_rule *rule, guint8 addr[4])
 {
 	gboolean done = FALSE;
 
@@ -450,7 +454,7 @@ gboolean	sys_ipt_rule_set_addr (sys_ipt_rule *rule, guint8 addr[4])
 	return done;
 }
 
-gboolean	sys_ipt_rule_set_addr6 (sys_ipt_rule *rule, guint16 addr[8])
+gboolean	sys_ipt_rule_set_addr6(sys_ipt_rule *rule, guint16 addr[8])
 {
 	gboolean done = FALSE;
 
@@ -471,7 +475,7 @@ gboolean	sys_ipt_rule_set_addr6 (sys_ipt_rule *rule, guint16 addr[8])
 	return done;
 }
 
-gboolean	sys_ipt_rule_set_addr_str (sys_ipt_rule *rule, gchar *addr_str)
+gboolean	sys_ipt_rule_set_addr_str(sys_ipt_rule *rule, gchar *addr_str)
 {
 	gboolean done = FALSE;
 
@@ -484,8 +488,7 @@ gboolean	sys_ipt_rule_set_addr_str (sys_ipt_rule *rule, gchar *addr_str)
 			c_strcpy(rule->addr_str, addr_str, sizeof(rule->addr_str));
 			c_memcpy(rule->addr_data.ip_v4, &inaddr, sizeof(rule->addr_data.ip_v4));
 			done = TRUE;
-		}
-		else {
+		} else {
 			grac_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
 			rule->addr_data_type = 0;
 			rule->addr_version = 1;
@@ -511,8 +514,7 @@ gboolean	sys_ipt_rule_set_addr6_str(sys_ipt_rule *rule, gchar *addr_str)
 			c_strcpy(rule->addr_str, addr_str, sizeof(rule->addr_str));
 			c_memcpy(rule->addr_data.ip_v6, &inaddr, sizeof(rule->addr_data.ip_v6));
 			done = TRUE;
-		}
-		else {
+		} else {
 			grac_log_warning("sys_ipt_rule_set_addr_str() : %s", c_strerror(-1));
 			rule->addr_data_type = 0;
 			rule->addr_version = 2;
@@ -525,7 +527,7 @@ gboolean	sys_ipt_rule_set_addr6_str(sys_ipt_rule *rule, gchar *addr_str)
 	return done;
 }
 
-gboolean	sys_ipt_rule_set_ipset   (sys_ipt_rule *rule, gchar* setname)
+gboolean	sys_ipt_rule_set_ipset(sys_ipt_rule *rule, gchar* setname)
 {
 	gboolean done = FALSE;
 
@@ -543,7 +545,7 @@ gboolean	sys_ipt_rule_set_ipset   (sys_ipt_rule *rule, gchar* setname)
 	return done;
 }
 
-gboolean	sys_ipt_rule_set_ipset6   (sys_ipt_rule *rule, gchar* setname)
+gboolean	sys_ipt_rule_set_ipset6(sys_ipt_rule *rule, gchar* setname)
 {
 	gboolean done = FALSE;
 
@@ -593,16 +595,16 @@ gboolean	sys_ipt_rule_set_mac_addr_str(sys_ipt_rule *rule, gchar *mac_str)
 
 	if (rule && mac_str) {
 		guint	v[6];
-		int		n, i;
+		int		n;
 		char	ch;
 
 		n = sscanf(mac_str, "%x:%x:%x:%x:%x:%x%c", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &ch);
 		if (n == 6) {
-			for (i=0; i<6; i++) {
+			int i;
+			for (i=0; i < 6; i++) {
 				if (v[i] >= 0 && v[i] <= 255) {
 					mac_addr[i] = v[i];
-				}
-				else {
+				} else {
 					break;
 				}
 			}
@@ -651,8 +653,8 @@ sys_ipt *sys_ipt_alloc()
 		if (ipt->log_head == NULL ||
 				ipt->set_cmd == NULL ||
 				ipt->log_cmd == NULL ||
-				ipt->tmp_buf == NULL )
-		{
+				ipt->tmp_buf == NULL)
+        {
 			sys_ipt_free(&ipt);
 		}
 	}
@@ -697,7 +699,7 @@ gboolean	sys_ipt_clear_all(sys_ipt* ipt)
 }
 
 
-static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys_ipt_rule *rule)
+static gboolean _make_and_run_cmd(sys_ipt* ipt, gboolean append, int chain, sys_ipt_rule *rule)
 {
 	gboolean done = FALSE;
 	int	len;
@@ -734,8 +736,7 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 				g_snprintf(ipt->tmp_buf, ipt->tmp_buf_size, "/%d ", rule->mask % 129);
 			else
 				g_snprintf(ipt->tmp_buf, ipt->tmp_buf_size, "/%d ", rule->mask % 33);
-		}
-		else {
+		} else {
 			c_strcpy(ipt->tmp_buf, " ", ipt->tmp_buf_size);
 		}
 
@@ -748,8 +749,7 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 
 		if (rule->protocol_name[0] != 0) {
 			c_strcat(ipt->set_cmd, rule->protocol_name, ipt->set_cmd_size);
-		}
-		else {
+		} else {
 			g_snprintf(ipt->tmp_buf, ipt->tmp_buf_size, "%u", rule->protocol_number);
 			c_strcat(ipt->set_cmd, ipt->tmp_buf, ipt->set_cmd_size);
 		}
@@ -759,13 +759,13 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 	// port
 	if (rule->protocol_number == SYS_IPT_PROTOCOL_TCP ||
 			rule->protocol_number == SYS_IPT_PROTOCOL_UDP)
-	{
+    {
 		if (rule->src_port_count > 1 || rule->dst_port_count > 1) {
 			c_strcat(ipt->set_cmd, "-m multiport ", ipt->set_cmd_size);
 			if (rule->src_port_count > 0) {
 				int i;
 				c_strcat(ipt->set_cmd, "--sports ", ipt->set_cmd_size);
-				for (i=0; i<rule->src_port_count; i++) {
+				for (i=0; i < rule->src_port_count; i++) {
 					if (i > 0)
 						c_strcat(ipt->set_cmd, ",", ipt->set_cmd_size);
 					c_strcat(ipt->set_cmd, rule->src_port_str[i], ipt->set_cmd_size);
@@ -775,15 +775,14 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 			if (rule->dst_port_count > 0) {
 				int i;
 				c_strcat(ipt->set_cmd, "--dports ", ipt->set_cmd_size);
-				for (i=0; i<rule->dst_port_count; i++) {
+				for (i=0; i < rule->dst_port_count; i++) {
 					if (i > 0)
 						c_strcat(ipt->set_cmd, ",", ipt->set_cmd_size);
 					c_strcat(ipt->set_cmd, rule->dst_port_str[i], ipt->set_cmd_size);
 				}
 				c_strcat(ipt->set_cmd, " ", ipt->set_cmd_size);
 			}
-		}
-		else {
+		} else {
 			if (rule->src_port_count == 1) {
 				c_strcat(ipt->set_cmd, "--sport ", ipt->set_cmd_size);
 				c_strcat(ipt->set_cmd, rule->src_port_str[0], ipt->set_cmd_size);
@@ -856,7 +855,7 @@ static gboolean _make_and_run_cmd (sys_ipt* ipt, gboolean append, int chain, sys
 	return done;
 }
 
-static gboolean _apply_rule (sys_ipt* ipt, gboolean append, sys_ipt_rule *rule)
+static gboolean _apply_rule(sys_ipt* ipt, gboolean append, sys_ipt_rule *rule)
 {
 	gboolean done = FALSE;
 
@@ -865,8 +864,7 @@ static gboolean _apply_rule (sys_ipt* ipt, gboolean append, sys_ipt_rule *rule)
 		if (rule->chain_set == 0) {
 			done &= _make_and_run_cmd(ipt, append, SYS_IPT_CHAIN_B_INPUT,  rule);
 			done &= _make_and_run_cmd(ipt, append, SYS_IPT_CHAIN_B_OUTPUT, rule);
-		}
-		else {
+		} else {
 			if (rule->chain_set & SYS_IPT_CHAIN_B_INPUT)
 				done &= _make_and_run_cmd(ipt, append, SYS_IPT_CHAIN_B_INPUT, rule);
 			if (rule->chain_set & SYS_IPT_CHAIN_B_OUTPUT)
@@ -897,12 +895,12 @@ static gboolean	_sys_ipt_add_all_target_rule(sys_ipt* ipt, gboolean append, int 
 
 	sys_ipt_rule_init(&rule);
 	rule.chain_set = SYS_IPT_CHAIN_B_INOUT;
-	sys_ipt_rule_set_target (&rule, target);
+	sys_ipt_rule_set_target(&rule, target);
 
-	done &= _apply_rule (ipt, append, &rule);
+	done &= _apply_rule(ipt, append, &rule);
 
 	rule.addr_version = 2;
-	done &= _apply_rule (ipt, append, &rule);
+	done &= _apply_rule(ipt, append, &rule);
 
 	ipt->log_on = save;
 

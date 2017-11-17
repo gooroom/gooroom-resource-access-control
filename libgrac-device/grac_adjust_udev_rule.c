@@ -1,8 +1,25 @@
 /*
+ * Copyright (c) 2015 - 2017 gooroom <gooroom@gooroom.kr>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/*
  * grac_adjust_udev_rule.c
  *
  *  Created on: 2017. 9. 20.
- *      Author: user
+ *      Author: gooroom@gooroom.kr
  */
 
 /**
@@ -13,11 +30,6 @@
   				라이브러리:	libgrac-device.so
  */
 
-#include "grac_adjust_udev_rule.h"
-#include "grac_log.h"
-#include "cutility.h"
-#include "sys_etc.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,15 +39,20 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 
+#include "grac_adjust_udev_rule.h"
+#include "grac_log.h"
+#include "cutility.h"
+#include "sys_etc.h"
+
 typedef struct _GracBlockDevice GracBlockDevice;
 struct _GracBlockDevice {
 	char 		*dev_name;
 	char		*dev_type;			// "disk" "part" "rom"
 	char		*mount_point;
-//char		*sub_system;
+// char		*sub_system;
 	gboolean	readonly;
 	gboolean	removable;
-//gboolean	hotplug;
+// gboolean	hotplug;
 
 	gboolean	this_root;
 	gboolean	child_root;
@@ -74,7 +91,7 @@ void	grac_block_device_free(GracBlockDevice** pblk)
 		c_free(&blk->dev_name);
 		c_free(&blk->dev_type);
 		c_free(&blk->mount_point);
-//	c_free(&blk->sub_system);
+// 	c_free(&blk->sub_system);
 
 		free(blk);
 
@@ -122,7 +139,7 @@ gboolean grac_block_device_set_mount_point(GracBlockDevice* blk, char *mount)
 
 			if (c_strmatch(mount, "/") ||
 					c_strcmp(mount, "/boot", 5, -1) == 0)
-			{
+		    {
 				blk->this_root = TRUE;
 				if (blk->parent)
 					blk->parent->child_root = TRUE;
@@ -195,8 +212,7 @@ static gboolean	grac_block_device_list_add(GracBlockDevice* parent, GracBlockDev
 	if (parent == NULL) {
 		if (grac_block_device_list == NULL) {
 			grac_block_device_list = blk;
-		}
-		else {
+		} else {
 			GracBlockDevice	*last;
 			last = grac_block_device_list;
 			while (last) {
@@ -204,16 +220,16 @@ static gboolean	grac_block_device_list_add(GracBlockDevice* parent, GracBlockDev
 					break;
 				last = last->next;
 			}
-			last->next = blk;
-			blk->prev = last;
+			if (last) {
+				last->next = blk;
+				blk->prev = last;
+			}
 		}
-	}
-	else {
+	} else {
 		blk->parent = parent;
 		if (parent->children == NULL) {
 			parent->children = blk;
-		}
-		else {
+		} else {
 			GracBlockDevice	*last;
 			last = parent->children;
 			while (last) {
@@ -221,8 +237,10 @@ static gboolean	grac_block_device_list_add(GracBlockDevice* parent, GracBlockDev
 					break;
 				last = last->next;
 			}
-			last->next = blk;
-			blk->prev = last;
+			if (last) {
+				last->next = blk;
+				blk->prev = last;
+			}
 		}
 	}
 
@@ -330,10 +348,9 @@ static GracBlockDevice*	grac_block_device_list_find_parent(char *child_name)
 static gboolean grac_block_device_list_check_root(char *dev_name)
 {
 	gboolean res = FALSE;
-	GracBlockDevice	*find;
 
 	if (c_strlen(dev_name, 256) > 0) {
-		find = grac_block_device_list_find(dev_name, TRUE);
+		GracBlockDevice	*find = grac_block_device_list_find(dev_name, TRUE);
 		if (find) {
 			if (find->this_root || find->child_root)
 				res = TRUE;
@@ -358,14 +375,14 @@ static void	_grac_block_device_list_dump_sub(int depth, GracBlockDevice	*blk)
 	c_memset(tab, '\t', depth);
 	tab[depth] = 0;
 
-//char *form = "NAME=\"%s\" TYPE=\"%s\" RM=%d RO=%d MOUNTPOINT=\"%s\" HOTPLUG=%d SUBSYSTEMS=\"%s\"";
+// char *form = "NAME=\"%s\" TYPE=\"%s\" RM=%d RO=%d MOUNTPOINT=\"%s\" HOTPLUG=%d SUBSYSTEMS=\"%s\"";
 	char *form = "NAME=\"%s\" TYPE=\"%s\" RM=%d RO=%d MOUNTPOINT=\"%s\"";
 
 	GracBlockDevice	*cur = blk;
 	while (cur) {
 		g_printf("%s", tab);
-//	g_printf(form, 	cur->dev_name, cur->dev_type, (int)cur->removable, (int)cur->readonly,
-//							  cur->mount_point, (int)cur->hotplug, cur->sub_system);
+// 	g_printf(form, 	cur->dev_name, cur->dev_type, (int)cur->removable, (int)cur->readonly,
+// 							  cur->mount_point, (int)cur->hotplug, cur->sub_system);
 		g_printf(form, 	cur->dev_name, cur->dev_type, (int)cur->removable, (int)cur->readonly, cur->mount_point);
 		g_printf("(mounted flag %d:%d)\n", (int)cur->this_root, (int)cur->child_root);
 
@@ -373,7 +390,6 @@ static void	_grac_block_device_list_dump_sub(int depth, GracBlockDevice	*blk)
 
 		cur = cur->next;
 	}
-
 }
 
 void	grac_block_device_list_dump()
@@ -437,7 +453,7 @@ static	int	_get_key_value(char *buf, char *key, char *val, int size)
 {
 	gboolean res = FALSE;
 	int	buf_idx;
-	int	key_idx = 0, val_idx = 0;;
+	int	key_idx = 0;
 	int	ch;
 
 	*key = 0;
@@ -471,7 +487,7 @@ static	int	_get_key_value(char *buf, char *key, char *val, int size)
 	if (ch == '=' && buf[buf_idx] == '\"') {
 		buf_idx++;
 		// collect value
-		val_idx = 0;
+		int val_idx = 0;
 		while(val_idx < size-1) {
 			ch = buf[buf_idx] & 0x0ff;
 			if (ch >= 0 && ch <= 0x20)
@@ -487,8 +503,7 @@ static	int	_get_key_value(char *buf, char *key, char *val, int size)
 			res = TRUE;
 		else
 			res = FALSE;
-	}
-	else {
+	} else {
 		res = FALSE;
 	}
 
@@ -508,12 +523,12 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 		return FALSE;
 
 	int		idx;
-	int		off = 0, used_cnt;
+	int		off = 0;
 	char	key[256], val[256];
 	int		fld_cnt = 5;	// 7 for hotplug, subsystem
 
-	for (idx=0; idx<fld_cnt; idx++) {
-		used_cnt = _get_key_value(buf+off, key, val, sizeof(key));
+	for (idx=0; idx < fld_cnt; idx++) {
+		int used_cnt = _get_key_value(buf+off, key, val, sizeof(key));
 		if (used_cnt <= 0) {
 			grac_log_error("Invalid line : %s", buf);
 			break;
@@ -551,15 +566,13 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 						break;
 					}
 			}
-		}
-		else if (c_strimatch(key, "TYPE")) {
+		} else if (c_strimatch(key, "TYPE")) {
 			res = grac_block_device_set_type(blk, val);
 			if (res == FALSE) {
 				grac_log_error("Can't set type : %s", buf);
 				break;
 			}
-		}
-		else if (c_strimatch(key, "RM")) {
+		} else if (c_strimatch(key, "RM")) {
 			if (c_strmatch(val, "1"))
 				res = grac_block_device_set_removable(blk, TRUE);
 			else
@@ -568,8 +581,7 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 				grac_log_error("Can't set removable : %s", buf);
 				break;
 			}
-		}
-		else if (c_strimatch(key, "RO")) {
+		} else if (c_strimatch(key, "RO")) {
 			if (c_strmatch(val, "1"))
 				res = grac_block_device_set_readonly(blk, TRUE);
 			else
@@ -578,34 +590,13 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 				grac_log_error("Can't set readonly : %s", buf);
 				break;
 			}
-		}
-		else if (c_strimatch(key, "MOUNTPOINT")) {
+		} else if (c_strimatch(key, "MOUNTPOINT")) {
 			res = grac_block_device_set_mount_point(blk, val);
 			if (res == FALSE) {
 				grac_log_error("Can't set mount_point : %s", buf);
 				break;
 			}
-		}
-	/*
-		else if (c_strimatch(key, "HOTPLUG")) {
-			if (c_strmatch(val, "1"))
-				res = grac_block_device_set_hotplug(blk, TRUE);
-			else
-				res = grac_block_device_set_hotplug(blk, FALSE);
-			if (res == FALSE) {
-				grac_log_error("Can't set hotplug : %s", buf);
-				break;
-			}
-		}
-		else if (c_strimatch(key, "SUBSYSTEMS")) {
-			res = grac_block_device_set_sub_system(blk, val);
-			if (res == FALSE) {
-				grac_log_error("Can't set sub_system : %s", buf);
-				break;
-			}
-		}
-	*/
-		else {
+		} else {
 			grac_log_error("Invalid line  : %s", buf);
 			break;
 		}
@@ -623,10 +614,10 @@ static gboolean _make_block_device_list_complete_one(char *buf)
 static gboolean _make_block_device_list_complete()
 {
 	char	output[4096];
-	gboolean done = TRUE;
+	gboolean done;
 	char	*cmd;
 
-//cmd = "/bin/lsblk -P -n -o name,type,rm,ro,mountpoint,hotplug,subsystems";
+// cmd = "/bin/lsblk -P -n -o name,type,rm,ro,mountpoint,hotplug,subsystems";
 	cmd = "/bin/lsblk -P -n -o name,type,rm,ro,mountpoint";
 	done =  sys_run_cmd_get_output(cmd, "test", output, sizeof(output));
 	if (done == FALSE) {
@@ -738,7 +729,7 @@ static gboolean	do_adjust_udev_rule_file(char *org_path, char *adj_path)
 		match[idx] = 0;
 
 		int off;
-		for (off=0; off<idx; off++) {
+		for (off=0; off < idx; off++) {
 			ch = match[off];
 			if (ch == '[')
 				break;
@@ -756,7 +747,7 @@ static gboolean	do_adjust_udev_rule_file(char *org_path, char *adj_path)
 		}
 
 		int	dev_ch;
-		for (dev_ch=0; dev_ch<26; dev_ch++) {
+		for (dev_ch=0; dev_ch < 26; dev_ch++) {
 			chk_dev[off] = 'a' + dev_ch;
 			chk_dev[off+1] = 0;
 			if (grac_block_device_list_check_root(chk_dev) == FALSE)
@@ -766,11 +757,9 @@ static gboolean	do_adjust_udev_rule_file(char *org_path, char *adj_path)
 			if (buf[0] != '#')
 				fprintf(out, "### ");
 			fprintf(out, "%s", buf);
-		}
-		else if (match[off+1] < 'a' || match[off+1] > 'z') {
+		} else if (match[off+1] < 'a' || match[off+1] > 'z') {
 			fprintf(out, "%s", buf);
-		}
-		else {
+		} else {
 			*ptr = 0;
 			match[off+1] = 'a' + dev_ch;
 			fprintf(out, "%s%s%s", buf, match, ptr2);
@@ -791,7 +780,7 @@ gboolean	grac_adjust_udev_rule_file(char *org_path, char *adj_path)
 	gboolean res;
 
 	grac_block_device_list_make();
-	//grac_block_device_list_dump();
+	// grac_block_device_list_dump();
 
 	res = do_adjust_udev_rule_file(org_path, adj_path);
 
