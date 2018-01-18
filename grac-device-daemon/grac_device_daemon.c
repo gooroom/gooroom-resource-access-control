@@ -550,6 +550,8 @@ int main(void)
 {
 	guint owner_id;
 
+	sys_run_cmd_no_output("/sbin/modprobe usb-storage", "apply-rule");
+
 #if !GLIB_CHECK_VERSION(2, 35, 3)
 	g_type_init();
 #endif

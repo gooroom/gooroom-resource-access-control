@@ -1087,10 +1087,18 @@ static gboolean _grac_rule_apply_udev_rule(GracRule *rule)
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
 
+		cmd = "udevadm trigger -s usb -p DRIVER=usb-storage -c add";
+		res = sys_run_cmd_no_output(cmd, "apply-rule");
+		if (res == FALSE)
+			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+
+        /*
 		cmd = "udevadm trigger -s block -p ID_USB_DRIVER=usb-storage -c add";
 		res = sys_run_cmd_no_output(cmd, "apply-rule");
 		if (res == FALSE)
 			grac_log_error("%s(): can't run %s", __FUNCTION__, cmd);
+        */
+
 		done &= res;
 	}
 

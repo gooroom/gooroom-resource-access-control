@@ -11,23 +11,8 @@
 #
 # [grac_rule]  usb_memory  disallow
 #
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/eject /dev/%k", GOTO+="usb_end"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/eject /dev/%k", GOTO+="usb_end"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", ATTR{removable}=="removable", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
-
-#
-# [grac_rule]  usb_memory  disallow
-#
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="hd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
-ACTION=="add", SUBSYSTEM=="block", KERNEL=="sd[b-z]*", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="disk", RUN+="/usr/bin/grac-block.sh disallow disk /dev/%k", GOTO+="usb_end"
-
+ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", RUN+="/usr/bin/grac-apply.sh usb_memory:block disallow eject %k $devpath"
+ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", ATTR{authorized}="0", GOTO+="usb_end"
 
 #
 # USB Block Device's Partition to Read-Only
