@@ -1221,10 +1221,14 @@ static gboolean _grac_rule_apply_extra(GracRule *rule)
 		case GRAC_RESOURCE_BLUETOOTH :
 			break;
 		case GRAC_RESOURCE_PRINTER :
-			if (perm_id == GRAC_PERMISSION_ALLOW)
+			if (perm_id == GRAC_PERMISSION_ALLOW) {
 				grac_printer_apply(TRUE);
-			else
+	            sys_run_cmd_no_output("/bin/systemctl start cups-browsed", "apply-rule");
+            }
+			else {
+	            sys_run_cmd_no_output("/bin/systemctl stop cups-browsed", "apply-rule");
 				grac_printer_apply(FALSE);
+            }
 			if (perm_id == GRAC_PERMISSION_DISALLOW) {
 				_grac_rule_disallow_network_printer(rule, grac_config_network_printer_port());
 			}
