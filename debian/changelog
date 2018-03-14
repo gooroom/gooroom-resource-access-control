@@ -1,3 +1,16 @@
+gooroom-resource-access-control (0.2.2+grm1u1) unstable; urgency=medium
+
+  [ shyang ]
+  * [bdeb002d] Modified to remove some checking results of Cpplint and CppCheck
+
+  [ hmkim ]
+  * [b5ed5b00] (bug fix) usb ata disk which bas been connected to terminal on boot is not disallowed.
+  * [c35d0780] added cups-browsed control against shared printer auto detection.
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Wed, 14 Mar 2018 17:52:40 +0900
+
 gooroom-resource-access-control (0.2.1+grm1u1) unstable; urgency=medium
 
   [ yang ]
