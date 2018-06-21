@@ -84,6 +84,26 @@ echo  "N=${RESNAME}" "I=${INFTYPE}" "S=${SSYSTEM}" "P=${RESPERM}" "M=${METHODS}"
 LOGMSG="GRAC: cause=\"${RESPERM}\" kind=\"${RESNAME}\" device=\"${DEVPATH}\""
 
 if [ "${RESPERM}" = "disallow" ] ; then
+    if [ ${RESNAME} = "SOUND" ] && [ ${USERNAME} != "" ]; then
+        MYUID=`id ${USERNAME} | sed "s/^uid=//;s/(.*$//"`
+        FSOUND="/var/run/user/${MYUID}/grac-sound-exists-${USERNAME}"
+        if [ -f ${FSOUND} ] ; then
+            exit 0
+        else
+            /usr/bin/touch ${FSOUND}
+        fi
+    fi
+
+    if [ ${RESNAME} = "MICROPHONE" ] && [ ${USERNAME} != "" ]; then
+        MYUID=`id ${USERNAME} | sed "s/^uid=//;s/(.*$//"`
+        FMIC="/var/run/user/${MYUID}/grac-microphone-exists-${USERNAME}"
+        if [ -f ${FMIC} ] ; then
+            exit 0
+        else
+            /usr/bin/touch ${FMIC}
+        fi
+    fi
+
    MSG="가(이) 차단되었습니다."
 	out_log  "${LOGMSG}"
 	show_msg "${RESNAME}${MSG}"
