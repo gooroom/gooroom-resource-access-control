@@ -1,0 +1,70 @@
+[usb_memory]
+    [[disallow]]
+    FILTER="""
+    #ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", MODULE="usb_memory disallow $devpath"
+    ACTION=="add", SUBSYSTEM=="block", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory disallow $devpath"
+    ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory disallow $devpath"
+    """
+
+    [[read_only]]
+    FILTER="""
+    ACTION=="add", SUBSYSTEM=="block", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory read_only $devnode $env{ID_FS_LABEL}"
+    ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory read_only $devnode env{ID_FS_LABEL}"
+    """
+
+[printer]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", DEVNODE=="lp[0-9]*", MODULE="printer disallow $devpath"
+    #ACTION=="add", DRIVER=="usblp", ATTRS{bInterfaceClass}=="07", MODULE="printer disallow $devpath"
+    """ 
+    
+[sound]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", MODULE="sound disallow $devpath
+    """
+
+[microphone]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_INPUT}=="1", ENV{ID_MODEL}==".*Audio*", ENV{DEVNAME}!=".*input/event*", MODULE="microphone disallow $devpath"
+    ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", MODULE="microphone disallow $devpath"
+    """
+
+[keyboard]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", DEVNODES=="input*", ENV{ID_BUS}=="usb", ENV{ID_INPUT_KEYBOARD}=="1", MODULE="keyboard disallow $devpath"
+    """
+
+[mouse]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", DEVNODES=="input*", ENV{ID_BUS}=="usb", ENV{ID_INPUT_MOUSE}=="1", MODULE="mouse disallow $devpath"
+    """
+
+[cd_dvd]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", DEVNODE=="sr[0-9]*", ENV{ID_CDROM}=="1", MODULE="cd_dvd disallow $devpath"
+    #ACTION=="change", SUBSYSTEM=="block", DEVNODE=="sr[0-9]*", ENV{DEVTYPE}=="disk", MODULE="cd_dvd disallow $devpath"
+    """
+
+[bluetooth]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", ENV{ID_BUS}=="bluetooth", MODULE="bluetooth disallow $attrs{uniq}"
+    """
+
+[wireless]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", SUBSYSTEM=="net", ENV{DEVTYPE}=="wlan", MODULE="wireless disallow $devpath"
+    """
+
+[camera]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", DEVNODE=="video[0-9]*", SUBSYSTEM=="video4linux", ENV{ID_BUS}=="usb", MODULE="camera disallow $devpath"
+    """

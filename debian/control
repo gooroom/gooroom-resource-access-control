@@ -1,64 +1,12 @@
 Source: gooroom-resource-access-control
-Section: misc
+Section: admin
 Priority: optional
-Maintainer: gooroom <gooroom@gooroom.kr>
-Build-Depends: debhelper (>= 9), autoconf, automake, liboobs-1-dev, libglib2.0-dev,
-  xfce4-dev-tools, intltool, libtool, libgtk-3-dev, libpolkit-gobject-1-dev, libxml2-dev,
-  libacl1-dev, libcups2-dev, libselinux1-dev, libjson-c-dev, libcurl4-openssl-dev,
-  libgtk2.0-dev, libuim-dev, gooroom-security-utils, libudev-dev
+Maintainer: Gooroom Engineering Team <devel-os@gooroom.kr>
+Build-Depends: debhelper (>= 9)
 Standards-Version: 3.9.5
+Homepage: http://www.gooroom.kr
 
 Package: grac-device-daemon
-Architecture: any
-Depends: libgrac-device,
-		libgrac-common,
-		hook-clipboard,
-		hook-screenshooter,
-		libudev1,
-		libnotify-bin, bluez, udev, eject, iptables, ipset, 
-		avahi-utils,cups-client,udisks2,
-		util-linux, bsdutils, coreutils, gawk, procps,
-		${misc:Depends}
-Description: grac device daemon 
- This is a daemon to control the access to each devices on Gooroom OS. For example, network, USB, Bluetooth device.
-
-Package: libgrac-common
-Architecture: any
-Depends: ${misc:Depends}
-Description: libgrac-common
- This is a common library binary of the grac control system.
-
-Package: libgrac-common-dev
-Architecture: any
-Depends: libgrac-common,
-		${misc:Depends}
-Description: libgrac-common-dev
- This is a common library for developing application on the grac control system.
-
-Package: libgrac-device
-Architecture: any
-Depends: libgrac-common,
-		${misc:Depends}
-Description: libgrac-device
- This is a device-control library binary of the grac control system.
-
-Package: libgrac-device-dev
-Architecture: any
-Depends: libgrac-device,
-		libgrac-common-dev,
-		${misc:Depends}
-Description: libgrac-device-dev
- This is a device-control library for developing application on the grac control system.
-
-Package: hook-screenshooter
-Architecture: any
-Depends: ${misc:Depends}
-Description: hook-screenshooter
- This is a hooking module for the grac control system.
-
-Package: hook-clipboard
-Architecture: any
-Depends: ${misc:Depends}
-Description: hook-clipboard
- This is a hooking module for the grac control system.
-
+Architecture: all
+Depends: python3-dbus, python3-openssl, python3-simplejson, python3-systemd, python3-psutil, python3-pyudev, python3-configobj, python3-iptables, python3-dns
+Description: This is a daemon to control the access to each devices on Gooroom OS. For example, network, USB, Bluetooth device.

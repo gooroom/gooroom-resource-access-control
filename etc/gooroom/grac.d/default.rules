@@ -1,0 +1,18 @@
+{
+  "keyboard" : "allow",
+  "mouse" : "allow",
+  "bluetooth" : {
+    "state" : "allow"
+  },
+  "printer" : "allow",
+  "screen_capture" : "allow",
+  "sound" : "allow",
+  "usb_memory" : "allow",
+  "cd_dvd" : "allow",
+  "wireless" : "allow",
+  "camera" : "allow",
+  "microphone" : "allow",
+  "network" : {
+    "state" : "allow"
+  }
+}

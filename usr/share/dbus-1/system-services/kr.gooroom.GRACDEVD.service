@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=kr.gooroom.GRACDEVD
+Exec=/usr/bin/python3 /usr/lib/gooroom-resource-access-control/Grac.py
+User=root
+SystemdService=grac-device-daemon.service

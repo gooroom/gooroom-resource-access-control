@@ -1,7 +1,0 @@
-#!/bin/sh
-set -e
-
-systemctl stop grac-device-daemon
-
-systemctl disable grac-device-daemon
-

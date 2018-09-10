@@ -1,0 +1,17 @@
+[Unit]
+Description=GRAC Device Service
+After=udev.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/lib/gooroom-resource-access-control/Grac.py
+ExecStop=/usr/bin/python3 /usr/lib/gooroom-resource-access-control/Grac.py stop
+ExecReload=/usr/bin/python3 /usr/lib/gooroom-resource-access-control/Grac.py reload
+Restart=on-failure
+RestartSec=5
+TimeoutSec=10
+KillMode=none
+ExecStartPost=/usr/bin/grac-status.sh started $MAINPID 
+ExecStopPost=/usr/bin/grac-status.sh stopped $SERVICE_RESULT $EXIT_CODE $EXIT_STATUS
+
+[Install]
+WantedBy=multi-user.target
