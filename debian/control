@@ -8,8 +8,17 @@ Homepage: http://www.gooroom.kr
 
 Package: grac-device-daemon
 Architecture: all
-Depends: python3-dbus, python3-openssl, python3-simplejson, python3-systemd, python3-psutil, python3-pyudev, python3-configobj, python3-iptables, python3-dns
-Description: This is a daemon to control the access to each devices on Gooroom OS. For example, network, USB, Bluetooth device.
+Depends: python3-dbus, python3-openssl, python3-simplejson, python3-systemd,
+         python3-psutil, python3-pyudev, python3-configobj, python3-iptables,
+         python3-dns
+Replaces: libgrac-common (<= 0.2.2+grm1u1), libgrac-common-dev (<= 0.2.2+grm1u1),
+          libgrac-device (<= 0.2.2+grm1u1), libgrac-device-dev (<= 0.2.2+grm1u1),
+          hook-screenshooter (<= 0.2.2+grm1u1), hook-clipboar (<= 0.2.2+grm1u1)
+Breaks: libgrac-common (<= 0.2.2+grm1u1), libgrac-common-dev (<= 0.2.2+grm1u1),
+          libgrac-device (<= 0.2.2+grm1u1), libgrac-device-dev (<= 0.2.2+grm1u1),
+          hook-screenshooter (<= 0.2.2+grm1u1), hook-clipboard (<= 0.2.2+grm1u1)
+Description: This is a daemon to control the access to each devices on Gooroom OS.
+ For example, network, USB, Bluetooth device.
 
 Package: grac-editor
 Architecture: all

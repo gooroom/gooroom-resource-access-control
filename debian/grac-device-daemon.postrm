@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -e
+
+rm -rf /usr/lib/gooroom-resources-control/modules || true
+rm -rf /etc/gooroom/grac.d/ || true
+
+exit 0
