@@ -10,3 +10,8 @@ Package: grac-device-daemon
 Architecture: all
 Depends: python3-dbus, python3-openssl, python3-simplejson, python3-systemd, python3-psutil, python3-pyudev, python3-configobj, python3-iptables, python3-dns
 Description: This is a daemon to control the access to each devices on Gooroom OS. For example, network, USB, Bluetooth device.
+
+Package: grac-editor
+Architecture: all
+Depends: python3-dbus, python3-simplejson, python3-gi
+Description: This is a editor to change default.rules for media control
