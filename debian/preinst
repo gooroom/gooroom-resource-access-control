@@ -2,4 +2,5 @@
 /bin/systemctl stop grac-device-daemon
 /bin/systemctl disable grac-device-daemon
 /bin/rm -rf /etc/gooroom/grac.d/printers
-
+/bin/rm -rf /etc/gooroom/grac.d/hook-clipboard.conf
+/bin/rm -rf /etc/gooroom/grac.d/hook-screenshooter.conf
