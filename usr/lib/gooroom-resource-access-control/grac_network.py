@@ -68,13 +68,17 @@ class GracNetwork:
         try:
             json_rules = self.data_center.get_json_rules()
             network_json = json_rules[JSON_RULE_NETWORK]
-            policy_state = network_json[JSON_RULE_NETWORK_STATE]
+            if isinstance(network_json, str):
+                policy_state = network_json
+            else:
+                policy_state = network_json[JSON_RULE_NETWORK_STATE]
 
             #reset
             self.reset_iptables(policy_state)
 
             #rules
-            if not JSON_RULE_NETWORK_RULES in network_json:
+            if isinstance(network_json, str) \
+                or not JSON_RULE_NETWORK_RULES in network_json:
                 return
 
             rules_json = network_json[JSON_RULE_NETWORK_RULES]

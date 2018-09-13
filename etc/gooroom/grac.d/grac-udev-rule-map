@@ -1,14 +1,15 @@
 [usb_memory]
     [[disallow]]
     FILTER="""
-    #ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", MODULE="usb_memory disallow $devpath"
-    ACTION=="add", SUBSYSTEM=="block", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory disallow $devpath"
+    ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", MODULE="usb_memory disallow $devpath"
+    #ACTION=="add", SUBSYSTEM=="block", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory disallow $devpath"
     ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory disallow $devpath"
     """
 
     [[read_only]]
     FILTER="""
-    ACTION=="add", SUBSYSTEM=="block", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory read_only $devnode $env{ID_FS_LABEL}"
+    #ACTION=="add", SUBSYSTEM=="block", ENV{ID_USB_DRIVER}=="usb-storage", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory read_only $devnode $env{ID_FS_LABEL}"
+    ACTION=="add", SUBSYSTEM=="block", ENV{ID_USB_DRIVER}=="usb-storage", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory read_only $devnode $env{ID_FS_LABEL}"
     ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory read_only $devnode env{ID_FS_LABEL}"
     """
 
