@@ -46,13 +46,24 @@ class GracEditor:
         write on textview_log
         """
 
+        '''
         buff = self.builder.get_object('textview_log').get_buffer()
         si = buff.get_start_iter()
         ei = buff.get_end_iter()
         buff.delete(si, ei)
-
         ei = buff.get_end_iter()
-        buff.insert(ei, txt)
+        '''
+
+        buff = self.builder.get_object('textview_log').get_buffer()
+        ei = buff.get_end_iter()
+        buff.insert(ei, txt+'\n')
+        ei = buff.get_end_iter()
+        mark = buff.create_mark('end', ei, False)
+        buff = self.builder.get_object('textview_log').scroll_to_mark(
+                                                        mark, 
+                                                        0.05,
+                                                        True,
+                                                        0.0,0.0)
 
     def draw_network(self, rules):
         """
@@ -436,7 +447,10 @@ class GracEditor:
         validate address and ports
         """
 
-        if self.ip_type == 'domain':
+        if not any((address, src_port, dst_port)):
+            return 'need one of address and ports'
+
+        if self.ip_type(address) == 'domain':
             #once domain is considred as success
             pass
         else:
@@ -459,9 +473,15 @@ class GracEditor:
         #validate port
         err_msg = 'invalid port format'
 
-        src_port_items = [i.strip() for i in src_port.split(',')]
-        dst_port_items = [i.strip() for i in dst_port.split(',')]
+        src_port_items = []
+        dst_port_items = []
+        if src_port:
+            src_port_items = [i.strip() for i in src_port.split(',')]
+        if dst_port:
+            dst_port_items = [i.strip() for i in dst_port.split(',')]
+
         for port_items in (src_port_items, dst_port_items):
+            print(port_items)
             try:
                 for item in port_items:
                     if '-' in item:
@@ -520,8 +540,8 @@ class GracEditor:
         menu > File > apply
         """
 
-        #will change to systemctl
-        #will change to systemctl2
+        self.on_menu_save_activate(obj)
+
         try:
             system_bus = dbus.SystemBus()
             bus_object = system_bus.get_object(DBUS_NAME, DBUS_OBJ)
@@ -556,7 +576,7 @@ class GracEditor:
         try:
             self.draw_media(self.media_rules)
             self.draw_network(self.media_rules)
-            self.logging('load success')
+            self.logging('reload success')
         except:
             self.logging(traceback.format_exc())
         
