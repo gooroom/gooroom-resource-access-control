@@ -84,6 +84,9 @@ class Grac(dbus.service.Object):
         #NETWORK
         self.grac_network = GracNetwork(self.data_center)
 
+        #RELOAD
+        self.reload('')
+
         self._loop.run()
 
         self.logger.info('GRAC QUIT')
