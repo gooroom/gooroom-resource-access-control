@@ -1,1 +1,6 @@
-../lib/grac-editor/grac_editor.py
+#!/usr/bin/env python3
+
+if __name__ == '__main__':
+    import os
+    cmd='/usr/bin/pkexec /usr/lib/grac-editor/grac_editor.py'
+    os.system(cmd)
