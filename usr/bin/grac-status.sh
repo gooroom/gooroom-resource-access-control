@@ -30,11 +30,11 @@ if [ "${ACTION}" = "started" ] ; then
 
 elif [ "${ACTION}" = "stopped" ] ; then
 	if [ "${EXITCODE}" != "0" ] ; then
-		out_log  "2"
+		out_log  "1"
 	elif [ "${RESULT}" = "success" ] ; then
 		out_log  "1"
 	else
-		out_log  "2"
+		out_log  "1"
 	fi
 
 fi
