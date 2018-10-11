@@ -1,3 +1,24 @@
+gooroom-resource-access-control (1.1.0+grm1u1) unstable; urgency=medium
+
+  [ jongkyung.woo ]
+  * [8cfd5911] Removed unneeded packages from previous versions
+
+  [ hmkim ]
+  * [f29a3698] changed usb-memory udev rules
+  * [f8511602] changing dbus to systemctl
+  * [4069b37f] fixed whitelist tag in bluetooth rule
+  * [23ce7bf2] removed rm /etc/gooroom/grac.d in postrm(grac.d has to be remained for using previous user.rules)
+  * [e3c9965a] added pkexec
+  * [69711869] added grac-reload at startup
+  * [afa8c780] changed UI. fixed ip|port validation in network edit
+  * [f29e9c0f] removed exit tool button
+  * [6796a30e] removed grac-reload at startup
+  * [64a8a230] changed usage of exitcode in grac-status.sh
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Thu, 11 Oct 2018 11:23:41 +0900
+
 gooroom-resource-access-control (1.0.0) unstable; urgency=low
 
   * Initial Release
