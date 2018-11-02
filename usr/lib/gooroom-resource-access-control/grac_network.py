@@ -40,7 +40,7 @@ class GracNetwork:
 
         #v4 policy
         if policy_state == JSON_RULE_NETWORK_ACCEPT \
-            or police_state == JSON_RULE_ALLOW:
+            or policy_state == JSON_RULE_ALLOW:
             input_chain.set_policy(accept_policy)
             output_chain.set_policy(accept_policy)
         else:
@@ -55,7 +55,7 @@ class GracNetwork:
 
         #v6 policy
         if policy_state == JSON_RULE_NETWORK_ACCEPT \
-            or police_state == JSON_RULE_ALLOW:
+            or policy_state == JSON_RULE_ALLOW:
             input_chain6.set_policy(accept_policy)
             output_chain6.set_policy(accept_policy)
         else:
@@ -218,7 +218,7 @@ class GracNetwork:
             rule = iptc.Rule()
 
         if rule_state == JSON_RULE_NETWORK_ACCEPT \
-            or police_state == JSON_RULE_ALLOW:
+            or rule_state == JSON_RULE_ALLOW:
             rule.create_target('ACCEPT')
         else:
             rule.create_target('DROP')

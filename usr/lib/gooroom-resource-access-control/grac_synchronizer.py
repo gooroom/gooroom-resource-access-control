@@ -34,16 +34,6 @@ class GracSynchronizer:
     _logger = GracLog.get_logger()
 
     @classmethod
-    def test(cls, state, data_center):
-        """
-        test
-        """
-
-        logmsg, notimsg, grmcode = make_media_msg('sarabal', 'disallow')
-        red_alert2(logmsg, notimsg, 3, grmcode, data_center)
-        
-
-    @classmethod
     def sync_bluetooth(cls, state, data_center):
         """
         synchronize bluetooth
