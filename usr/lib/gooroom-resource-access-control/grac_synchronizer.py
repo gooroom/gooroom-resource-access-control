@@ -9,6 +9,7 @@ import os
 from grac_util import remount_readonly,bluetooth_exists
 from grac_util import search_dir,search_file_reversely,GracLog 
 from grac_util import umount_mount_readonly,red_alert
+from grac_util import make_media_msg,red_alert2
 from grac_define import *
 from grac_error import *
 
@@ -31,6 +32,16 @@ class GracSynchronizer:
                         (JSON_RULE_BLUETOOTH, MC_TYPE_NA))
 
     _logger = GracLog.get_logger()
+
+    @classmethod
+    def test(cls, state, data_center):
+        """
+        test
+        """
+
+        logmsg, notimsg, grmcode = make_media_msg('sarabal', 'disallow')
+        red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+        
 
     @classmethod
     def sync_bluetooth(cls, state, data_center):
@@ -66,7 +77,9 @@ class GracSynchronizer:
                                                                             controller, 
                                                                             mac))
                     cls._logger.info(p2.communicate()[0].decode('utf8'))
-                    red_alert(JSON_RULE_BLUETOOTH, state, data_center)
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_BLUETOOTH, state)
+                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
 
         cls._logger.info('SYNC state={}'.format(state))
             
@@ -87,7 +100,9 @@ class GracSynchronizer:
         with open(fn, 'w') as f:
             f.write('0')
             cls._logger.info('SYNC state={} authorized=0'.format(state))
-            red_alert(JSON_RULE_PRINTER, state, data_center)
+            logmsg, notimsg, grmcode = \
+                make_media_msg(JSON_RULE_PRINTER, state)
+            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
             cls._logger.debug('***** PRINTER disallow {}'.format(dn))
 
     @classmethod
@@ -115,6 +130,20 @@ class GracSynchronizer:
 
             #usb device
             if block_usb_regex.search(device_real_path):
+                #whitelist
+                serial_path = search_file_reversely(
+                                            device_real_path, 
+                                            'serial', 
+                                            REVERSE_LOOKUP_LIMIT)
+                if serial_path:
+                    with open(serial_path) as f:
+                        serial = f.read().strip('\n')
+                    for s in data_center.get_usb_memory_whitelist():
+                        if s == serial:
+                            cls._logger.info(
+                                'SYNC serial({}) is in whitelist'.format(serial))
+                            return
+
                 skeep_uuid = False
                 for usb_label_path in ('/dev/disk/by-label/*', '/dev/disk/by-uuid/*'):
                     for usb_label in glob.glob(usb_label_path):
@@ -129,7 +158,9 @@ class GracSynchronizer:
                                 'as readonly'.format(state, usb_label_realpath))
                             cls._logger.debug('***** USB read_only {} {}'.format(
                                 usb_label_realpath, mount_point))
-                            red_alert(JSON_RULE_USB_MEMORY, state, data_center)
+                            logmsg, notimsg, grmcode = \
+                                make_media_msg(JSON_RULE_USB_MEMORY, state)
+                            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
                             skeep_uuid = True
                             break
                     if skeep_uuid:
@@ -160,6 +191,21 @@ class GracSynchronizer:
 
             #usb device
             if block_usb_regex.search(device_real_path):
+                #whitelist
+                serial_path = search_file_reversely(
+                                            device_real_path, 
+                                            'serial', 
+                                            REVERSE_LOOKUP_LIMIT)
+                if serial_path:
+                    with open(serial_path) as f:
+                        serial = f.read().strip('\n')
+                    for s in data_center.get_usb_memory_whitelist():
+                        if s == serial:
+                            cls._logger.info(
+                                'SYNC serial({}) is in whitelist'.format(serial))
+                            return
+
+                #authorized
                 authorized = search_file_reversely(
                                             device_real_path, 
                                             'authorized', 
@@ -171,7 +217,9 @@ class GracSynchronizer:
                 with open(authorized, 'w') as f:
                     f.write('0')
                     cls._logger.info('SYNC state={} authorized=0'.format(state))
-                    red_alert(JSON_RULE_USB_MEMORY, state, data_center)
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_USB_MEMORY, state)
+                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
                     cls._logger.debug('***** USB disallow {}'.format(block_device))
 
 
@@ -201,7 +249,9 @@ class GracSynchronizer:
                     with open(META_FILE_PCI_RESCAN, 'a') as f:
                         f.write('sound')
                     cls._logger.info('SYNC state={} remove=1'.format(state))
-                    red_alert(JSON_RULE_SOUND, state, data_center)
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_SOUND, state)
+                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
 
     @classmethod
     def sync_microphone(cls, state, data_center):
@@ -229,7 +279,9 @@ class GracSynchronizer:
                     with open(META_FILE_PCI_RESCAN, 'a') as f:
                         f.write('microphone')
                     cls._logger.info('SYNC state={} remove=1'.format(state))
-                    red_alert(JSON_RULE_MICROPHONE, state, data_center)
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_MICROPHONE, state)
+                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
 
     @classmethod
     def sync_mouse(cls, state, data_center):
@@ -255,7 +307,9 @@ class GracSynchronizer:
                 with open(bConfigurationValue, 'w') as f:
                     f.write('0')
                     cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
-                    red_alert(JSON_RULE_MOUSE, state, data_center)
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_MOUSE, state)
+                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
 
     @classmethod
     def sync_keyboard(cls, state, data_center):
@@ -275,7 +329,9 @@ class GracSynchronizer:
         with open(bConfigurationValue, 'w') as f:
             f.write('0')
             cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
-            red_alert(JSON_RULE_KEYBOARD, state, data_center)
+            logmsg, notimsg, grmcode = \
+                make_media_msg(JSON_RULE_KEYBOARD, state)
+            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
 
     @classmethod
     def sync_cd_dvd(cls, state, data_center):
@@ -313,7 +369,9 @@ class GracSynchronizer:
                 with open(authorized, 'w') as f:
                     f.write('0')
                     cls._logger.info('SYNC state={} authorized=0'.format(state))
-                    red_alert(JSON_RULE_CD_DVD, state, data_center)
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_CD_DVD, state)
+                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
                     cls._logger.debug('***** DVD disallow {}'.format(block_device))
 
     @classmethod
@@ -345,7 +403,9 @@ class GracSynchronizer:
                         with open(META_FILE_PCI_RESCAN, 'a') as f:
                             f.write('wireless')
                         cls._logger.info('SYNC state={} remove=1'.format(state))
-                        red_alert(JSON_RULE_WIRELESS, state, data_center)
+                        logmsg, notimsg, grmcode = \
+                            make_media_msg(JSON_RULE_WIRELESS, state)
+                        red_alert2(logmsg, notimsg, 3, grmcode, data_center)
 
     @classmethod
     def sync_camera(cls, state, data_center):
@@ -370,7 +430,9 @@ class GracSynchronizer:
                 with open('{}/{}.bcvp'.format(META_ROOT, JSON_RULE_CAMERA), 'w') as f2:
                     f2.write(bConfigurationValue)
                 cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
-                red_alert(JSON_RULE_CAMERA, state, data_center)
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_CAMERA, state)
+                red_alert2(logmsg, notimsg, 3, grmcode, data_center)
 
     @classmethod
     def recover_bConfigurationValue(cls, target):

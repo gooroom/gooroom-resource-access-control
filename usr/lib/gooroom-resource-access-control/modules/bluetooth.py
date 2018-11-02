@@ -4,7 +4,8 @@
 import subprocess
 
 from grac_util import GracConfig,GracLog,grac_format_exc,search_file_reversely
-from grac_util import red_alert,bluetooth_exists
+from grac_util import make_media_msg,red_alert2
+from grac_util import bluetooth_exists
 from grac_define import *
 
 #-----------------------------------------------------------------------
@@ -35,7 +36,9 @@ def do_task(param, data_center):
                                 stderr=subprocess.PIPE)
         p1.stdout.close()
         logger.info(p2.communicate()[0].decode('utf8'))
-        red_alert(JSON_RULE_BLUETOOTH, mode, data_center)
+        logmsg, notimsg, grmcode = \
+            make_media_msg(JSON_RULE_BLUETOOTH, mode)
+        red_alert2(logmsg, notimsg, 3, grmcode, data_center)
     except:
         e = grac_format_exc()
         logger.error(e)

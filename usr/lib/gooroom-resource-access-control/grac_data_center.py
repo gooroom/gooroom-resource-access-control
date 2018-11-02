@@ -11,6 +11,7 @@ import re
 import os
 
 from grac_util import GracConfig,GracLog,verify_rule,grac_format_exc
+from grac_util import make_media_msg,red_alert2
 from grac_define import *
 
 #-----------------------------------------------------------------------
@@ -57,6 +58,7 @@ class GracDataCenter:
             self._rules_map = self.adjust_rules_map_with_json_rules(self._rules_map, self._json_rules)
             self.load_python_modules()
             self._bluetooth_whitelist = self.pick_bluetooth_whitelist(self._json_rules)
+            self._usb_memory_whitelist = self.pick_usb_memory_whitelist(self._json_rules)
 
             self.logger.info('END SHOW()')
 
@@ -254,16 +256,19 @@ class GracDataCenter:
             json_rules_path = user_json_rules_path
             try:
                 verify_rule(json_rules_path)
-                self.logger.info('{} verification OK'.format(json_rules_path))
+                m = 'The signature verification of the policy file was successful'
+                self.logger.info('{}: {}'.format(json_rules_path, m))
+                red_alert2(m, '', 5, '040006', data_center, flag='journalonly')
             except:
-                self.logger.error(grac_format_exc())
-                self.logger.info(
-                    '{} verification FAIL: opening default'.format(json_rules_path))
                 json_rules_path = default_json_rules_path
+                self.logger.error(grac_format_exc())
+                m = 'The signature verification of the policy file failed'
+                self.logger.info(
+                    '{}: {}: opening default'.format(json_rules_path, m))
+                red_alert2(m, '서명 검증 실패', 3, grmcode, data_center) 
         else:
             json_rules_path = default_json_rules_path
             
-
         with open(json_rules_path) as f:
             json_rules = json.loads(f.read().strip('\n'))
 
@@ -302,6 +307,16 @@ class GracDataCenter:
 
         return json_rules[JSON_RULE_BLUETOOTH][JSON_RULE_BLUETOOTH_MAC]
 
+    def pick_usb_memory_whitelist(self, json_rules):
+        """
+        pick usb-memory whitelist in json rules
+        """
+        
+        if not JSON_RULE_USB_MEMORY_WHITELIST in json_rules[JSON_RULE_USB_MEMORY]:
+            return []
+
+        return json_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_MEMORY_WHITELIST]
+
     def get_bluetooth_whitelist(self):
         """
         get bluetooth whitelist
@@ -311,6 +326,22 @@ class GracDataCenter:
 
         try:
             return self._bluetooth_whitelist
+
+        except:
+            raise
+
+        finally:
+            self._center_lock.release()
+
+    def get_usb_memory_whitelist(self):
+        """
+        get usb-memory whitelist
+        """
+
+        self._center_lock.acquire()
+
+        try:
+            return self._usb_memory_whitelist
 
         except:
             raise

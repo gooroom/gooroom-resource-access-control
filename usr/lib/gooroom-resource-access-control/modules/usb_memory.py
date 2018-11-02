@@ -7,8 +7,9 @@ import psutil
 import time
 import os
 
+from grac_util import remount_readonly,search_file_reversely
 from grac_util import GracConfig,GracLog,grac_format_exc
-from grac_util import red_alert,remount_readonly,search_file_reversely
+from grac_util import make_media_msg,red_alert2
 from grac_define import *
 
 #-----------------------------------------------------------------------
@@ -20,6 +21,15 @@ def do_task(param, data_center):
     logger = GracLog.get_logger()
     try:
         mode = param[0]
+
+        #whitelist
+        if param[2]:
+            serial = param[2].strip('\n')
+            for s in data_center.get_usb_memory_whitelist():
+                if s == serial:
+                    logger.info('serial({}) is in whitelist'.format(serial))
+                    return GRAC_OK
+
         if mode == JSON_RULE_DISALLOW:
             devpath = param[1]
             authorized_path = search_file_reversely(
@@ -30,7 +40,9 @@ def do_task(param, data_center):
             with open(authorized_path, 'w') as f:
                 f.write('0')
                 logger.info('mode has changed to {}'.format(mode))
-                red_alert(JSON_RULE_USB_MEMORY, mode, data_center)
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_USB_MEMORY, mode)
+                red_alert2(logmsg, notimsg, 3, grmcode, data_center)
                 logger.debug('***** USB MODULE disallow {}'.format(param[1]))
 
         elif mode == JSON_RULE_READONLY:
@@ -62,7 +74,9 @@ def remount_thread(devnode, mode, data_center):
             if parti.device == devnode:
                 remount_readonly(parti.device, parti.mountpoint)
                 logger.info('{} mode has changed'.format(devnode))
-                red_alert(JSON_RULE_USB_MEMORY, mode, data_center)
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_USB_MEMORY, mode)
+                red_alert2(logmsg, notimsg, 3, grmcode, data_center)
                 return
         time.sleep(0.1)
     logger.error('{} fail to change mode'.format(devnode))

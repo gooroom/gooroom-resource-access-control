@@ -1,4 +1,6 @@
-usr/share
+usr/share/applications
+usr/share/dbus-1
+usr/share/polkit-1
 usr/bin/grac-apply.sh
 usr/bin/grac-status.sh
 usr/lib/gooroom-resource-access-control

@@ -7,11 +7,14 @@ from gi.repository import Gtk
 
 import simplejson as json
 import traceback
+import gettext
 import signal
 import dbus
 import sys
 
 from ge_define import *
+
+gettext.install('grac-editor', '/usr/share/gooroom/locale')
 
 #-------------------------------------------------------------------------------
 class GracEditor:
@@ -40,6 +43,9 @@ class GracEditor:
 
         #DRAW NETWORK
         self.draw_network(self.media_rules)
+
+        #LANG
+        self.lang()
 
     def logging(self, txt):
         """
@@ -249,6 +255,8 @@ class GracEditor:
 
             self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_WHITELIST] = \
                 v.strip('\n').split('\n')
+            dg.hide()
+
         elif title == TITLE_WL_BLUETOOTH:
             #validate text
             validate_res = self.validate_whitelist_bluetooth(v)
@@ -564,7 +572,7 @@ class GracEditor:
         """
 
         dg = self.builder.get_object('dialog_about')
-        dg.set_title('About')
+        dg.set_title(_('About'))
         dg.run()
         dg.hide()
 
@@ -682,8 +690,132 @@ class GracEditor:
         except:
             self.logging(traceback.format_exc())
 
+    def lang(self):
+        """
+        under international flag
+        """
+
+        #main
+        self.builder.get_object('window_main').set_title(_('GRAC Editor'))
+
+        #media
+        self.builder.get_object('rdo+cd_dvd+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+printer+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+wireless+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+camera+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+keyboard+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+sound+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+mouse+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+bluetooth+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+microphone+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+usb_memory+allow').set_label(_('allow'))
+
+        self.builder.get_object('rdo+cd_dvd+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+printer+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+wireless+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+camera+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+keyboard+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+sound+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+mouse+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+bluetooth+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+microphone+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+usb_memory+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+usb_memory+read_only').set_label(_('read only'))
+
+        self.builder.get_object('lbl_usb_memory').set_label(_('USB Memory'))
+        self.builder.get_object('lbl_printer').set_label(_('Printer'))
+        self.builder.get_object('lbl_cd_dvd').set_label(_('CD/DVD'))
+        self.builder.get_object('lbl_camera').set_label(_('Camera'))
+        self.builder.get_object('lbl_sound').set_label(_('Sound'))
+        self.builder.get_object('lbl_microphone').set_label(_('Microphone'))
+        self.builder.get_object('lbl_wireless').set_label(_('Wireless'))
+        self.builder.get_object('lbl_bluetooth').set_label(_('Bluetooth'))
+        self.builder.get_object('lbl_keyboard').set_label(_('Keyboard'))
+        self.builder.get_object('lbl_mouse').set_label(_('Mouse'))
+
+        self.builder.get_object('btn_usb_memory').set_label(_('WL'))
+        self.builder.get_object('btn_bluetooth').set_label(_('WL'))
+
+        #notebook
+        self.builder.get_object('lbl_media').set_label(_('media'))
+        self.builder.get_object('lbl_network').set_label(_('network'))
+
+        #menu
+        self.builder.get_object('menuitem1').set_label(_('_File(F)'))
+        self.builder.get_object('menuitem4').set_label(_('_Help(H)'))
+        self.builder.get_object('menu_load').set_label(_('_Reload(R)'))
+        self.builder.get_object('menu_apply').set_label(_('_Apply(A)'))
+        self.builder.get_object('menu_quit').set_label(_('_Quit(Q)'))
+        self.builder.get_object('menu_about').set_label(_('_About(A)'))
+
+        #network
+        self.builder.get_object('lbl_policy').set_label(_('POLICY'))
+        self.builder.get_object('rdo_policy_accept').set_label(_('accept'))
+        self.builder.get_object('rdo_policy_drop').set_label(_('drop'))
+
+        self.builder.get_object('btn_network_add').set_label(_('add'))
+        self.builder.get_object('btn_network_del').set_label(_('del'))
+        self.builder.get_object('btn_network_edit').set_label(_('edit'))
+
+        #about
+        self.builder.get_object('lbl_about').set_label(_('Gooroom Platform\n\nGRAC Editor 1.0.0'))
+
+#-----------------------------------------------------------------------
+def check_online_account():
+    """
+    check if login-account is online-account
+    """
+
+    import struct
+    from pwd import getpwnam
+
+    with open('/var/run/utmp', 'rb') as f:
+        fc = memoryview(f.read())
+
+    utmp_fmt = '<ii32s4s32s'
+    user_id = '-'
+
+    for i in range(int(len(fc)/384)):
+        ut_type, ut_pid, ut_line, ut_id, ut_user = \
+            struct.unpack(utmp_fmt, fc[384*i:76+(384*i)])
+        ut_line = ut_line.decode('utf8').strip('\00')
+        ut_id = ut_id.decode('utf8').strip('\00')
+
+        if ut_type == 7 and ut_id == ':0':
+            user_id = ut_user.decode('utf8').strip('\00')
+
+    #check if user_id is an online account
+    with open('/etc/passwd') as f:
+        pws = f.readlines()
+
+    if user_id == '-':
+        return False, 'can not find login-account.'
+        
+    for pw in pws:
+        splited = pw.split(':')
+        if splited[0] == user_id:
+            ps = '/var/run/user/%d/gooroom/.grm-user'  % getpwnam(user_id).pw_uid
+            #user_id is a local account
+            if not 'gooroom-online-account' in splited[4] or not os.path.exists(ps):
+                user_id = '+' + user_id
+                return True, ''
+    else:
+        return False, 'online-account can not use editor.'
+
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
+
+    res, msg = check_online_account()
+    if not res:
+        md = Gtk.MessageDialog(
+            None, 
+            0, 
+            Gtk.MessageType.WARNING, 
+            Gtk.ButtonsType.CLOSE, 
+            msg)
+        md.run()
+        md.destroy()
+        sys.exit(1)
 
     ge = GracEditor()
     signal.signal(signal.SIGINT, signal.SIG_DFL)

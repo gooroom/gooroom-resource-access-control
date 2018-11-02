@@ -22,19 +22,20 @@ EXITCODE="$4"
 #
 out_log()
 {
-	/usr/bin/logger --id=$$ -p 3 -t GRAC "GRAC: errorcode=$1"
+	#/usr/bin/logger --id=$$ -p 3 -t GRAC "GRAC: errorcode=$1"
+    /usr/bin/python3 -c "from systemd import journal;journal.send('$1',SYSLOG_IDENTIFIER='GRAC',PRIORITY=$3,GRMCODE='$2')"
 }
 
 if [ "${ACTION}" = "started" ] ; then
-	out_log  "0"
+	out_log  "GRAC started successfully" "040001" 5
 
 elif [ "${ACTION}" = "stopped" ] ; then
 	if [ "${EXITCODE}" != "0" ] ; then
-		out_log  "1"
+		out_log  "GRAC stopped normally" "040002" 5
 	elif [ "${RESULT}" = "success" ] ; then
-		out_log  "1"
+		out_log  "GRAC stopped normally" "040002" 5
 	else
-		out_log  "1"
+		out_log  "GRAC stopped normally" "040002" 5
 	fi
 
 fi

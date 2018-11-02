@@ -9,6 +9,7 @@ import logging.handlers
 import configparser
 import subprocess
 import traceback
+import importlib
 import logging
 import struct
 import glob
@@ -185,17 +186,6 @@ def catch_user_id():
     return user_id
 
 #-----------------------------------------------------------------------
-def create_journal_logger():
-    """
-    create journald logger
-    """
-
-    journal_logger = logging.getLogger('GRAC')
-    journal_logger.propagate = False
-    journal_logger.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER='GRAC'))
-    return journal_logger
-
-#-----------------------------------------------------------------------
 def search_dir(from_here, dir_regex_s):
     """
     search for directory
@@ -242,8 +232,57 @@ def red_alert(target, mode, data_center):
             alert_timestamp[target] = [now, mode]
         else:
             return
-        
+
     subprocess.call(['/usr/bin/grac-apply.sh', target, mode])
+
+#-----------------------------------------------------------------------
+def make_media_msg(item, state):
+    """
+    make journald and notification messages
+    """
+
+    if state == 'disallow':
+        grmcode = '040004'
+        logmsg = '$({}) is blocked by detecting unauthorized media'.format(item)
+        notimsg = '{} 가(이) 차단되었습니다'.format(item)
+    elif state == 'read_only':
+        grmcode = '040005'
+        logmsg = '$({}) is blocked by detecting to write to read-only media'.format(item)
+        notimsg = '{} 가(이) 읽기전용으로 설정되었습니다'.format(item)
+    else:
+        grmcode = '000000'
+        logmsg = ''
+        notimsg = ''
+
+    return logmsg, notimsg, grmcode
+
+#-----------------------------------------------------------------------
+def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag='all'):
+    """
+    RED ALERT
+    """
+
+    #JOURNALD
+    journal.send(logmsg,
+                SYSLOG_IDENTIFIER='GRAC',
+                PRIORITY=priority,
+                GRMCODE=grmcode)
+
+    if flag != 'all':
+        return
+
+    #ALERT
+    try:
+        module_path = GracConfig.get_config().get('SECURITY', 'SECURITY_MODULE_PATH')
+        sys.path.append(module_path)
+        m = importlib.import_module('gooroom-security-logparser')
+        notify_level = getattr(m, 'get_notify_level')('media')
+        if notify_level > priority: #more than err(journald log level)
+            return
+    except:
+        pass
+
+    subprocess.call(['/usr/bin/grac-apply.sh', notimsg])
 
 #-----------------------------------------------------------------------
 def remount_readonly(src, dst):

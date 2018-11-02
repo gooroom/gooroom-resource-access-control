@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ ! -d usr/share/gooroom/locale/ko/LC_MESSAGES ];then
+  mkdir -p usr/share/gooroom/locale/ko/LC_MESSAGES
+  fi
+
+  msgfmt usr/lib/grac-editor/ko.po \
+    -o usr/share/gooroom/locale/ko/LC_MESSAGES/grac-editor.mo
