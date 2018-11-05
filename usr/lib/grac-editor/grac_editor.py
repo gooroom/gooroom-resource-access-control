@@ -80,7 +80,8 @@ class GracEditor:
 
         #set policy
         policy = network_rule[JSON_RULE_STATE]
-        if policy == JSON_RULE_ALLOW:
+        if policy == JSON_RULE_ALLOW \
+            or policy == NETWORK_ACCEPT:
             policy = NETWORK_ACCEPT
         else:
             policy = NETWORK_DROP
@@ -106,30 +107,54 @@ class GracEditor:
         col = Gtk.TreeViewColumn('ADDRESS', cell_renderer)
         col.set_sort_column_id(2)
 
+        if JSON_RULE_NETWORK_VERSION in network_rule:
+            server_version = network_rule[JSON_RULE_NETWORK_VERSION]
+        else:
+            server_version = '1.0'
+
         for rule in rules:
-            address = rule[JSON_RULE_NETWORK_ADDRESS]
-            state = rule[JSON_RULE_NETWORK_STATE]
-            if state == JSON_RULE_ALLOW:
-                state = NETWORK_ACCEPT
+            #SERVER VERSION 1.0
+            if server_version.startswith('1.0'):
+                address = rule[JSON_RULE_NETWORK_ADDRESS]
+                state = rule[JSON_RULE_NETWORK_STATE]
+                if state == JSON_RULE_ALLOW:
+                    state = NETWORK_ACCEPT
+                else:
+                    state = NETWORK_DROP
+                state = state.upper()
+
+                direction = rule[JSON_RULE_NETWORK_DIRECTION].upper()
+
+                if not JSON_RULE_NETWORK_PORTS in rule \
+                    or len(rule[JSON_RULE_NETWORK_PORTS]) <= 0:
+                    liststore_network.append([direction, '', address, '', '', state])
+                    continue
+                ports = rule[JSON_RULE_NETWORK_PORTS]
+
+                for port in ports:
+                    src_port = dst_port = ''
+                    if JSON_RULE_NETWORK_SRC_PORT in port:
+                        src_port = ','.join(port[JSON_RULE_NETWORK_SRC_PORT])
+                    if JSON_RULE_NETWORK_DST_PORT in port:
+                        dst_port = ','.join(port[JSON_RULE_NETWORK_DST_PORT])
+                    proto = port[JSON_RULE_NETWORK_PROTO].upper()
+                    liststore_network.append([direction, proto, address, src_port, dst_port, state])
+            #SERVER NOT VERSION 1.0
             else:
-                state = NETWORK_DROP
-            state = state.upper()
+                address = rule[JSON_RULE_NETWORK_ADDRESS]
+                state = rule[JSON_RULE_NETWORK_STATE]
+                if state == JSON_RULE_ALLOW \
+                    or state == NETWORK_ACCEPT:
+                    state = NETWORK_ACCEPT
+                else:
+                    state = NETWORK_DROP
+                state = state.upper()
 
-            direction = rule[JSON_RULE_NETWORK_DIRECTION].upper()
-            ports = rule[JSON_RULE_NETWORK_PORTS]
-
-            if not JSON_RULE_NETWORK_PORTS in rule:
-                liststore_network.append([direction, '', address, '', '', state])
-                continue
-
-            for port in ports:
-                src_port = dst_port = ''
-                if JSON_RULE_NETWORK_SRC_PORT in port:
-                    src_port = ','.join(port[JSON_RULE_NETWORK_SRC_PORT])
-                if JSON_RULE_NETWORK_DST_PORT in port:
-                    dst_port = ','.join(port[JSON_RULE_NETWORK_DST_PORT])
-                proto = port[JSON_RULE_NETWORK_PROTO].upper()
-                liststore_network.append([direction, proto, address, src_port, dst_port, state])
+                direction = rule[JSON_RULE_NETWORK_DIRECTION].upper()
+                proto = rule[JSON_RULE_NETWORK_PROTO].upper()
+                src_ports = rule[JSON_RULE_NETWORK_SRC_PORTS]
+                dst_ports = rule[JSON_RULE_NETWORK_DST_PORTS]
+                liststore_network.append([direction, proto, address, src_ports, dst_ports, state])
 
     def draw_media(self, rules):
         """
@@ -489,7 +514,6 @@ class GracEditor:
             dst_port_items = [i.strip() for i in dst_port.split(',')]
 
         for port_items in (src_port_items, dst_port_items):
-            print(port_items)
             try:
                 for item in port_items:
                     if '-' in item:
@@ -626,47 +650,76 @@ class GracEditor:
                 policy = JSON_RULE_DISALLOW
             network[JSON_RULE_NETWORK_STATE] = policy
 
+            #server version
+            if JSON_RULE_NETWORK_VERSION in network:
+                server_version = network[JSON_RULE_NETWORK_VERSION]
+            else:
+                server_version = '1.0'
+
             #iptables
             liststore_network = self.builder.get_object('liststore_network')
+            new_network_rules = []
             disassemble_rules = {}
             for ln in liststore_network:
-                direction = ln[0]
-                address = ln[2]
-                state = ln[5]
+                #SERVER VERSION 1.0
+                if server_version.startswith('1.0'):
+                    direction = ln[0]
+                    address = ln[2]
+                    state = ln[5]
 
-                proto = ln[1]
-                src_port = ln[3]
-                dst_port = ln[4]
-                
-                if (direction,address,state) in disassemble_rules:
-                    disassemble_rules[(direction,address,state)].append((proto, src_port, dst_port))
-                else:
-                    disassemble_rules[(direction,address,state)] = [(proto, src_port, dst_port)]
+                    proto = ln[1]
+                    src_port = ln[3]
+                    dst_port = ln[4]
                     
-            new_network_rules = []
-            for das, psd_list in disassemble_rules.items():
-                rule = {}
-                direction, address, state = das
-                rule[JSON_RULE_NETWORK_DIRECTION] = direction
-                rule[JSON_RULE_NETWORK_ADDRESS] = address
-
-                if state == 'ACCEPT':
-                    state = JSON_RULE_ALLOW
+                    if (direction,address,state) in disassemble_rules:
+                        disassemble_rules[(direction,address,state)].append((proto, src_port, dst_port))
+                    else:
+                        disassemble_rules[(direction,address,state)] = [(proto, src_port, dst_port)]
+                #SERVER NOT VERSION 1.0
                 else:
-                    state = JSON_RULE_DISALLOW
+                    direction = ln[0]
+                    address = ln[2]
+                    state = ln[5]
 
-                rule[JSON_RULE_NETWORK_STATE] = state
+                    proto = ln[1]
+                    src_port = ln[3]
+                    dst_port = ln[4]
+                    
+                    rule = {}
+                    rule[JSON_RULE_NETWORK_DIRECTION] = direction.lower()
+                    rule[JSON_RULE_NETWORK_ADDRESS] = address
+                    rule[JSON_RULE_NETWORK_STATE] = state.lower()
+                    rule[JSON_RULE_NETWORK_PROTO] = proto.lower()
+                    rule[JSON_RULE_NETWORK_SRC_PORTS] = src_port
+                    rule[JSON_RULE_NETWORK_DST_PORTS] = dst_port
+                    new_network_rules.append(rule)
 
-                if psd_list and len(psd_list) > 0:
-                    rule[JSON_RULE_NETWORK_PORTS] = []
-                    for psd in psd_list:
-                        proto, src_port, dst_port = psd
-                        rule[JSON_RULE_NETWORK_PORTS].append({
-                                        JSON_RULE_NETWORK_SRC_PORT:src_port.split(','),
-                                        JSON_RULE_NETWORK_PROTO:proto,
-                                        JSON_RULE_NETWORK_DST_PORT:dst_port.split(',')})
+            #SERVER VERSION 1.0
+            if server_version.startswith('1.0'):
+                for das, psd_list in disassemble_rules.items():
+                    rule = {}
+                    direction, address, state = das
+                    rule[JSON_RULE_NETWORK_DIRECTION] = direction
+                    rule[JSON_RULE_NETWORK_ADDRESS] = address
 
-                new_network_rules.append(rule)
+                    if state == 'ACCEPT':
+                        state = JSON_RULE_ALLOW
+                    else:
+                        state = JSON_RULE_DISALLOW
+
+                    rule[JSON_RULE_NETWORK_STATE] = state
+
+                    if psd_list and len(psd_list) > 0:
+                        rule[JSON_RULE_NETWORK_PORTS] = []
+                        for psd in psd_list:
+                            proto, src_port, dst_port = psd
+                            if proto or src_port or dst_port:
+                                rule[JSON_RULE_NETWORK_PORTS].append({
+                                                JSON_RULE_NETWORK_SRC_PORT:src_port.split(','),
+                                                JSON_RULE_NETWORK_PROTO:proto,
+                                                JSON_RULE_NETWORK_DST_PORT:dst_port.split(',')})
+
+                    new_network_rules.append(rule)
 
             if len(new_network_rules) > 0:
                 network[JSON_RULE_NETWORK_RULE] = new_network_rules

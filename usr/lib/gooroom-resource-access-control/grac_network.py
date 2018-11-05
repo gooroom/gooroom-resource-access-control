@@ -39,8 +39,8 @@ class GracNetwork:
         output_chain.flush()
 
         #v4 policy
-        if policy_state == JSON_RULE_NETWORK_ACCEPT \
-            or policy_state == JSON_RULE_ALLOW:
+        if policy_state.lower() == JSON_RULE_NETWORK_ACCEPT \
+            or policy_state.lower() == JSON_RULE_ALLOW:
             input_chain.set_policy(accept_policy)
             output_chain.set_policy(accept_policy)
         else:
@@ -54,8 +54,8 @@ class GracNetwork:
         output_chain6.flush()
 
         #v6 policy
-        if policy_state == JSON_RULE_NETWORK_ACCEPT \
-            or policy_state == JSON_RULE_ALLOW:
+        if policy_state.lower() == JSON_RULE_NETWORK_ACCEPT \
+            or policy_state.lower() == JSON_RULE_ALLOW:
             input_chain6.set_policy(accept_policy)
             output_chain6.set_policy(accept_policy)
         else:
@@ -70,12 +70,16 @@ class GracNetwork:
         try:
             json_rules = self.data_center.get_json_rules()
             network_json = json_rules[JSON_RULE_NETWORK]
+
             #ADDING VERSION PROCESS
+            server_version = '1.0'
 
             if isinstance(network_json, str):
                 policy_state = network_json
             else:
                 policy_state = network_json[JSON_RULE_NETWORK_STATE]
+                if 'version' in network_json:
+                    server_version = network_json[JSON_RULE_NETWORK_VERSION]
 
             #reset
             self.reset_iptables(policy_state)
@@ -86,11 +90,11 @@ class GracNetwork:
                 return
 
             rules_json = network_json[JSON_RULE_NETWORK_RULES]
+
             for rule_json in rules_json:
                 ip = rule_json[JSON_RULE_NETWORK_IPADDRESS]
-                direction_org = rule_json[JSON_RULE_NETWORK_DIRECTION]
-                rule_state = rule_json[JSON_RULE_NETWORK_STATE]
-                ports_json = rule_json[JSON_RULE_NETWORK_PORTS]
+                direction_org = rule_json[JSON_RULE_NETWORK_DIRECTION].lower()
+                rule_state = rule_json[JSON_RULE_NETWORK_STATE].lower()
 
                 directions = None
                 if direction_org == JSON_RULE_NETWORK_ALLBOUND:
@@ -103,36 +107,87 @@ class GracNetwork:
                     if not direction:
                         continue
 
-                    #no ports
-                    if len(ports_json) == 0:
-                        rule = self.create_rule(rule_state, ip)
-                        self.insert_rule(rule, direction, ip, None)
-                        continue
-                        
-                    #ports
-                    for port_json in ports_json:
-                        rule = self.create_rule(rule_state, ip)
+                    #SERVER VERSION 1.0
+                    if server_version.startswith('1.0'):
+                        if JSON_RULE_NETWORK_PORTS in rule_json:
+                            ports_json = rule_json[JSON_RULE_NETWORK_PORTS]
+                        else:
+                            ports_json = []
 
-                        protocol = port_json[JSON_RULE_NETWORK_PROTOCOL]
+                        #no ports
+                        if len(ports_json) == 0:
+                            rule = self.create_rule(rule_state, ip)
+                            self.insert_rule(rule, direction, ip, None)
+                            continue
+                            
+                        #ports
+                        for port_json in ports_json:
+                            rule = self.create_rule(rule_state, ip)
+
+                            protocol = port_json[JSON_RULE_NETWORK_PROTOCOL]
+                            rule.protocol = protocol
+
+                            if protocol != 'icmp':
+                                src_ports = self.ranged_ports_to_string(
+                                    port_json[JSON_RULE_NETWORK_SRC_PORT])
+                                dst_ports = self.ranged_ports_to_string(
+                                    port_json[JSON_RULE_NETWORK_DST_PORT])
+
+                                if src_ports:
+                                    self.logger.debug('src ports={}'.format(src_ports))
+                                    sp_match = iptc.Match(rule, 'multiport')
+                                    sp_match.sports = src_ports
+                                    rule.add_match(sp_match)
+                                if dst_ports:
+                                    self.logger.debug('dst prots={}'.format(dst_ports))
+                                    dp_match = iptc.Match(rule, 'multiport')
+                                    dp_match.dports = dst_ports
+                                    rule.add_match(dp_match)
+
+                            self.insert_rule(rule, direction, ip, protocol)
+                    #SERVER VERSION NOT 1.0
+                    else:
+                        protocol = rule_json[JSON_RULE_NETWORK_PROTOCOL].lower()
+
+                        #ICMP HERE
+                        if protocol == 'icmp':
+                            rule = self.create_rule(rule_state, ip)
+                            rule.protocol = protocol
+                            self.insert_rule(rule, direction, ip, protocol)
+                            continue
+                        elif not protocol:
+                            rule = self.create_rule(rule_state, ip)
+                            self.insert_rule(rule, direction, ip, None)
+                            continue
+
+                        src_ports = rule_json[JSON_RULE_NETWORK_SRC_PORTS]
+                        dst_ports = rule_json[JSON_RULE_NETWORK_DST_PORTS]
+
+                        #no ports
+                        if not src_ports and not dst_ports:
+                            rule = self.create_rule(rule_state, ip)
+                            rule.protocol = protocol
+                            self.insert_rule(rule, direction, ip, None)
+                            continue
+
+                        #ports
+                        rule = self.create_rule(rule_state, ip)
                         rule.protocol = protocol
 
-                        if protocol != 'icmp':
-                            src_ports = self.ranged_ports_to_string(
-                                port_json[JSON_RULE_NETWORK_SRC_PORT])
-                            dst_ports = self.ranged_ports_to_string(
-                                port_json[JSON_RULE_NETWORK_DST_PORT])
+                        if src_ports:
+                            src_ports = \
+                                self.ranged_ports_to_string(src_ports.split(','))
+                            sp_match = iptc.Match(rule, 'multiport')
+                            sp_match.sports = src_ports
+                            rule.add_match(sp_match)
 
-                            if src_ports:
-                                self.logger.debug('src ports={}'.format(src_ports))
-                                sp_match = iptc.Match(rule, 'multiport')
-                                sp_match.sports = src_ports
-                                rule.add_match(sp_match)
-                            if dst_ports:
-                                self.logger.debug('dst prots={}'.format(dst_ports))
-                                dp_match = iptc.Match(rule, 'multiport')
-                                dp_match.dports = dst_ports
-                                rule.add_match(dp_match)
-
+                        if dst_ports:
+                            dst_ports = \
+                                self.ranged_ports_to_string(dst_ports.split(','))
+                            sp_match = iptc.Match(rule, 'multiport')
+                            sp_match.dports = dst_ports
+                            rule.add_match(sp_match)
+                            
                         self.insert_rule(rule, direction, ip, protocol)
         except:
             self.logger.error(grac_format_exc())
@@ -217,8 +272,8 @@ class GracNetwork:
         else:
             rule = iptc.Rule()
 
-        if rule_state == JSON_RULE_NETWORK_ACCEPT \
-            or rule_state == JSON_RULE_ALLOW:
+        if rule_state.lower() == JSON_RULE_NETWORK_ACCEPT \
+            or rule_state.lower() == JSON_RULE_ALLOW:
             rule.create_target('ACCEPT')
         else:
             rule.create_target('DROP')
