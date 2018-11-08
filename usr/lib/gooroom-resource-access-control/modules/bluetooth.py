@@ -38,7 +38,7 @@ def do_task(param, data_center):
         logger.info(p2.communicate()[0].decode('utf8'))
         logmsg, notimsg, grmcode = \
             make_media_msg(JSON_RULE_BLUETOOTH, mode)
-        red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+        red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
     except:
         e = grac_format_exc()
         logger.error(e)

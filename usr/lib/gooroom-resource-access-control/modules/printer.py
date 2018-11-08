@@ -23,7 +23,7 @@ def do_task(param, data_center):
             logger.info('mode has changed to {}'.format(mode))
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_PRINTER, mode)
-            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
             logger.debug('***** PRINTER MODULE disallow {}'.format(param[1]))
     except:
         e = grac_format_exc()

@@ -42,7 +42,7 @@ def do_task(param, data_center):
                 logger.info('mode has changed to {}'.format(mode))
                 logmsg, notimsg, grmcode = \
                     make_media_msg(JSON_RULE_USB_MEMORY, mode)
-                red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
                 logger.debug('***** USB MODULE disallow {}'.format(param[1]))
 
         elif mode == JSON_RULE_READONLY:
@@ -76,7 +76,7 @@ def remount_thread(devnode, mode, data_center):
                 logger.info('{} mode has changed'.format(devnode))
                 logmsg, notimsg, grmcode = \
                     make_media_msg(JSON_RULE_USB_MEMORY, mode)
-                red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
                 return
         time.sleep(0.1)
     logger.error('{} fail to change mode'.format(devnode))

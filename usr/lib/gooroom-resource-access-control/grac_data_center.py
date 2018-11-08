@@ -258,14 +258,14 @@ class GracDataCenter:
                 verify_rule(json_rules_path)
                 m = 'The signature verification of the policy file was successful'
                 self.logger.info('{}: {}'.format(json_rules_path, m))
-                red_alert2(m, '', 5, '040006', data_center, flag='journalonly')
+                red_alert2(m, '', JLEVEL_DEFAULT_SHOW, '040006', data_center, flag='journalonly')
             except:
                 json_rules_path = default_json_rules_path
                 self.logger.error(grac_format_exc())
                 m = 'The signature verification of the policy file failed'
                 self.logger.info(
                     '{}: {}: opening default'.format(json_rules_path, m))
-                red_alert2(m, '서명 검증 실패', 3, grmcode, data_center) 
+                red_alert2(m, '서명 검증 실패', JLEVEL_DEFAULT_NOTI, grmcode, data_center) 
         else:
             json_rules_path = default_json_rules_path
             

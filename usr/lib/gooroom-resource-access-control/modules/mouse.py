@@ -28,7 +28,7 @@ def do_task(param, data_center):
             logger.info('mode has changed to {}'.format(mode))
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_MOUSE, mode)
-            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
     except:
         e = grac_format_exc()
         logger.error(e)

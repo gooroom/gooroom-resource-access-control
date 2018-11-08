@@ -69,7 +69,7 @@ class GracSynchronizer:
                     cls._logger.info(p2.communicate()[0].decode('utf8'))
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_BLUETOOTH, state)
-                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
         cls._logger.info('SYNC state={}'.format(state))
             
@@ -92,7 +92,7 @@ class GracSynchronizer:
             cls._logger.info('SYNC state={} authorized=0'.format(state))
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_PRINTER, state)
-            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
             cls._logger.debug('***** PRINTER disallow {}'.format(dn))
 
     @classmethod
@@ -150,7 +150,7 @@ class GracSynchronizer:
                                 usb_label_realpath, mount_point))
                             logmsg, notimsg, grmcode = \
                                 make_media_msg(JSON_RULE_USB_MEMORY, state)
-                            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
                             skeep_uuid = True
                             break
                     if skeep_uuid:
@@ -209,7 +209,7 @@ class GracSynchronizer:
                     cls._logger.info('SYNC state={} authorized=0'.format(state))
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_USB_MEMORY, state)
-                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
                     cls._logger.debug('***** USB disallow {}'.format(block_device))
 
 
@@ -241,7 +241,7 @@ class GracSynchronizer:
                     cls._logger.info('SYNC state={} remove=1'.format(state))
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_SOUND, state)
-                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
     @classmethod
     def sync_microphone(cls, state, data_center):
@@ -271,7 +271,7 @@ class GracSynchronizer:
                     cls._logger.info('SYNC state={} remove=1'.format(state))
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_MICROPHONE, state)
-                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
     @classmethod
     def sync_mouse(cls, state, data_center):
@@ -299,7 +299,7 @@ class GracSynchronizer:
                     cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_MOUSE, state)
-                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
     @classmethod
     def sync_keyboard(cls, state, data_center):
@@ -321,7 +321,7 @@ class GracSynchronizer:
             cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_KEYBOARD, state)
-            red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
     @classmethod
     def sync_cd_dvd(cls, state, data_center):
@@ -361,7 +361,7 @@ class GracSynchronizer:
                     cls._logger.info('SYNC state={} authorized=0'.format(state))
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_CD_DVD, state)
-                    red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
                     cls._logger.debug('***** DVD disallow {}'.format(block_device))
 
     @classmethod
@@ -395,7 +395,7 @@ class GracSynchronizer:
                         cls._logger.info('SYNC state={} remove=1'.format(state))
                         logmsg, notimsg, grmcode = \
                             make_media_msg(JSON_RULE_WIRELESS, state)
-                        red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                        red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
     @classmethod
     def sync_camera(cls, state, data_center):
@@ -422,7 +422,7 @@ class GracSynchronizer:
                 cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
                 logmsg, notimsg, grmcode = \
                     make_media_msg(JSON_RULE_CAMERA, state)
-                red_alert2(logmsg, notimsg, 3, grmcode, data_center)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
     @classmethod
     def recover_bConfigurationValue(cls, target):

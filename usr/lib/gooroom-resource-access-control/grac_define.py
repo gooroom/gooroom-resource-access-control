@@ -81,3 +81,7 @@ MC_TYPE_AUTH = 'authorized'
 MC_TYPE_REMOVE = 'remove'
 MC_TYPE_NA = 'na'
 MC_TYPE_BCONFIG = 'bConfigurationValue'
+
+#journal log level
+JLEVEL_DEFAULT_NOTI = 2
+JLEVEL_DEFAULT_SHOW = 5
