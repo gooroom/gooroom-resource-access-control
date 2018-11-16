@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48px" height="48px" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->
+    <title>ic_control</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="ic_control" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-6-Copy-11">
+            <rect id="Rectangle-2-Copy-2" fill="#49546A" x="0" y="0" width="48" height="48" rx="10"></rect>
+            <circle id="Oval-6" fill="#FFFFFF" cx="16" cy="24" r="6"></circle>
+        </g>
+        <path d="M21,18 L32,18 C35.3137085,18 38,20.6862915 38,24 C38,27.3137085 35.3137085,30 32,30 L21,30 C21.6441715,29.4280725 22.1955301,28.7528104 22.6284413,28 L32,28 C34.209139,28 36,26.209139 36,24 C36,21.790861 34.209139,20 32,20 L22.6284413,20 C22.1955301,19.2471896 21.6441715,18.5719275 21,18 Z" id="Combined-Shape" fill="#FFFFFF"></path>
+    </g>
+</svg>
