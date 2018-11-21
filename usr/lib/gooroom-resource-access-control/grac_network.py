@@ -133,12 +133,12 @@ class GracNetwork:
                                 dst_ports = self.ranged_ports_to_string(
                                     port_json[JSON_RULE_NETWORK_DST_PORT])
 
-                                if src_ports:
+                                if src_ports and len(src_ports) > 0 and src_ports[0]:
                                     self.logger.debug('src ports={}'.format(src_ports))
                                     sp_match = iptc.Match(rule, 'multiport')
                                     sp_match.sports = src_ports
                                     rule.add_match(sp_match)
-                                if dst_ports:
+                                if dst_ports and len(dst_ports) > 0 and dst_ports[0]:
                                     self.logger.debug('dst prots={}'.format(dst_ports))
                                     dp_match = iptc.Match(rule, 'multiport')
                                     dp_match.dports = dst_ports
@@ -198,6 +198,7 @@ class GracNetwork:
         """
 
         try:
+            ip = ip.split('/')[0]
             it = ipaddress.ip_address(ip)
             if isinstance(it, ipaddress.IPv4Address):
                 return 'v4'

@@ -189,9 +189,6 @@ GRAC Editor 0.1</property>
               <object class="GtkLabel" id="lbl_whitelist_log">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <attributes>
-                  <attribute name="foreground" value="#efef29292929"/>
-                </attributes>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -298,7 +295,7 @@ GRAC Editor 0.1</property>
                       <object class="GtkMenuItem" id="menu_load">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Reload(R)</property>
+                        <property name="label" translatable="yes">_Reset(R)</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menu_load_activate" swapped="no"/>
                         <accelerator key="l" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
@@ -308,7 +305,7 @@ GRAC Editor 0.1</property>
                       <object class="GtkMenuItem" id="menu_apply">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">_Apply(A)</property>
+                        <property name="label" translatable="yes">_Save(S)</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menu_apply_activate" swapped="no"/>
                         <accelerator key="a" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
@@ -370,14 +367,14 @@ GRAC Editor 0.1</property>
           <object class="GtkToolbar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="toolbar_style">both</property>
             <child>
               <object class="GtkToolButton" id="toolbar_reload">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">reload</property>
-                <property name="label" translatable="yes">reload</property>
+                <property name="label" translatable="yes">reset</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-revert-to-saved</property>
+                <property name="stock_id">gtk-refresh</property>
                 <signal name="clicked" handler="on_menu_load_activate" swapped="no"/>
               </object>
               <packing>
@@ -389,10 +386,9 @@ GRAC Editor 0.1</property>
               <object class="GtkToolButton" id="toolbar_apply">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">apply</property>
-                <property name="label" translatable="yes">apply</property>
+                <property name="label" translatable="yes">save</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-execute</property>
+                <property name="stock_id">gtk-save</property>
                 <signal name="clicked" handler="on_menu_apply_activate" swapped="no"/>
               </object>
               <packing>
@@ -461,6 +457,7 @@ GRAC Editor 0.1</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">rdo+usb_memory+allow</property>
+                        <signal name="toggled" handler="on_rdo_usb_memory_disallow_toggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">3</property>
@@ -477,6 +474,7 @@ GRAC Editor 0.1</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">rdo+usb_memory+allow</property>
+                        <signal name="toggled" handler="on_rdo_usb_memory_readonly_toggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">4</property>
@@ -784,6 +782,7 @@ GRAC Editor 0.1</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                         <property name="group">rdo+bluetooth+allow</property>
+                        <signal name="toggled" handler="on_rdo_bluetooth_disallow_toggled" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">3</property>
@@ -1410,6 +1409,18 @@ GRAC Editor 0.1</property>
           </packing>
         </child>
         <child>
+          <object class="GtkLabel" id="lbl_log">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">event log</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -1427,7 +1438,7 @@ GRAC Editor 0.1</property>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </object>
@@ -1550,6 +1561,7 @@ GRAC Editor 0.1</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="model">liststore_protocol</property>
+                    <signal name="changed" handler="on_cb_protocol_changed" swapped="no"/>
                     <child>
                       <object class="GtkCellRendererText" id="cell_protocol1"/>
                       <attributes>

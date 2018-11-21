@@ -52,14 +52,6 @@ class GracEditor:
         write on textview_log
         """
 
-        '''
-        buff = self.builder.get_object('textview_log').get_buffer()
-        si = buff.get_start_iter()
-        ei = buff.get_end_iter()
-        buff.delete(si, ei)
-        ei = buff.get_end_iter()
-        '''
-
         buff = self.builder.get_object('textview_log').get_buffer()
         ei = buff.get_end_iter()
         buff.insert(ei, txt+'\n')
@@ -92,15 +84,15 @@ class GracEditor:
         #set treeview
         treeview = self.builder.get_object('treeview_network')
 
+        liststore_network = self.builder.get_object('liststore_network')
+        liststore_network.clear()
+
         if not JSON_RULE_NETWORK_RULE in network_rule:
             return
 
         rules = network_rule[JSON_RULE_NETWORK_RULE]
         if not rules or len(rules) <= 0:
             return
-
-        liststore_network = self.builder.get_object('liststore_network')
-        liststore_network.clear()
 
         #sort by address
         cell_renderer = Gtk.CellRendererText()
@@ -169,6 +161,16 @@ class GracEditor:
             else:
                 pass
 
+        if self.builder.get_object('rdo+usb_memory+allow').get_active():
+            self.builder.get_object('btn_usb_memory').set_sensitive(False)
+        else:
+            self.builder.get_object('btn_usb_memory').set_sensitive(True)
+
+        if self.builder.get_object('rdo+bluetooth+allow').get_active():
+            self.builder.get_object('btn_bluetooth').set_sensitive(False)
+        else:
+            self.builder.get_object('btn_bluetooth').set_sensitive(True)
+
     def load_rules(self, rule_path):
         """
         load rules file
@@ -216,7 +218,8 @@ class GracEditor:
         click event of bluetooth whitelist
         """
 
-        self.builder.get_object('lbl_whitelist_log').set_text('')
+        self.builder.get_object('lbl_whitelist_log').set_text(
+            _('how to write: 01:23:45:ab:cd:ef'))
 
         dg = self.builder.get_object('dialog_whitelist')
         dg.set_title(TITLE_WL_BLUETOOTH)
@@ -239,7 +242,8 @@ class GracEditor:
         click event of usb-memory whitelist
         """
 
-        self.builder.get_object('lbl_whitelist_log').set_text('')
+        self.builder.get_object('lbl_whitelist_log').set_text(
+            _('how to write: ID_SERIAL_SHORT of udev event'))
 
         dg = self.builder.get_object('dialog_whitelist')
         dg.set_title(TITLE_WL_USB_MEMORY)
@@ -442,15 +446,18 @@ class GracEditor:
         validate bluetooth of whitelist
         """
 
-        err_msg = 'invalid mac'
+        if not txt:
+            return VALIDATE_OK
+
+        err_msg = _('invalid mac format(ex 01:23:45:ab:cd:ef)')
         macs = [t.strip() for t in txt.strip('\n').split('\n')]
         for mac in macs:
             s_mac = mac.split(':')
             if len(s_mac) != 6:
-                return err_msg + ':mac items != 6'
+                return err_msg #+ ':mac items != 6'
             for m in s_mac:
                 if len(m) != 2:
-                    return err_msg + ':len(mac) != 2'
+                    return err_msg #+ ':len(mac) != 2'
                 m0 = ord(m[0].lower())
                 m1 = ord(m[1].lower())
                 for m in (m0, m1):
@@ -458,7 +465,7 @@ class GracEditor:
                         (m >= ord('a') and m <= ord('f')):
                         pass
                     else:
-                        return err_msg + ':wrong character'
+                        return err_msg #+ ':wrong character'
 
         return VALIDATE_OK
 
@@ -481,8 +488,9 @@ class GracEditor:
         """
 
         if not any((address, src_port, dst_port)):
-            return 'need one of address and ports'
+            return _('need address or port')
 
+        '''
         if self.ip_type(address) == 'domain':
             #once domain is considred as success
             pass
@@ -502,9 +510,10 @@ class GracEditor:
                         return err_msg + ':item<0 or item>255'
             except:
                 return err_msg + ':maybe items not digit'
+        '''
 
         #validate port
-        err_msg = 'invalid port format'
+        err_msg = 'invalid port format(1-65535)'
 
         src_port_items = []
         dst_port_items = []
@@ -521,13 +530,13 @@ class GracEditor:
                         int_left = int(left)
                         int_right = int(right)
                         if int_left < 1 or int_left > 65536 or int_right < 1 or int_right > 65536:
-                            return err_msg + ':ranged-item<1 or ranged-item>65536'
+                            return err_msg #+ ':ranged-item<1 or ranged-item>65536'
                     else:
                         int_item  = int(item)
                         if int_item < 1 or int_item > 65536:
-                            return err_msg + ':item<1 or item>65536'
+                            return err_msg #+ ':item<1 or item>65536'
             except:
-                return err_msg + ':maybe items not digit or wrong ranged format'
+                return err_msg #+ ':maybe items not digit or wrong ranged format'
                 
         return VALIDATE_OK
 
@@ -579,9 +588,10 @@ class GracEditor:
             bus_object = system_bus.get_object(DBUS_NAME, DBUS_OBJ)
             bus_interface = dbus.Interface(bus_object, dbus_interface=DBUS_IFACE)
             bus_interface.reload('')
-            self.logging('apply success')
+            self.logging(_('apply success'))
         except:
             self.logging(traceback.format_exc())
+            self.logging(_('save fail'))
 
     def on_menu_quit_activate(self, obj):
         """
@@ -608,9 +618,10 @@ class GracEditor:
         try:
             self.draw_media(self.media_rules)
             self.draw_network(self.media_rules)
-            self.logging('reload success')
+            self.logging(_('reset success'))
         except:
             self.logging(traceback.format_exc())
+            self.logging(_('reset fail'))
         
     def on_btn_about_ok_clicked(self, obj):
         """
@@ -619,6 +630,51 @@ class GracEditor:
 
         dg = self.builder.get_object('dialog_about')
         dg.hide()
+
+    def on_cb_protocol_changed(self, obj):
+        """
+        selecting protocol in network diallog
+        """
+
+        idx = obj.get_active()
+        if idx < 0:
+            return
+        if obj.get_model()[idx][0].lower() == 'icmp':
+            sp = self.builder.get_object('ent_src_port').set_sensitive(False)
+            dp = self.builder.get_object('ent_dst_port').set_sensitive(False)
+        else:
+            sp = self.builder.get_object('ent_src_port').set_sensitive(True)
+            dp = self.builder.get_object('ent_dst_port').set_sensitive(True)
+
+    def on_rdo_usb_memory_disallow_toggled(self, obj):
+        """
+        usb-memory-disallow radiobutton toggled
+        """
+
+        if self.builder.get_object('rdo+usb_memory+allow').get_active():
+            self.builder.get_object('btn_usb_memory').set_sensitive(False)
+        else:
+            self.builder.get_object('btn_usb_memory').set_sensitive(True)
+
+    def on_rdo_usb_memory_readonly_toggled(self, obj):
+        """
+        usb-memory-readonly radiobutton toggled
+        """
+
+        if self.builder.get_object('rdo+usb_memory+allow').get_active():
+            self.builder.get_object('btn_usb_memory').set_sensitive(False)
+        else:
+            self.builder.get_object('btn_usb_memory').set_sensitive(True)
+
+    def on_rdo_bluetooth_disallow_toggled(self, obj):
+        """
+        bluetooth-disallow readiobutton toggled
+        """
+
+        if self.builder.get_object('rdo+bluetooth+allow').get_active():
+            self.builder.get_object('btn_bluetooth').set_sensitive(False)
+        else:
+            self.builder.get_object('btn_bluetooth').set_sensitive(True)
 
     def on_menu_save_activate(self, obj):
         """
@@ -739,7 +795,7 @@ class GracEditor:
             with open(DEFAULT_RULES_PATH, 'w') as f:
                 f.write(json.dumps(org_form, indent=4))
 
-            self.logging('save success')
+            self.logging(_('save success'))
         except:
             self.logging(traceback.format_exc())
 
@@ -796,8 +852,8 @@ class GracEditor:
         #menu
         self.builder.get_object('menuitem1').set_label(_('_File(F)'))
         self.builder.get_object('menuitem4').set_label(_('_Help(H)'))
-        self.builder.get_object('menu_load').set_label(_('_Reload(R)'))
-        self.builder.get_object('menu_apply').set_label(_('_Apply(A)'))
+        self.builder.get_object('menu_load').set_label(_('_Reset(R)'))
+        self.builder.get_object('menu_apply').set_label(_('_Save(S)'))
         self.builder.get_object('menu_quit').set_label(_('_Quit(Q)'))
         self.builder.get_object('menu_about').set_label(_('_About(A)'))
 
@@ -812,6 +868,13 @@ class GracEditor:
 
         #about
         self.builder.get_object('lbl_about').set_label(_('Gooroom Platform\n\nGRAC Editor 1.0.0'))
+        
+        #toolbar
+        self.builder.get_object('toolbar_reload').set_label(_('reset'))
+        self.builder.get_object('toolbar_apply').set_label(_('save'))
+
+        #event
+        self.builder.get_object('lbl_log').set_label(_('event log'))
 
 #-----------------------------------------------------------------------
 def check_online_account():

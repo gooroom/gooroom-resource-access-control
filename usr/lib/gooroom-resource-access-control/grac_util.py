@@ -257,7 +257,7 @@ def make_media_msg(item, state):
     return logmsg, notimsg, grmcode
 
 #-----------------------------------------------------------------------
-def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag='all'):
+def red_alert2(logmsg, notimsg, priority, grmcode, flag='all'):
     """
     RED ALERT
     """
