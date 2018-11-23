@@ -218,39 +218,37 @@ def search_file_reversely(path, file_name, path_level_limit):
     return None
 
 #-----------------------------------------------------------------------
-def red_alert(target, mode, data_center):
-    """
-    RED ALERT
-    """
+GRMCODE_MAP = {
+    (JSON_RULE_USB_MEMORY, JSON_RULE_DISALLOW):GRMCODE_USB_MEMORY_DISALLOW,
+    (JSON_RULE_USB_MEMORY, JSON_RULE_READONLY):GRMCODE_USB_MEMORY_READONLY,
+    (JSON_RULE_PRINTER, JSON_RULE_DISALLOW):GRMCODE_PRINTER_DISALLOW,
+    (JSON_RULE_CD_DVD, JSON_RULE_DISALLOW):GRMCODE_CD_DVD_DISALLOW,
+    (JSON_RULE_CAMERA, JSON_RULE_DISALLOW):GRMCODE_CAMERA_DISALLOW,
+    (JSON_RULE_SOUND, JSON_RULE_DISALLOW):GRMCODE_SOUND_DISALLOW,
+    (JSON_RULE_MICROPHONE, JSON_RULE_DISALLOW):GRMCODE_MICROPHONE_DISALLOW,
+    (JSON_RULE_WIRELESS, JSON_RULE_DISALLOW):GRMCODE_WIRELESS_DISALLOW,
+    (JSON_RULE_BLUETOOTH, JSON_RULE_DISALLOW):GRMCODE_BLUETOOTH_DISALLOW,
+    (JSON_RULE_KEYBOARD, JSON_RULE_DISALLOW):GRMCODE_KEYBOARD_DISALLOW,
+    (JSON_RULE_MOUSE, JSON_RULE_DISALLOW):GRMCODE_MOUSE_DISALLOW }
 
-    if JSON_RULE_BLUETOOTH == target:
-        alert_timestamp = data_center.get_alert_timestamp()
-        now = datetime.now().timestamp()
-        if not target in alert_timestamp \
-            or now - alert_timestamp[target][0] > data_center.alert_span \
-            or alert_timestamp[target][1] != mode:
-            alert_timestamp[target] = [now, mode]
-        else:
-            return
-
-    subprocess.call(['/usr/bin/grac-apply.sh', target, mode])
-
-#-----------------------------------------------------------------------
 def make_media_msg(item, state):
     """
     make journald and notification messages
     """
 
+    grmcode = '009999'
+    try:
+        grmcode = GRMCODE_MAP[(item, state)]
+    except:
+        pass
+
     if state == 'disallow':
-        grmcode = '040004'
         logmsg = '$({}) is blocked by detecting unauthorized media'.format(item)
         notimsg = '{} 가(이) 차단되었습니다'.format(item)
     elif state == 'read_only':
-        grmcode = '040005'
         logmsg = '$({}) is blocked by detecting to write to read-only media'.format(item)
         notimsg = '{} 가(이) 읽기전용으로 설정되었습니다'.format(item)
     else:
-        grmcode = '000000'
         logmsg = ''
         notimsg = ''
 
@@ -282,7 +280,8 @@ def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag='all'):
     except:
         pass
 
-    subprocess.call(['/usr/bin/grac-apply.sh', notimsg])
+    data_center.GRAC.grac_noti('{}:{}'.format(grmcode, notimsg))
+    #subprocess.call(['/usr/bin/grac-apply.sh', notimsg])
 
 #-----------------------------------------------------------------------
 def remount_readonly(src, dst):

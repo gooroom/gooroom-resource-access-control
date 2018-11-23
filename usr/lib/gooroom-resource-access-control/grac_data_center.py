@@ -20,7 +20,9 @@ class GracDataCenter:
     DATA CENTER 
     """
 
-    def __init__(self):
+    def __init__(self, grac):
+
+        self.GRAC = grac
 
         self.conf = GracConfig.get_config()
         self.logger = GracLog.get_logger()
@@ -55,7 +57,8 @@ class GracDataCenter:
             self._alert_timestamp = {}
             self._rules_map = self.load_rules_map()
             self._json_rules = self.load_json_rules()
-            self._rules_map = self.adjust_rules_map_with_json_rules(self._rules_map, self._json_rules)
+            self._rules_map = \
+                self.adjust_rules_map_with_json_rules(self._rules_map, self._json_rules)
             self.load_python_modules()
             self._bluetooth_whitelist = self.pick_bluetooth_whitelist(self._json_rules)
             self._usb_memory_whitelist = self.pick_usb_memory_whitelist(self._json_rules)
@@ -262,6 +265,7 @@ class GracDataCenter:
                     '', 
                     JLEVEL_DEFAULT_SHOW, 
                     GRMCODE_SIGNATURE_SUCCESS, 
+                    self,
                     flag='journalonly')
             except:
                 json_rules_path = default_json_rules_path
@@ -273,7 +277,8 @@ class GracDataCenter:
                     m, 
                     '서명 검증 실패', 
                     JLEVEL_DEFAULT_NOTI, 
-                    GRMCODE_SIGNATURE_FAIL) 
+                    GRMCODE_SIGNATURE_FAIL,
+                    self)
         else:
             json_rules_path = default_json_rules_path
             

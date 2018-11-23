@@ -10,7 +10,7 @@ Package: grac-device-daemon
 Architecture: all
 Depends: python3-dbus, python3-openssl, python3-simplejson, python3-systemd,
          python3-psutil, python3-pyudev, python3-configobj, python3-iptables,
-         python3-dns
+         python3-dns,cups-browsed,libnotify-bin
 Replaces: libgrac-common (<= 0.2.2+grm1u1), libgrac-common-dev (<= 0.2.2+grm1u1),
           libgrac-device (<= 0.2.2+grm1u1), libgrac-device-dev (<= 0.2.2+grm1u1),
           hook-screenshooter (<= 0.2.2+grm1u1), hook-clipboar (<= 0.2.2+grm1u1)

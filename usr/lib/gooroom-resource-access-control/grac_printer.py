@@ -9,8 +9,8 @@ import glob
 import dbus
 import os
 
+from grac_util import make_media_msg,red_alert2
 from grac_util import GracLog,grac_format_exc
-from grac_util import red_alert
 from grac_define import *
 
 #-----------------------------------------------------------------------
@@ -110,7 +110,9 @@ class GracPrinter:
                     for printer_name in printers:
                         self._conn.deletePrinter(printer_name)
                         self.logger.debug('(watch) delete printer({})'.format(printer_name))
-                        red_alert(JSON_RULE_PRINTER, JSON_RULE_DISALLOW, self.data_center)
+                        logmsg, notimsg, grmcode = \
+                            make_media_msg(JSON_RULE_BLUETOOTH, mode)
+                        red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, self.data_center)
                 except:
                     self.logger.error(grac_format_exc())
 
@@ -190,7 +192,9 @@ class GracPrinter:
             try:
                 self._conn.deletePrinter(printer_name)
                 self.logger.debug('delete printer({})'.format(printer_name))
-                red_alert(JSON_RULE_PRINTER, JSON_RULE_DISALLOW, self.data_center)
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_BLUETOOTH, mode)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, self.data_center)
             except:
                 self.logger.error(grac_format_exc())
 

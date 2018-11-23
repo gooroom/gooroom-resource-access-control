@@ -73,7 +73,7 @@ class Grac(dbus.service.Object):
         self.logger.info('GRAC RUNNING')
 
         #DATA CENTER
-        self.data_center = GracDataCenter()
+        self.data_center = GracDataCenter(self)
 
         #UDEV DISPATCHER
         self.udev_dispatcher = GracUdevDispatcher(self.data_center)
@@ -155,6 +155,15 @@ class Grac(dbus.service.Object):
             return e
 
         return GRAC_OK
+
+    @dbus.service.signal(DBUS_IFACE, signature='v')
+    def grac_noti(self, msg):
+        """
+        send signal to user session 
+        so as to send grac-noti
+        """
+
+        pass
 
     @classmethod
     def reload_myself(cls, target):

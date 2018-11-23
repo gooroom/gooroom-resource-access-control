@@ -8,8 +8,8 @@ import os
 
 from grac_util import remount_readonly,bluetooth_exists
 from grac_util import search_dir,search_file_reversely,GracLog 
-from grac_util import umount_mount_readonly,red_alert
 from grac_util import make_media_msg,red_alert2
+from grac_util import umount_mount_readonly
 from grac_define import *
 from grac_error import *
 
