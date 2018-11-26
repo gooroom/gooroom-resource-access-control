@@ -86,8 +86,8 @@ msgid "Camera"
 msgstr "카메라"
 
 #: grac_editor.py:835
-msgid "Sound"
-msgstr "사운드"
+msgid "Sound/Mic"
+msgstr "사운드/마이크"
 
 #: grac_editor.py:836
 msgid "Microphone"

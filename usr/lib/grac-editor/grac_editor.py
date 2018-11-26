@@ -155,6 +155,10 @@ class GracEditor:
     
         for k, v in rules.items():
             obj_name = 'rdo+{}+{}'.format(k, v['state'])
+            #microphone exception
+            if obj_name == 'rdo+microphone+allow' \
+                or obj_name == 'rdo+microphone+disallow':
+                continue
             cb = self.builder.get_object(obj_name)
             if cb:
                 cb.set_active(True)
@@ -692,6 +696,9 @@ class GracEditor:
                     mediaid = v[1]
                     state = v[2]
                     self.media_rules[mediaid][JSON_RULE_STATE] = state
+                    #microphone exception
+                    if mediaid == 'sound' and 'microphone' in self.media_rules:
+                        self.media_rules['microphone'][JSON_RULE_STATE] = state
 
             ###whitelist is modified as pushing ok button of whitelist dialog
 
@@ -816,7 +823,7 @@ class GracEditor:
         self.builder.get_object('rdo+sound+allow').set_label(_('allow'))
         self.builder.get_object('rdo+mouse+allow').set_label(_('allow'))
         self.builder.get_object('rdo+bluetooth+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+microphone+allow').set_label(_('allow'))
+        #self.builder.get_object('rdo+microphone+allow').set_label(_('allow'))
         self.builder.get_object('rdo+usb_memory+allow').set_label(_('allow'))
 
         self.builder.get_object('rdo+cd_dvd+disallow').set_label(_('disallow'))
@@ -827,7 +834,7 @@ class GracEditor:
         self.builder.get_object('rdo+sound+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+mouse+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+bluetooth+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+microphone+disallow').set_label(_('disallow'))
+        #self.builder.get_object('rdo+microphone+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+usb_memory+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+usb_memory+read_only').set_label(_('read only'))
 
@@ -835,8 +842,8 @@ class GracEditor:
         self.builder.get_object('lbl_printer').set_label(_('Printer'))
         self.builder.get_object('lbl_cd_dvd').set_label(_('CD/DVD'))
         self.builder.get_object('lbl_camera').set_label(_('Camera'))
-        self.builder.get_object('lbl_sound').set_label(_('Sound'))
-        self.builder.get_object('lbl_microphone').set_label(_('Microphone'))
+        self.builder.get_object('lbl_sound').set_label(_('Sound/Mic'))
+        #self.builder.get_object('lbl_microphone').set_label(_('Microphone'))
         self.builder.get_object('lbl_wireless').set_label(_('Wireless'))
         self.builder.get_object('lbl_bluetooth').set_label(_('Bluetooth'))
         self.builder.get_object('lbl_keyboard').set_label(_('Keyboard'))
