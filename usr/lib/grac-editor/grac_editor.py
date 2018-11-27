@@ -193,10 +193,7 @@ class GracEditor:
             else:
                 new_json_rules[k] = {}
                 for k2, v2 in v.items():
-                    if k2 == JSON_RULE_MAC:
-                        new_json_rules[k][JSON_RULE_WHITELIST] = v2
-                    else:
-                        new_json_rules[k][k2] = v2
+                    new_json_rules[k][k2] = v2
 
         return new_json_rules
 
@@ -232,8 +229,8 @@ class GracEditor:
         self.clear_dialog_whitelist_textview()
 
         #fill list in
-        if JSON_RULE_WHITELIST in self.media_rules[JSON_RULE_BLUETOOTH]:
-            v = '\n'.join(self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_WHITELIST])
+        if JSON_RULE_MAC_ADDRESS in self.media_rules[JSON_RULE_BLUETOOTH]:
+            v = '\n'.join(self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_MAC_ADDRESS])
             buff = self.builder.get_object('textview_whitelist').get_buffer()
             ei = buff.get_end_iter()
             buff.insert(ei, v)
@@ -256,8 +253,8 @@ class GracEditor:
         self.clear_dialog_whitelist_textview()
 
         #fill list in
-        if JSON_RULE_WHITELIST in self.media_rules[JSON_RULE_USB_MEMORY]:
-            v = '\n'.join(self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_WHITELIST])
+        if JSON_RULE_USB_SERIALNO in self.media_rules[JSON_RULE_USB_MEMORY]:
+            v = '\n'.join(self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_SERIALNO])
             buff = self.builder.get_object('textview_whitelist').get_buffer()
             ei = buff.get_end_iter()
             buff.insert(ei, v)
@@ -286,7 +283,7 @@ class GracEditor:
         if title == TITLE_WL_USB_MEMORY:
             #validate text
 
-            self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_WHITELIST] = \
+            self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_SERIALNO] = \
                 v.strip('\n').split('\n')
             dg.hide()
 
@@ -294,7 +291,7 @@ class GracEditor:
             #validate text
             validate_res = self.validate_whitelist_bluetooth(v)
             if validate_res == VALIDATE_OK:
-                self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_WHITELIST] = \
+                self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_MAC_ADDRESS] = \
                     v.strip('\n').split('\n')
                 dg.hide()
             else:
