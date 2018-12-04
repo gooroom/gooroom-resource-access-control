@@ -228,9 +228,6 @@ class Grac(dbus.service.Object):
 
 #-----------------------------------------------------------------------
 if __name__ == '__main__':
-    """
-    main
-    """
 
     #stop for systemd
     if len(sys.argv) > 1 and sys.argv[1] == 'stop':

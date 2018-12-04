@@ -193,6 +193,10 @@ msgstr "저장"
 msgid "event log"
 msgstr "이벤트 보기"
 
+#: grac_editor.py:924
+msgid "online-account can not use editor."
+msgstr "원격계정은 에디터를 사용할 수 없습니다."
+
 #~ msgid "_Reload(R)"
 #~ msgstr "_다시읽기(R)"
 

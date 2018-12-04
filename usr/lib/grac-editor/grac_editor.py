@@ -11,6 +11,7 @@ import gettext
 import signal
 import dbus
 import sys
+import os
 
 from ge_define import *
 
@@ -920,7 +921,7 @@ def check_online_account():
                 user_id = '+' + user_id
                 return True, ''
     else:
-        return False, 'online-account can not use editor.'
+        return False, _('online-account can not use editor.')
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
