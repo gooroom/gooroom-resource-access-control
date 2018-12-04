@@ -93,6 +93,8 @@ class GracNetwork:
 
             for rule_json in rules_json:
                 ip = rule_json[JSON_RULE_NETWORK_IPADDRESS]
+                if ip:
+                    ip = ip.strip()
                 direction_org = rule_json[JSON_RULE_NETWORK_DIRECTION].lower()
                 rule_state = rule_json[JSON_RULE_NETWORK_STATE].lower()
 
@@ -205,6 +207,7 @@ class GracNetwork:
             return 'v6'
         except:
             #not checking value
+            self.logger.info(grac_format_exc())
             return 'domain'
 
     def insert_rule(self, rule, direction, ip, protocol):
@@ -314,6 +317,7 @@ class GracNetwork:
         ports = []
 
         for ranged_port in ranged_ports:
+            ranged_port = ranged_port.strip()
             if '-' in ranged_port:
                 ranged_port = ranged_port.replace('-', ':')
                 ports.append(ranged_port)
