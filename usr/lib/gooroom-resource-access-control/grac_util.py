@@ -275,7 +275,7 @@ def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag='all'):
         sys.path.append(module_path)
         m = importlib.import_module('gooroom-security-logparser')
         notify_level = getattr(m, 'get_notify_level')('media')
-        if notify_level > priority: #more than err(journald log level)
+        if priority > notify_level: 
             return
     except:
         pass
