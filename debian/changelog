@@ -1,3 +1,27 @@
+gooroom-resource-access-control (1.2.0+grm1u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [990d01e1] added new log system. editor:added ko.po and whitelist
+  * [d735c2ec] adding new network rule
+  * [8cf69a15] removed test log
+  * [cbf13612] changed network(iptables) json format
+  * [9ebbfdff] changed journal default loglevel
+  * [f0ff0580] added icons
+  * [1dafcd13] changed grac-editor ui
+  * [ee625863] fixed red_alert2 parameter bug
+  * [b0a539ca] seperated grmcode of media
+  * [fc40debe] added icon on task bar
+  * [4f55e049] integrated sound and microphone in grac-editor
+  * [16b1c39a] changed bluetooth whitelist key in json_rule
+  * [56dbefe0] changed grac/editor whitelist-key-name
+  * [11a03e02] added comment to ko.po. fixed online-account preventing message.
+  * [ae3a7f25] added ip/port strip
+  * [3a67e4ec] fixed noti-message priority. removed mime-type in grac-editor.desktop.
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Wed, 16 Jan 2019 10:40:42 +0900
+
 gooroom-resource-access-control (1.1.0+grm1u1) unstable; urgency=medium
 
   [ jongkyung.woo ]
