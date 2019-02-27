@@ -232,7 +232,7 @@ class GracSynchronizer:
                                         REVERSE_LOOKUP_LIMIT)
                 if not remove:
                     cls._logger.error('{} not found remove'.format(sm_node))
-                    return
+                    continue
 
                 with open(remove, 'w') as f:
                     f.write('1')
@@ -262,7 +262,7 @@ class GracSynchronizer:
                                         REVERSE_LOOKUP_LIMIT)
                 if not remove:
                     cls._logger.error('{} not found remove'.format(sm_node))
-                    return
+                    continue
 
                 with open(remove, 'w') as f:
                     f.write('1')
@@ -292,7 +292,7 @@ class GracSynchronizer:
                                                     REVERSE_LOOKUP_LIMIT)
                 if not bConfigurationValue:
                     cls._logger.error('{} not found bConfigurationValue'.format(mouse_node))
-                    return
+                    continue
 
                 with open(bConfigurationValue, 'w') as f:
                     f.write('0')
@@ -354,7 +354,7 @@ class GracSynchronizer:
                                             REVERSE_LOOKUP_LIMIT)
                 if not authorized:
                     cls._logger.error('{} not found authorized'.format(device_node))
-                    return
+                    continue
 
                 with open(authorized, 'w') as f:
                     f.write('0')
@@ -386,7 +386,7 @@ class GracSynchronizer:
                                             REVERSE_LOOKUP_LIMIT)
                     if not remove:
                         cls._logger.error('{} not found remove'.format(wl_inner))
-                        return
+                        continue
 
                     with open(remove, 'w') as f:
                         f.write('1')
@@ -413,7 +413,7 @@ class GracSynchronizer:
                                                 REVERSE_LOOKUP_LIMIT)
             if not bConfigurationValue:
                 cls._logger.error('not found bConfigurationValue')
-                return
+                continue
 
             with open(bConfigurationValue, 'w') as f:
                 f.write('0')
