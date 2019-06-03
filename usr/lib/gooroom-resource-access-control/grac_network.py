@@ -24,13 +24,10 @@ class GracNetwork:
         #DATA CENTER
         self.data_center = data_center
 
-    def reset_iptables(self, policy_state):
+    def flush_chain(self):
         """
-        ipv4 and ipv6 tables reset
+        flush input/output chain
         """
-
-        accept_policy = iptc.Policy('ACCEPT')
-        drop_policy = iptc.Policy('DROP')
 
         #v4 flush
         input_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), 'INPUT')
@@ -38,7 +35,24 @@ class GracNetwork:
         input_chain.flush()
         output_chain.flush()
 
+        #v6 flush
+        input_chain6 = iptc.Chain(iptc.Table6(iptc.Table6.FILTER), 'INPUT')
+        output_chain6 = iptc.Chain(iptc.Table6(iptc.Table6.FILTER), 'OUTPUT')
+        input_chain6.flush()
+        output_chain6.flush()
+
+    def set_chain_policy(self, policy_state):
+        """
+        set input/output chain policy
+        """
+
+        accept_policy = iptc.Policy('ACCEPT')
+        drop_policy = iptc.Policy('DROP')
+
         #v4 policy
+        input_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), 'INPUT')
+        output_chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), 'OUTPUT')
+
         if policy_state.lower() == JSON_RULE_NETWORK_ACCEPT \
             or policy_state.lower() == JSON_RULE_ALLOW:
             input_chain.set_policy(accept_policy)
@@ -47,13 +61,10 @@ class GracNetwork:
             input_chain.set_policy(drop_policy)
             output_chain.set_policy(drop_policy)
 
-        #v6 flush
+        #v6 policy
         input_chain6 = iptc.Chain(iptc.Table6(iptc.Table6.FILTER), 'INPUT')
         output_chain6 = iptc.Chain(iptc.Table6(iptc.Table6.FILTER), 'OUTPUT')
-        input_chain6.flush()
-        output_chain6.flush()
 
-        #v6 policy
         if policy_state.lower() == JSON_RULE_NETWORK_ACCEPT \
             or policy_state.lower() == JSON_RULE_ALLOW:
             input_chain6.set_policy(accept_policy)
@@ -81,12 +92,13 @@ class GracNetwork:
                 if 'version' in network_json:
                     server_version = network_json[JSON_RULE_NETWORK_VERSION]
 
-            #reset
-            self.reset_iptables(policy_state)
+            #flush
+            self.flush_chain()
 
             #rules
             if isinstance(network_json, str) \
                 or not JSON_RULE_NETWORK_RULES in network_json:
+                self.set_chain_policy(policy_state)
                 return
 
             rules_json = network_json[JSON_RULE_NETWORK_RULES]
@@ -191,6 +203,8 @@ class GracNetwork:
                             rule.add_match(sp_match)
                             
                         self.insert_rule(rule, direction, ip, protocol)
+
+            self.set_chain_policy(policy_state)
         except:
             self.logger.error(grac_format_exc())
                 
