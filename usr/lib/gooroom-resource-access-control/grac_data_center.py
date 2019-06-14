@@ -246,6 +246,16 @@ class GracDataCenter:
         finally:
             self._center_lock.release()
 
+    def get_media_state(self, media_name):
+        """
+        get media state(allow/disallow) for media_name
+        """
+
+        state = self.get_json_rules()[media_name]
+        if isinstance(state, dict):
+            state = state[JSON_RULE_STATE]
+        return state
+
     def load_json_rules(self):
         """
         load user|default rules file
@@ -266,7 +276,7 @@ class GracDataCenter:
                     JLEVEL_DEFAULT_SHOW, 
                     GRMCODE_SIGNATURE_SUCCESS, 
                     self,
-                    flag='journalonly')
+                    flag=RED_ALERT_JOURNALONLY)
             except:
                 json_rules_path = default_json_rules_path
                 self.logger.error(grac_format_exc())

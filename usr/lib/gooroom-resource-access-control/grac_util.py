@@ -147,6 +147,7 @@ def grac_format_exc():
     return '\n'.join(traceback.format_exc().split('\n')[-4:-1])
 
 #-----------------------------------------------------------------------
+'''
 def catch_user_id():
     """
     read current logined user_id from /var/run/utmp
@@ -184,6 +185,7 @@ def catch_user_id():
             raise Exception('user_id(%s) does not existed in /etc/passwd')
 
     return user_id
+'''
 
 #-----------------------------------------------------------------------
 def search_dir(from_here, dir_regex_s):
@@ -255,33 +257,31 @@ def make_media_msg(item, state):
     return logmsg, notimsg, grmcode
 
 #-----------------------------------------------------------------------
-def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag='all'):
+def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag=RED_ALERT_ALL):
     """
     RED ALERT
     """
 
     #JOURNALD
-    journal.send(logmsg,
-                SYSLOG_IDENTIFIER='GRAC',
-                PRIORITY=priority,
-                GRMCODE=grmcode)
-
-    if flag != 'all':
-        return
+    if flag == RED_ALERT_ALL or flag == RED_ALERT_JOURNALONLY:
+        journal.send(logmsg,
+                    SYSLOG_IDENTIFIER='GRAC',
+                    PRIORITY=priority,
+                    GRMCODE=grmcode)
 
     #ALERT
-    try:
-        module_path = GracConfig.get_config().get('SECURITY', 'SECURITY_MODULE_PATH')
-        sys.path.append(module_path)
-        m = importlib.import_module('gooroom-security-logparser')
-        notify_level = getattr(m, 'get_notify_level')('media')
-        if priority > notify_level: 
-            return
-    except:
-        pass
+    if flag == RED_ALERT_ALL or flag == RED_ALERT_ALERTONLY:
+        try:
+            module_path = GracConfig.get_config().get('SECURITY', 'SECURITY_MODULE_PATH')
+            sys.path.append(module_path)
+            m = importlib.import_module('gooroom-security-logparser')
+            notify_level = getattr(m, 'get_notify_level')('media')
+            if priority > notify_level: 
+                return
+        except:
+            pass
 
-    data_center.GRAC.grac_noti('{}:{}'.format(grmcode, notimsg))
-    #subprocess.call(['/usr/bin/grac-apply.sh', notimsg])
+        data_center.GRAC.grac_noti('{}:{}'.format(grmcode, notimsg))
 
 #-----------------------------------------------------------------------
 def remount_readonly(src, dst):
@@ -342,3 +342,85 @@ def bluetooth_exists():
         return False
     else:
         return True
+
+#-----------------------------------------------------------------------
+def catch_user_id():
+    """
+    get session login id
+    (-) not login
+    (+user) local user
+    (user) remote user
+    """
+
+    pp = subprocess.Popen(
+        ['loginctl', 'list-sessions'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+
+    pp_out, pp_err = pp.communicate()
+    pp_out = pp_out.decode('utf8').split('\n')
+
+    for l in pp_out:
+        l = l.split()
+        if len(l) < 3:
+            continue
+        try:
+            sn = l[0].strip()
+            if not sn.isdigit():
+                continue
+            uid = l[1].strip()
+            if not uid.isdigit():
+                continue
+            user = l[2].strip()
+            pp2 = subprocess.Popen(
+                ['loginctl', 'show-session', sn],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+
+            pp2_out, pp2_err = pp2.communicate()
+            pp2_out = pp2_out.decode('utf8').split('\n')
+            service_lightdm = False
+            state_active = False
+            active_yes = False
+            display = ''
+            for l2 in pp2_out:
+                l2 = l2.split('=')
+                if len(l2) != 2:
+                    continue
+                k, v = l2
+                k = k.strip()
+                v = v.strip()
+                if k == 'Id'and v != sn:
+                    break
+                elif k == 'User'and v != uid:
+                    break
+                elif k == 'Name' and v != user:
+                    break
+                elif k == 'Service':
+                    if v == 'lightdm':
+                        service_lightdm = True
+                    else:
+                        break
+                elif k == 'State':
+                    if v == 'active':
+                        state_active = True
+                    else:
+                        break
+                elif k == 'Active':
+                    if v == 'yes':
+                        active_yes = True
+                elif k == 'Display':
+                    display = v
+
+                if service_lightdm and state_active and active_yes:
+                    remote_user_file = \
+                        '/var/run/user/{}/gooroom/.grm-user'.format(uid)
+                    if os.path.exists(remote_user_file):
+                        return user, display
+                    else:
+                        return '+{}'.format(user), display
+        except:
+            GracLog.get_logger().debug(agent_format_exc())
+
+    return '-', display
+

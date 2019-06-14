@@ -2,6 +2,7 @@ usr/share/dbus-1
 usr/share/polkit-1
 usr/bin/grac-apply.sh
 usr/bin/grac-status.sh
+usr/bin/grac-pactl.py
 usr/lib/gooroom-resource-access-control
 lib
 etc

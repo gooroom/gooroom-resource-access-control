@@ -8,7 +8,7 @@ import os
 
 from grac_util import remount_readonly,bluetooth_exists
 from grac_util import search_dir,search_file_reversely,GracLog 
-from grac_util import make_media_msg,red_alert2
+from grac_util import make_media_msg,red_alert2,catch_user_id
 from grac_util import umount_mount_readonly
 from grac_define import *
 from grac_error import *
@@ -22,16 +22,58 @@ class GracSynchronizer:
     supported_media = (
                         (JSON_RULE_USB_MEMORY, MC_TYPE_AUTH),
                         (JSON_RULE_PRINTER, MC_TYPE_AUTH),
-                        (JSON_RULE_SOUND, MC_TYPE_REMOVE),
-                        (JSON_RULE_MICROPHONE, MC_TYPE_REMOVE),
+                        (JSON_RULE_SOUND, MC_TYPE_ALLOWSYNC),
+                        (JSON_RULE_MICROPHONE, MC_TYPE_ALLOWSYNC),
                         (JSON_RULE_MOUSE, MC_TYPE_NA),
                         (JSON_RULE_KEYBOARD, MC_TYPE_NA),
                         (JSON_RULE_CD_DVD, MC_TYPE_AUTH),
                         (JSON_RULE_WIRELESS, MC_TYPE_REMOVE),
                         (JSON_RULE_CAMERA, MC_TYPE_BCONFIG),
-                        (JSON_RULE_BLUETOOTH, MC_TYPE_NA))
+                        (JSON_RULE_BLUETOOTH, MC_TYPE_NA),
+                        (JSON_RULE_CLIPBOARD, MC_TYPE_NOSYNC),
+                        (JSON_RULE_SCREENCAPTURE, MC_TYPE_ALLOWSYNC))
 
     _logger = GracLog.get_logger()
+
+    @classmethod
+    def sync_screencapture(cls, state, data_center):
+        """
+        synchronize bluetooth
+        """
+        
+        user_id, _  = catch_user_id()
+        if user_id == '-':
+            cls._logger.debug('screencapture can not be blocked '\
+                                'because of no user loggined')
+            return
+        if user_id[0] == '+':
+            user_id = user_id[1:]
+            
+        for sn in ('/usr/bin/xfce4-screenshooter','/usr/bin/gnome-screenshot'):
+            if not os.path.exists(sn):
+                continue
+            if state == JSON_RULE_DISALLOW:
+                p0 = subprocess.Popen(
+                    ['/usr/bin/setfacl', 
+                        '-m', 
+                        'u:{}:r'.format(user_id), 
+                        sn],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
+                pp_out, pp_err = p0.communicate()
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_SCREENCAPTURE, state)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                    grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+            else:
+                p0 = subprocess.Popen(
+                    ['/usr/bin/setfacl', 
+                        '-m', 
+                        'u:{}:rx'.format(user_id), 
+                        sn],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
+                pp_out, pp_err = p0.communicate()
 
     @classmethod
     def sync_bluetooth(cls, state, data_center):
@@ -219,29 +261,12 @@ class GracSynchronizer:
         synchronize sound card
         """
 
-        sm_base_path = '/sys/class/sound'
-        sm_regex = re.compile('card[0-9]*')
-
-        for sm in glob.glob(sm_base_path+'/*'):
-            sm_node = sm.split('/')[-1]
-            if sm_regex.match(sm_node):
-                sm_real_path = os.path.realpath(sm+'/device')
-                remove = search_file_reversely(
-                                        sm_real_path, 
-                                        'remove', 
-                                        REVERSE_LOOKUP_LIMIT)
-                if not remove:
-                    cls._logger.error('{} not found remove'.format(sm_node))
-                    continue
-
-                with open(remove, 'w') as f:
-                    f.write('1')
-                    with open(META_FILE_PCI_RESCAN, 'a') as f:
-                        f.write('sound')
-                    cls._logger.info('SYNC state={} remove=1'.format(state))
-                    logmsg, notimsg, grmcode = \
-                        make_media_msg(JSON_RULE_SOUND, state)
-                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+        data_center.sound_mic_inotify.pactl_sound(state)
+        if state == JSON_RULE_DISALLOW:
+            logmsg, notimsg, grmcode = \
+                make_media_msg(JSON_RULE_SOUND, state)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                grmcode, data_center, flag=RED_ALERT_ALERTONLY)
 
     @classmethod
     def sync_microphone(cls, state, data_center):
@@ -249,29 +274,12 @@ class GracSynchronizer:
         synchronize microphone
         """
 
-        sm_base_path = '/sys/class/sound'
-        sm_regex = re.compile('card[0-9]*')
-
-        for sm in glob.glob(sm_base_path+'/*'):
-            sm_node = sm.split('/')[-1]
-            if sm_regex.match(sm_node):
-                sm_real_path = os.path.realpath(sm+'/device')
-                remove = search_file_reversely(
-                                        sm_real_path, 
-                                        'remove', 
-                                        REVERSE_LOOKUP_LIMIT)
-                if not remove:
-                    cls._logger.error('{} not found remove'.format(sm_node))
-                    continue
-
-                with open(remove, 'w') as f:
-                    f.write('1')
-                    with open(META_FILE_PCI_RESCAN, 'a') as f:
-                        f.write('microphone')
-                    cls._logger.info('SYNC state={} remove=1'.format(state))
-                    logmsg, notimsg, grmcode = \
-                        make_media_msg(JSON_RULE_MICROPHONE, state)
-                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+        data_center.sound_mic_inotify.pactl_mic(state)
+        if state == JSON_RULE_DISALLOW:
+            logmsg, notimsg, grmcode = \
+                make_media_msg(JSON_RULE_MICROPHONE, state)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                grmcode, data_center, flag=RED_ALERT_ALERTONLY)
 
     @classmethod
     def sync_mouse(cls, state, data_center):

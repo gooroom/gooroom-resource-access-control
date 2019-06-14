@@ -3,21 +3,37 @@
 #-----------------------------------------------------------------------
 import simplejson as json
 import subprocess
+import pyinotify
 import dbus.service
 import dbus
 import time
 import sys
 import os
+from grac_util import catch_user_id
 
-from gi.repository import GLib
+#-----------------------------------------------------------------------
+#for clipboard...
+g_session_user, g_session_display = catch_user_id()
+if len(g_session_user) > 0 and g_session_user[0] == '+':
+    g_session_user = g_session_user[1:]
+os.environ['DISPLAY'] = g_session_display
+os.environ['XAUTHORITY'] = '/home/{}/.Xauthority'.format(g_session_user)
+
+#-----------------------------------------------------------------------
+import gi
+gi.require_version('Gtk', '3.0')
+
+from gi.repository import GLib,Gtk,Gdk
 from dbus.mainloop.glib import DBusGMainLoop
 
-from grac_util import GracLog,GracConfig,grac_format_exc
+from grac_util import GracLog,GracConfig,grac_format_exc,red_alert2
+from grac_util import make_media_msg
 from grac_udev_dispatcher import GracUdevDispatcher
 from grac_synchronizer import GracSynchronizer
 from grac_data_center import GracDataCenter
 from grac_printer import GracPrinter
 from grac_network import GracNetwork
+from grac_inotify import *
 from grac_define import *
 
 #-----------------------------------------------------------------------
@@ -83,6 +99,13 @@ class Grac(dbus.service.Object):
 
         #NETWORK
         self.grac_network = GracNetwork(self.data_center)
+
+        #SOUND/MICROPHONE INOTIFY THREAD
+        self.data_center.sound_mic_inotify = SoundMicInotify(self.data_center)
+        self.start_sound_mic_inotify(self.data_center)
+
+        #CLIPBOARD
+        self.start_clipboard_handler(self.data_center)
 
         self._loop.run()
 
@@ -165,6 +188,15 @@ class Grac(dbus.service.Object):
 
         pass
 
+    @dbus.service.signal(DBUS_IFACE, signature='v')
+    def grac_letter(self, msg):
+        """
+        send signal to user session 
+        so as to send grac-letter
+        """
+
+        pass
+
     @classmethod
     def reload_myself(cls, target):
         """
@@ -212,11 +244,14 @@ class Grac(dbus.service.Object):
                 else:
                     continue
 
+                if media_type == MC_TYPE_NOSYNC:
+                    continue
+
                 state = v
                 if isinstance(state, dict):
                     state = state[JSON_RULE_STATE]
 
-                if state == JSON_RULE_ALLOW:
+                if media_type != MC_TYPE_ALLOWSYNC and state == JSON_RULE_ALLOW:
                     if media_type == MC_TYPE_BCONFIG:
                         GracSynchronizer.recover_bConfigurationValue(media_name)
                     continue
@@ -225,6 +260,87 @@ class Grac(dbus.service.Object):
                 eval('GracSynchronizer.sync_{}(state, self.data_center)'.format(media_name))
             except:
                 self.logger.error(grac_format_exc())
+
+    def start_sound_mic_inotify(self, data_center):
+        """
+        start inotify thread for sound/microphone
+        """
+
+        wm = pyinotify.WatchManager()
+        dev_snd_path = "/dev/snd/"
+        file_list = os.listdir(dev_snd_path)
+
+        for control_file in file_list:
+            if control_file.find("control") is not -1:
+                idx = control_file.split("controlC")
+                wm.add_watch(
+                    dev_snd_path + control_file, 
+                    pyinotify.IN_ACCESS, 
+                    rec=True)
+
+        notifier = pyinotify.ThreadedNotifier(wm, data_center.sound_mic_inotify)
+        notifier.daemon = True
+        notifier.start()
+
+    def start_clipboard_handler(self, data_center):
+        """
+        start clipboard handler
+        """
+
+        try:
+            #self.logger.error(os.environ)
+            pass
+        except:
+            pass
+
+        clip = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        if clip:
+            clip.connect('owner-change', self.clipboard_handler, data_center)
+            self.logger.debug('CLIPBOARD OK')
+        else:
+            self.logger.debug('CLIPBOARD NULL !!')
+
+    def clipboard_handler(self, *args):
+        """
+        clipboard handler
+        """
+
+        try:
+            data_center = args[2]
+            clipboard_rule = data_center.get_media_state(JSON_RULE_CLIPBOARD)
+            if clipboard_rule == JSON_RULE_ALLOW:
+                return
+
+            clip = args[0]
+            if clip.wait_is_text_available() and clip.wait_for_text():
+                Gtk.Clipboard.set_text(clip, "", 0)
+                Gtk.Clipboard.clear(clip)
+                GracLog.get_logger().info('clipboard text blocked')
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_CLIPBOARD, clipboard_rule)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                    grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+
+            elif clip.wait_is_image_available() and clip.wait_for_image():
+                new_pb = gi.repository.GdkPixbuf.Pixbuf()
+                Gtk.Clipboard.set_image(clip, new_pb)
+                Gtk.Clipboard.clear(clip)
+                GracLog.get_logger().info('clipboard image blocked')
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_CLIPBOARD, clipboard_rule)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                    grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+
+            elif clip.wait_is_rich_text_available(Gtk.TextBuffer()) \
+                and clip.wait_for_rich_text():
+                Gtk.Clipboard.clear(clip)
+                GracLog.get_logger().info('clipboard rich blocked')
+
+            elif clip.wait_is_uris_available() and clip.wait_for_uris():
+                Gtk.Clipboard.clear(clip)
+                GracLog.get_logger().info('clipboard uris blocked')
+        except:
+            GracLog.get_logger().error(grac_format_exc())
 
 #-----------------------------------------------------------------------
 if __name__ == '__main__':
@@ -245,7 +361,7 @@ if __name__ == '__main__':
         me.run()
 
     except:
-        GracLog.get_logger().error('(main) %s' % grac_format_exc())
+        GracLog.get_logger().error(grac_format_exc())
 
         if me:
             me.stop('')
