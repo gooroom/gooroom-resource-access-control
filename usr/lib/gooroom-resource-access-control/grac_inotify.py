@@ -28,7 +28,7 @@ class SoundMicInotify(pyinotify.ProcessEvent):
         letter['from'] = 'grac'
         letter['to'] = 'session-manager'
         letter['title'] = 'media-control'
-		letter['body'] = {'media':'sound', 'control':state}
+        letter['body'] = {'media':'sound', 'control':state}
         self.data_center.GRAC.grac_letter(json.dumps(letter))
         GracLog.get_logger().debug('SIGNAL SOUND {}'.format(state))
 
@@ -74,7 +74,7 @@ class SoundMicInotify(pyinotify.ProcessEvent):
         letter['from'] = 'grac'
         letter['to'] = 'session-manager'
         letter['title'] = 'media-control'
-		letter['body'] = {'media':'microphone', 'control':state}
+        letter['body'] = {'media':'microphone', 'control':state}
         self.data_center.GRAC.grac_letter(json.dumps(letter))
         GracLog.get_logger().debug('SIGNAL MIC {}'.format(state))
 
