@@ -923,15 +923,12 @@ def check_online_account():
 
     if user_id == '-':
         return False, 'can not find login-account.'
-        
-    for pw in pws:
-        splited = pw.split(':')
-        if splited[0] == user_id:
-            ps = '/var/run/user/%d/gooroom/.grm-user'  % getpwnam(user_id).pw_uid
-            #user_id is a local account
-            if not 'gooroom-online-account' in splited[4] or not os.path.exists(ps):
-                user_id = '+' + user_id
-                return True, ''
+
+    #user_id is a local account
+    ps = '/var/run/user/{}/gooroom/.grm-user'.format(getpwnam(user_id).pw_uid)
+    if not os.path.exists(ps):
+        user_id = '+' + user_id
+        return True, ''
     else:
         return False, _('online-account can not use editor.')
 

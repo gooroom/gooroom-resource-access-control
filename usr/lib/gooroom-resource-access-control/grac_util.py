@@ -147,47 +147,6 @@ def grac_format_exc():
     return '\n'.join(traceback.format_exc().split('\n')[-4:-1])
 
 #-----------------------------------------------------------------------
-'''
-def catch_user_id():
-    """
-    read current logined user_id from /var/run/utmp
-    """
-
-    with open('/var/run/utmp', 'rb') as f:
-        fc = memoryview(f.read())
-
-    utmp_fmt = '<ii32s4s32s'
-    user_id = '-'
-
-    for i in range(int(len(fc)/384)):
-        ut_type, ut_pid, ut_line, ut_id, ut_user = \
-            struct.unpack(utmp_fmt, fc[384*i:76+(384*i)])
-        ut_line = ut_line.decode('utf8').strip('\00')
-        ut_id = ut_id.decode('utf8').strip('\00')
-
-        if ut_type == 7 and ut_id == ':0':
-            user_id = ut_user.decode('utf8').strip('\00')
-
-    #check if user_id is an online account
-    with open('/etc/passwd') as f:
-        pws = f.readlines()
-
-    if user_id != '-':
-        for pw in pws:
-            splited = pw.split(':')
-            if splited[0] == user_id:
-                ps = '/var/run/user/%d/gooroom/.grm-user'  % getpwnam(user_id).pw_uid
-                #user_id is a local account
-                if not 'gooroom-online-account' in splited[4] or not os.path.exists(ps):
-                    user_id = '+' + user_id
-                break
-        else:
-            raise Exception('user_id(%s) does not existed in /etc/passwd')
-
-    return user_id
-'''
-
-#-----------------------------------------------------------------------
 def search_dir(from_here, dir_regex_s):
     """
     search for directory
