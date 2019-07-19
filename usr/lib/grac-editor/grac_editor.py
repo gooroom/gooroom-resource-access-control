@@ -531,11 +531,11 @@ class GracEditor:
                         left, right = [i.strip() for i in item.split('-')]
                         int_left = int(left)
                         int_right = int(right)
-                        if int_left < 1 or int_left > 65536 or int_right < 1 or int_right > 65536:
+                        if int_left < 1 or int_left >= 65536 or int_right < 1 or int_right >= 65536:
                             return err_msg #+ ':ranged-item<1 or ranged-item>65536'
                     else:
                         int_item  = int(item)
-                        if int_item < 1 or int_item > 65536:
+                        if int_item < 1 or int_item >= 65536:
                             return err_msg #+ ':item<1 or item>65536'
             except:
                 return err_msg #+ ':maybe items not digit or wrong ranged format'

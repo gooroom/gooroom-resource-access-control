@@ -9,6 +9,6 @@ Terminal=false
 X-MultipleArgs=false
 Type=Application
 Icon=grac-editor
-Categories=
+Categories=System
 StartupWMClass=grac-editor
 StartupNotify=true
