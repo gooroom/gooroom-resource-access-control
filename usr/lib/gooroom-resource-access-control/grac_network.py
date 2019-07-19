@@ -95,6 +95,9 @@ class GracNetwork:
             #flush
             self.flush_chain()
 
+            #policy to accept
+            self.set_chain_policy(JSON_RULE_NETWORK_ACCEPT)
+
             #rules
             if isinstance(network_json, str) \
                 or not JSON_RULE_NETWORK_RULES in network_json:
