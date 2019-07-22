@@ -30,6 +30,7 @@ DBUS_IFACE = GracConfig.get_config().get('MAIN', 'DBUS_IFACE')
 class Grac(dbus.service.Object):
     """
     |GRAC|
+    1.4
     """
 
     def __init__(self):
