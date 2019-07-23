@@ -580,6 +580,26 @@ class GracEditor:
         dg.run()
         dg.hide()
 
+    def on_menu_remove_user_rule_activate(self, obj):
+        """
+        menu > File > remove user rule
+        """
+
+        USER_RULE_PATH = '/etc/gooroom/grac.d/user.rules'
+        if os.path.exists(USER_RULE_PATH):
+            os.remove(USER_RULE_PATH)
+        self.logging(_('removing success'))
+
+        try:
+            system_bus = dbus.SystemBus()
+            bus_object = system_bus.get_object(DBUS_NAME, DBUS_OBJ)
+            bus_interface = dbus.Interface(bus_object, dbus_interface=DBUS_IFACE)
+            bus_interface.reload('')
+            self.logging(_('apply success'))
+        except:
+            self.logging(traceback.format_exc())
+            self.logging(_('apply fail'))
+
     def on_menu_apply_activate(self, obj):
         """
         menu > File > apply
@@ -873,6 +893,7 @@ class GracEditor:
         self.builder.get_object('menu_apply').set_label(_('_Save(S)'))
         self.builder.get_object('menu_quit').set_label(_('_Quit(Q)'))
         self.builder.get_object('menu_about').set_label(_('_About(A)'))
+        self.builder.get_object('menu_remove_user_rule').set_label(_('_Remove User Rule(U)'))
 
         #network
         self.builder.get_object('lbl_policy').set_label(_('POLICY'))

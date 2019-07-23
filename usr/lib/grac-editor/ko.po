@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: grac-editor 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-14 15:23+0900\n"
+"POT-Creation-Date: 2019-07-23 12:49+0900\n"
 "PO-Revision-Date: 2018-09-28 16:24+0900\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -25,161 +25,173 @@ msgstr "잘못된 맥주소 형식(예 01:23:45:ab:cd:ef)"
 msgid "need address or port"
 msgstr "주소 혹은 포트 필요"
 
-#: grac_editor.py:595
+#: grac_editor.py:591
+msgid "removing success"
+msgstr "삭제 성공"
+
+#: grac_editor.py:598 grac_editor.py:615
 msgid "apply success"
 msgstr "적용 성공"
 
-#: grac_editor.py:598
+#: grac_editor.py:601
+msgid "apply fail"
+msgstr "적용 실패"
+
+#: grac_editor.py:618
 msgid "save fail"
 msgstr "저장 실패"
 
-#: grac_editor.py:613
+#: grac_editor.py:633
 msgid "About"
 msgstr "정보"
 
-#: grac_editor.py:625
+#: grac_editor.py:645
 msgid "reset success"
 msgstr "다시읽기 성공"
 
-#: grac_editor.py:628
+#: grac_editor.py:648
 msgid "reset fail"
 msgstr "다시읽기 실패"
 
-#: grac_editor.py:809
+#: grac_editor.py:829
 msgid "save success"
 msgstr "저장 성공"
 
-#: grac_editor.py:819
+#: grac_editor.py:839
 msgid "GRAC Editor"
 msgstr "매체제어 에디터"
 
-#: grac_editor.py:822 grac_editor.py:823 grac_editor.py:824 grac_editor.py:825
-#: grac_editor.py:826 grac_editor.py:827 grac_editor.py:828 grac_editor.py:829
-#: grac_editor.py:830 grac_editor.py:831 grac_editor.py:832 grac_editor.py:833
+#: grac_editor.py:842 grac_editor.py:843 grac_editor.py:844 grac_editor.py:845
+#: grac_editor.py:846 grac_editor.py:847 grac_editor.py:848 grac_editor.py:849
+#: grac_editor.py:850 grac_editor.py:851 grac_editor.py:852 grac_editor.py:853
 msgid "allow"
 msgstr "허용"
 
-#: grac_editor.py:835 grac_editor.py:836 grac_editor.py:837 grac_editor.py:838
-#: grac_editor.py:839 grac_editor.py:840 grac_editor.py:841 grac_editor.py:842
-#: grac_editor.py:843 grac_editor.py:844 grac_editor.py:846 grac_editor.py:847
+#: grac_editor.py:855 grac_editor.py:856 grac_editor.py:857 grac_editor.py:858
+#: grac_editor.py:859 grac_editor.py:860 grac_editor.py:861 grac_editor.py:862
+#: grac_editor.py:863 grac_editor.py:864 grac_editor.py:866 grac_editor.py:867
 msgid "disallow"
 msgstr "비허용"
 
-#: grac_editor.py:845
+#: grac_editor.py:865
 msgid "read only"
 msgstr "읽기전용"
 
-#: grac_editor.py:849
+#: grac_editor.py:869
 msgid "USB Memory"
 msgstr "USB 메모리"
 
-#: grac_editor.py:850
+#: grac_editor.py:870
 msgid "Printer"
 msgstr "프린터"
 
-#: grac_editor.py:851
+#: grac_editor.py:871
 msgid "CD/DVD"
 msgstr "CD/DVD"
 
-#: grac_editor.py:852
+#: grac_editor.py:872
 msgid "Camera"
 msgstr "카메라"
 
-#: grac_editor.py:853
+#: grac_editor.py:873
 msgid "Sound"
 msgstr "사운드"
 
-#: grac_editor.py:854
+#: grac_editor.py:874
 msgid "Microphone"
 msgstr "마이크"
 
-#: grac_editor.py:855
+#: grac_editor.py:875
 msgid "Wireless"
 msgstr "무선인터넷"
 
-#: grac_editor.py:856
+#: grac_editor.py:876
 msgid "Bluetooth"
 msgstr "블루투스"
 
-#: grac_editor.py:857
+#: grac_editor.py:877
 msgid "Keyboard"
 msgstr "키보드"
 
-#: grac_editor.py:858
+#: grac_editor.py:878
 msgid "Mouse"
 msgstr "마우스"
 
-#: grac_editor.py:859
+#: grac_editor.py:879
 msgid "ScreenCapture"
 msgstr "스크린캡쳐"
 
-#: grac_editor.py:860
+#: grac_editor.py:880
 msgid "Clipboard"
 msgstr "클립보드"
 
-#: grac_editor.py:862 grac_editor.py:863
+#: grac_editor.py:882 grac_editor.py:883
 msgid "WL"
 msgstr ""
 "화이트\n"
 "리스트"
 
-#: grac_editor.py:866
+#: grac_editor.py:886
 msgid "media"
 msgstr "미디어"
 
-#: grac_editor.py:867
+#: grac_editor.py:887
 msgid "network"
 msgstr "네트워크"
 
-#: grac_editor.py:870
+#: grac_editor.py:890
 msgid "_File(F)"
 msgstr "_파일(F)"
 
-#: grac_editor.py:871
+#: grac_editor.py:891
 msgid "_Help(H)"
 msgstr "_도움(H)"
 
-#: grac_editor.py:872
+#: grac_editor.py:892
 msgid "_Reset(R)"
 msgstr "_다시읽기(R)"
 
-#: grac_editor.py:873
+#: grac_editor.py:893
 msgid "_Save(S)"
 msgstr "_저장(S)"
 
-#: grac_editor.py:874
+#: grac_editor.py:894
 msgid "_Quit(Q)"
 msgstr "_종료(Q)"
 
-#: grac_editor.py:875
+#: grac_editor.py:895
 msgid "_About(A)"
 msgstr "_정보(A)"
 
-#: grac_editor.py:878
+#: grac_editor.py:896
+msgid "_Remove User Rule(U)"
+msgstr "서버정책삭제(U)"
+
+#: grac_editor.py:899
 msgid "POLICY"
 msgstr "정책"
 
-#: grac_editor.py:879
+#: grac_editor.py:900
 msgid "accept"
 msgstr "허용"
 
-#: grac_editor.py:880
+#: grac_editor.py:901
 msgid "drop"
 msgstr "비허용"
 
-#: grac_editor.py:882
+#: grac_editor.py:903
 msgid "add"
 msgstr "추가"
 
-#: grac_editor.py:883
+#: grac_editor.py:904
 msgid "del"
 msgstr "삭제"
 
-#: grac_editor.py:884
+#: grac_editor.py:905
 msgid "edit"
 msgstr "편집"
 
-#: grac_editor.py:887
+#: grac_editor.py:908
 msgid ""
 "Gooroom Platform\n"
 "\n"
@@ -189,21 +201,24 @@ msgstr ""
 "\n"
 "매체제어 에디터 1.0.0"
 
-#: grac_editor.py:890
+#: grac_editor.py:911
 msgid "reset"
 msgstr "다시읽기"
 
-#: grac_editor.py:891
+#: grac_editor.py:912
 msgid "save"
 msgstr "저장"
 
-#: grac_editor.py:894
+#: grac_editor.py:915
 msgid "event log"
 msgstr "이벤트 보기"
 
-#: grac_editor.py:936
+#: grac_editor.py:954
 msgid "online-account can not use editor."
 msgstr "원격계정은 에디터를 사용할 수 없습니다."
+
+#~ msgid "removing fail"
+#~ msgstr "삭제 실패"
 
 #~ msgid "_Reload(R)"
 #~ msgstr "_다시읽기(R)"
