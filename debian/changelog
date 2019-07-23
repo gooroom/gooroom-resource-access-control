@@ -1,3 +1,16 @@
+gooroom-resource-access-control (1.3.0+grm1u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [758b9935] fixed grac-synchronizer(return->continue)
+  * [b1352315] fixed bug that cannot add rules when policy is droped
+  * [5b21614b] fixed previous commit bug (Ib1b65d82fb46c6696ffd39756cf5910e1c444e71)
+  * [34f07992] changed grac-editor category to System. fixed network port 65536 bug of grac-editor.
+  * [dd0fb6cb] 1.4 Release
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 23 Jul 2019 18:55:01 +0900
+
 gooroom-resource-access-control (1.2.0+grm1u1) unstable; urgency=medium
 
   [ hmkim ]
