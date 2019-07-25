@@ -31,19 +31,19 @@ class GracSynchronizer:
                         (JSON_RULE_CAMERA, MC_TYPE_BCONFIG),
                         (JSON_RULE_BLUETOOTH, MC_TYPE_NA),
                         (JSON_RULE_CLIPBOARD, MC_TYPE_NOSYNC),
-                        (JSON_RULE_SCREENCAPTURE, MC_TYPE_ALLOWSYNC))
+                        (JSON_RULE_SCREEN_CAPTURE, MC_TYPE_ALLOWSYNC))
 
     _logger = GracLog.get_logger()
 
     @classmethod
-    def sync_screencapture(cls, state, data_center):
+    def sync_screen_capture(cls, state, data_center):
         """
         synchronize bluetooth
         """
         
         user_id, _  = catch_user_id()
         if user_id == '-':
-            cls._logger.debug('screencapture can not be blocked '\
+            cls._logger.debug('screen_capture can not be blocked '\
                                 'because of no user loggined')
             return
         if user_id[0] == '+':
@@ -62,7 +62,7 @@ class GracSynchronizer:
                     stderr=subprocess.PIPE)
                 pp_out, pp_err = p0.communicate()
                 logmsg, notimsg, grmcode = \
-                    make_media_msg(JSON_RULE_SCREENCAPTURE, state)
+                    make_media_msg(JSON_RULE_SCREEN_CAPTURE, state)
                 red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
                     grmcode, data_center, flag=RED_ALERT_ALERTONLY)
             else:

@@ -849,7 +849,7 @@ class GracEditor:
         self.builder.get_object('rdo+bluetooth+allow').set_label(_('allow'))
         self.builder.get_object('rdo+microphone+allow').set_label(_('allow'))
         self.builder.get_object('rdo+usb_memory+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+screencapture+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+screen_capture+allow').set_label(_('allow'))
         self.builder.get_object('rdo+clipboard+allow').set_label(_('allow'))
 
         self.builder.get_object('rdo+cd_dvd+disallow').set_label(_('disallow'))
@@ -863,7 +863,7 @@ class GracEditor:
         self.builder.get_object('rdo+microphone+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+usb_memory+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+usb_memory+read_only').set_label(_('read only'))
-        self.builder.get_object('rdo+screencapture+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+screen_capture+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+clipboard+disallow').set_label(_('disallow'))
 
         self.builder.get_object('lbl_usb_memory').set_label(_('USB Memory'))
@@ -876,7 +876,7 @@ class GracEditor:
         self.builder.get_object('lbl_bluetooth').set_label(_('Bluetooth'))
         self.builder.get_object('lbl_keyboard').set_label(_('Keyboard'))
         self.builder.get_object('lbl_mouse').set_label(_('Mouse'))
-        self.builder.get_object('lbl_screencapture').set_label(_('ScreenCapture'))
+        self.builder.get_object('lbl_screen_capture').set_label(_('ScreenCapture'))
         self.builder.get_object('lbl_clipboard').set_label(_('Clipboard'))
 
         self.builder.get_object('btn_usb_memory').set_label(_('WL'))

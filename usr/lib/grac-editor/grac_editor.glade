@@ -923,7 +923,7 @@ GRAC Editor 0.1</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="lbl_screencapture">
+                      <object class="GtkLabel" id="lbl_screen_capture">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">ScreenCapture</property>
@@ -945,7 +945,7 @@ GRAC Editor 0.1</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkRadioButton" id="rdo+screencapture+allow">
+                      <object class="GtkRadioButton" id="rdo+screen_capture+allow">
                         <property name="label" translatable="yes">allow</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
@@ -959,14 +959,14 @@ GRAC Editor 0.1</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkRadioButton" id="rdo+screencapture+disallow">
+                      <object class="GtkRadioButton" id="rdo+screen_capture+disallow">
                         <property name="label" translatable="yes">disallow</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
-                        <property name="group">rdo+screencapture+allow</property>
+                        <property name="group">rdo+screen_capture+allow</property>
                       </object>
                       <packing>
                         <property name="left_attach">3</property>
