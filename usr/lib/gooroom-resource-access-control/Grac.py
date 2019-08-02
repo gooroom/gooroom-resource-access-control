@@ -9,6 +9,8 @@ import dbus
 import time
 import sys
 import os
+
+from grac_define import EXTENSION_FULLPATH
 from grac_util import catch_user_id
 
 #-----------------------------------------------------------------------
@@ -287,18 +289,11 @@ class Grac(dbus.service.Object):
         start clipboard handler
         """
 
-        try:
-            #self.logger.error(os.environ)
-            pass
-        except:
-            pass
-
         clip = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         if clip:
             clip.connect('owner-change', self.clipboard_handler, data_center)
-            self.logger.debug('CLIPBOARD OK')
         else:
-            self.logger.debug('CLIPBOARD NULL !!')
+            self.logger.error('CLIPBOARD NULL')
 
     def clipboard_handler(self, *args):
         """
@@ -306,6 +301,10 @@ class Grac(dbus.service.Object):
         """
 
         try:
+            #CHECK EXTENSION(screencapture/clipboard)
+            if os.path.exists(EXTENSION_FULLPATH):
+                return
+
             data_center = args[2]
             clipboard_rule = data_center.get_media_state(JSON_RULE_CLIPBOARD)
             if clipboard_rule == JSON_RULE_ALLOW:

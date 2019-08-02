@@ -190,6 +190,8 @@ GRMCODE_MAP = {
     (JSON_RULE_WIRELESS, JSON_RULE_DISALLOW):GRMCODE_WIRELESS_DISALLOW,
     (JSON_RULE_BLUETOOTH, JSON_RULE_DISALLOW):GRMCODE_BLUETOOTH_DISALLOW,
     (JSON_RULE_KEYBOARD, JSON_RULE_DISALLOW):GRMCODE_KEYBOARD_DISALLOW,
+    (JSON_RULE_SCREEN_CAPTURE, JSON_RULE_DISALLOW):GRMCODE_SCREEN_CAPTURE_DISALLOW,
+    (JSON_RULE_CLIPBOARD, JSON_RULE_DISALLOW):GRMCODE_CLIPBOARD_DISALLOW,
     (JSON_RULE_MOUSE, JSON_RULE_DISALLOW):GRMCODE_MOUSE_DISALLOW }
 
 def make_media_msg(item, state):
@@ -205,7 +207,8 @@ def make_media_msg(item, state):
 
     if state == 'disallow':
         logmsg = '$({}) is blocked by detecting unauthorized media'.format(item)
-        notimsg = '{} 가(이) 차단되었습니다'.format(item)
+        #notimsg = '{} 가(이) 차단되었습니다'.format(item)
+        notimsg = '비인가된 행위({})가 탐지되어 차단하였습니다'.format(item)
     elif state == 'read_only':
         logmsg = '$({}) is blocked by detecting to write to read-only media'.format(item)
         notimsg = '{} 가(이) 읽기전용으로 설정되었습니다'.format(item)

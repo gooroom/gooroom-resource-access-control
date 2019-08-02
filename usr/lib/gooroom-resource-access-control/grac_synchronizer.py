@@ -41,6 +41,10 @@ class GracSynchronizer:
         synchronize bluetooth
         """
         
+        #CHECK EXTENSION(screencapture/clipboard)
+        if os.path.exists(EXTENSION_FULLPATH):
+            return
+
         user_id, _  = catch_user_id()
         if user_id == '-':
             cls._logger.debug('screen_capture can not be blocked '\
