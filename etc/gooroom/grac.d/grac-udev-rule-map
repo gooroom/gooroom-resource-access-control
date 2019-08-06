@@ -18,12 +18,6 @@
     #ACTION=="add", DRIVER=="usblp", ATTRS{bInterfaceClass}=="07", MODULE="printer disallow $devpath"
     """ 
 
-[microphone]
-    [[disallow]]
-    FILTER="""
-    ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_INPUT}=="1", ENV{ID_MODEL}==".*Audio*", ENV{DEVNAME}!=".*input/event*", MODULE="microphone disallow $devpath"
-    """
-
 [keyboard]
     [[disallow]]
     FILTER="""
