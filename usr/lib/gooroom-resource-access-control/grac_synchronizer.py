@@ -38,7 +38,7 @@ class GracSynchronizer:
     @classmethod
     def sync_screen_capture(cls, state, data_center):
         """
-        synchronize bluetooth
+        synchronize screen_capture
         """
         
         #CHECK EXTENSION(screencapture/clipboard)
@@ -68,7 +68,7 @@ class GracSynchronizer:
                 logmsg, notimsg, grmcode = \
                     make_media_msg(JSON_RULE_SCREEN_CAPTURE, state)
                 red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
-                    grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+                    grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
             else:
                 p0 = subprocess.Popen(
                     ['/usr/bin/setfacl', 
@@ -270,7 +270,7 @@ class GracSynchronizer:
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_SOUND, state)
             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
-                grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+                grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
 
     @classmethod
     def sync_microphone(cls, state, data_center):
@@ -283,7 +283,7 @@ class GracSynchronizer:
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_MICROPHONE, state)
             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
-                grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+                grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
 
     @classmethod
     def sync_mouse(cls, state, data_center):

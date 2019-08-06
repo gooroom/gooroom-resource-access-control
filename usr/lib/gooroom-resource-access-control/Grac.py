@@ -318,7 +318,7 @@ class Grac(dbus.service.Object):
                 logmsg, notimsg, grmcode = \
                     make_media_msg(JSON_RULE_CLIPBOARD, clipboard_rule)
                 red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
-                    grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+                    grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
 
             elif clip.wait_is_image_available() and clip.wait_for_image():
                 new_pb = gi.repository.GdkPixbuf.Pixbuf()
@@ -328,7 +328,7 @@ class Grac(dbus.service.Object):
                 logmsg, notimsg, grmcode = \
                     make_media_msg(JSON_RULE_CLIPBOARD, clipboard_rule)
                 red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
-                    grmcode, data_center, flag=RED_ALERT_ALERTONLY)
+                    grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
 
             elif clip.wait_is_rich_text_available(Gtk.TextBuffer()) \
                 and clip.wait_for_rich_text():

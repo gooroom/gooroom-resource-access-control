@@ -32,6 +32,11 @@ class SoundMicInotify(pyinotify.ProcessEvent):
         self.data_center.GRAC.grac_letter(json.dumps(letter))
         GracLog.get_logger().debug('SIGNAL SOUND {}'.format(state))
 
+        if state == JSON_RULE_DISALLOW:
+            logmsg, notimsg, grmcode = \
+                make_media_msg(JSON_RULE_SOUND, state)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                grmcode, self.data_center)#, flag=RED_ALERT_ALERTONLY)
         '''
         p0 = subprocess.Popen(
             ['/usr/bin/pacmd', 'list-sinks'],
@@ -78,6 +83,11 @@ class SoundMicInotify(pyinotify.ProcessEvent):
         self.data_center.GRAC.grac_letter(json.dumps(letter))
         GracLog.get_logger().debug('SIGNAL MIC {}'.format(state))
 
+        if state == JSON_RULE_DISALLOW:
+            logmsg, notimsg, grmcode = \
+                make_media_msg(JSON_RULE_MICROPHONE, state)
+            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                grmcode, self.data_center)#, flag=RED_ALERT_ALERTONLY)
         '''
         p0 = subprocess.Popen(
             ['/usr/bin/pacmd', 'list-sources'],
