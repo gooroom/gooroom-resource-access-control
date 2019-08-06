@@ -16,5 +16,5 @@
     "state" : "allow"
   },
   "clipboard": "allow",
-  "screencapture": "allow"
+  "screen_capture": "allow"
 }
