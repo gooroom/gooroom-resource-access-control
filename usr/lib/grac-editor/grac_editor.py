@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------------------
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 
 import simplejson as json
 import traceback
@@ -24,6 +24,9 @@ class GracEditor:
     """
 
     def __init__(self):
+
+        #SET DESKTOP ICON
+        Gdk.set_program_class('grac-editor')
 
         #LOAD RULES
         self.media_rules = self.load_rules(DEFAULT_RULES_PATH)
