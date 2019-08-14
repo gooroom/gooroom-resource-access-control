@@ -224,6 +224,23 @@ def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag=RED_ALERT_A
     RED ALERT
     """
 
+    #CHECK TIME SPAN(sound/microphone)
+    now_ts = datetime.now().timestamp()
+    ts_map = data_center.get_alert_timestamp()
+
+    timespan_target = None
+    if grmcode == GRMCODE_SOUND_DISALLOW:
+        timespan_target = JSON_RULE_SOUND
+    if grmcode == GRMCODE_MICROPHONE_DISALLOW:
+        timespan_target = JSON_RULE_MICROPHONE
+    if timespan_target:
+        if timespan_target in ts_map:
+            target_ts = ts_map[timespan_target]
+            if now_ts - target_ts <= 3:
+                GracLog.get_logger().debug('TIME SPAN: timespan_target={} now_ts={} target_ts={} span={}'.format(timespan_target, now_ts, target_ts, now_ts-target_ts))
+                return
+    ts_map[timespan_target] = now_ts
+
     #JOURNALD
     if flag == RED_ALERT_ALL or flag == RED_ALERT_JOURNALONLY:
         journal.send(logmsg,
