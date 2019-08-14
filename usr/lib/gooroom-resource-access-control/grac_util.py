@@ -219,6 +219,8 @@ def make_media_msg(item, state):
     return logmsg, notimsg, grmcode
 
 #-----------------------------------------------------------------------
+g_noti_timestamp_map = {}
+
 def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag=RED_ALERT_ALL):
     """
     RED ALERT
@@ -226,7 +228,7 @@ def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag=RED_ALERT_A
 
     #CHECK TIME SPAN(sound/microphone)
     now_ts = datetime.now().timestamp()
-    ts_map = data_center.get_alert_timestamp()
+    ts_map = g_noti_timestamp_map
 
     timespan_target = None
     if grmcode == GRMCODE_SOUND_DISALLOW:
