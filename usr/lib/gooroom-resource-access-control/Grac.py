@@ -78,7 +78,21 @@ class Grac(dbus.service.Object):
         #should change method...
         subprocess.call(['/sbin/modprobe','usb-storage'])
 
+        #DBUS FOR SIGNAL(SCREENCAPTURE/CLIPBOARD)
+        self.signal_dbus = dbus.SystemBus()
+        self.signal_dbus.add_signal_receiver(
+            self.catch_grac_noti_forward, 
+            dbus_interface='kr.gooroom.GRACDEVD', 
+            signal_name='grac_noti_forward')
+
         self.logger.info('GRAC CREATED')
+
+    def catch_grac_noti_forward(self, param):
+        """
+        catch grac_noti_forward(screen-capture/clipboard)
+        """
+
+        self.grac_noti(param)
 
     def __del__(self):
         self.logger.debug('GRAC DESTROYED')
