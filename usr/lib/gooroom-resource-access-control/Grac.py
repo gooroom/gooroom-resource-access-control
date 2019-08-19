@@ -231,10 +231,25 @@ class Grac(dbus.service.Object):
 
         try:
             if os.path.exists(META_FILE_PCI_RESCAN):
+                '''
+                with open(META_FILE_PCI_RESCAN, 'r') as f:
+                    lines = f.read().split('\n')
+                    for line in lines:
+                        if not line:
+                            continue
+                        media, path = line.split('=>')
+                        parent_path = '/'.join(path.split('/')[:-2])
+                        if os.path.exists(parent_path+'/rescan'):
+                            with open(parent_path+'/rescan', 'w') as f2:
+                                f2.write('1')
+                                self.logger.info(
+                                    'rescan media={}:parent_path={}'.format(
+                                                                        media, 
+                                                                        parent_path))
+                '''
                 with open('/sys/bus/pci/rescan', 'w') as f:
                     f.write('1')
                 os.unlink(META_FILE_PCI_RESCAN)
-                time.sleep(1) #hmm
                 self.logger.info('---rescan pci---')
         except:
             self.logger.error(grac_format_exc())

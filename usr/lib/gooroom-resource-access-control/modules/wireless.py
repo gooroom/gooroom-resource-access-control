@@ -18,10 +18,16 @@ def do_task(param, data_center):
                                         '/sys/'+param[1], 
                                         'remove', 
                                         REVERSE_LOOKUP_LIMIT)
+        #v2.0
+        remove = '/'.join(remove.split('/')[:-2]) + '/remove'
+        if not os.path.exists(remove):
+            cls._logger.error('(v2.0)In parent dir, {} not found remove'.format(wl_inner))
+            return
+
         with open(remove_path, 'w') as f:
-            f.write('0')
+            f.write('1')
             with open(META_FILE_PCI_RESCAN, 'a') as f2:
-                f2.write('wireless')
+                f2.write('wireless=>{}'.format(remove_path))
             logger.info('mode has changed to {}'.format(mode))
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_WIRELESS, mode)

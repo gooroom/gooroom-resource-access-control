@@ -400,10 +400,16 @@ class GracSynchronizer:
                         cls._logger.error('{} not found remove'.format(wl_inner))
                         continue
 
+                    #v2.0
+                    remove = '/'.join(remove.split('/')[:-2]) + '/remove'
+                    if not os.path.exists(remove):
+                        cls._logger.error('(v2.0)In parent dir, {} not found remove'.format(wl_inner))
+                        continue
+
                     with open(remove, 'w') as f:
                         f.write('1')
                         with open(META_FILE_PCI_RESCAN, 'a') as f:
-                            f.write('wireless')
+                            f.write('wireless=>{}'.format(remove))
                         cls._logger.info('SYNC state={} remove=1'.format(state))
                         logmsg, notimsg, grmcode = \
                             make_media_msg(JSON_RULE_WIRELESS, state)
