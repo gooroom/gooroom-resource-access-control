@@ -99,7 +99,7 @@ msgstr "사운드"
 
 #: grac_editor.py:874
 msgid "Microphone"
-msgstr "마이크"
+msgstr "녹음"
 
 #: grac_editor.py:875
 msgid "Wireless"
