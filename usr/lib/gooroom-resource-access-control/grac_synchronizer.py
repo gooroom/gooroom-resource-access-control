@@ -9,7 +9,7 @@ import os
 from grac_util import remount_readonly,bluetooth_exists
 from grac_util import search_dir,search_file_reversely,GracLog 
 from grac_util import make_media_msg,red_alert2,catch_user_id
-from grac_util import umount_mount_readonly
+from grac_util import umount_mount_readonly,search_dir_list
 from grac_define import *
 from grac_error import *
 
@@ -319,21 +319,22 @@ class GracSynchronizer:
         synchronize keyboard
         """
 
-        keyboard_real_path = search_dir('/sys/devices', '.*::capslock')
-        bConfigurationValue = search_file_reversely(
-                                                keyboard_real_path,
-                                                'bConfigurationValue',
-                                                REVERSE_LOOKUP_LIMIT)
-        if not bConfigurationValue:
-            cls._logger.error('not found bConfigurationValue')
-            return
+        keyboard_real_path_list = search_dir_list('/sys/devices', '.*::capslock')
+        for keyboard_real_path in keyboard_real_path_list:
+            bConfigurationValue = search_file_reversely(
+                                                    keyboard_real_path,
+                                                    'bConfigurationValue',
+                                                    REVERSE_LOOKUP_LIMIT)
+            if not bConfigurationValue:
+                cls._logger.error('not found bConfigurationValue')
+                continue
 
-        with open(bConfigurationValue, 'w') as f:
-            f.write('0')
-            cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
-            logmsg, notimsg, grmcode = \
-                make_media_msg(JSON_RULE_KEYBOARD, state)
-            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+            with open(bConfigurationValue, 'w') as f:
+                f.write('0')
+                cls._logger.info('SYNC state={} bConfigurationValue=0'.format(state))
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_KEYBOARD, state)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
 
     @classmethod
     def sync_cd_dvd(cls, state, data_center):

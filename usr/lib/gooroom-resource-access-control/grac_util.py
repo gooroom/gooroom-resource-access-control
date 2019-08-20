@@ -147,6 +147,20 @@ def grac_format_exc():
     return '\n'.join(traceback.format_exc().split('\n')[-4:-1])
 
 #-----------------------------------------------------------------------
+def search_dir_list(from_here, dir_regex_s):
+    """
+    search for directory
+    """
+
+    l = []
+    regex = re.compile(dir_regex_s)
+    for root, dirs, files in os.walk(from_here):
+        for d in dirs:
+            if regex.match(d):
+                l.append(root+'/'+d)
+    return l
+
+#-----------------------------------------------------------------------
 def search_dir(from_here, dir_regex_s):
     """
     search for directory
