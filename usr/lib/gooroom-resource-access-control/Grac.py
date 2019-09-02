@@ -117,11 +117,10 @@ class Grac(dbus.service.Object):
         self.grac_network = GracNetwork(self.data_center)
 
         #SOUND/MICROPHONE INOTIFY THREAD
-        self.data_center.sound_mic_inotify = SoundMicInotify(self.data_center)
-        self.start_sound_mic_inotify(self.data_center)
+        self.data_center.sound_mic_inotify = None
 
         #CLIPBOARD
-        self.start_clipboard_handler(self.data_center)
+        self.clipboard_init = False
 
         self._loop.run()
 
@@ -176,6 +175,23 @@ class Grac(dbus.service.Object):
 
             self.data_center.show()
 
+            #SOUND/MICROPHONE INOTIFY THREAD
+            try:
+                if not self.data_center.sound_mic_inotify: 
+                    self.data_center.sound_mic_inotify = \
+                        SoundMicInotify(self.data_center)
+                    self.start_sound_mic_inotify(self.data_center)
+            except:
+                self.logger.error(grac_format_exc())
+
+            #CLIPBOARD
+            try:
+                if not self.clipboard_init:
+                    self.clipboard_init = True
+                    self.start_clipboard_handler(self.data_center)
+            except:
+                self.logger.error(grac_format_exc())
+
             if self.udev_dispatcher:
                 self.udev_dispatcher.stop_monitor()
                 self.synchronize_json_rule_and_device()
@@ -189,8 +205,7 @@ class Grac(dbus.service.Object):
 
             self.logger.info('GRAC RELOADED BY DBUS')
         except:
-            e = grac_format_exc()
-            self.logger.error(e)
+            self.logger.error(grac_format_exc())
             return e
 
         return GRAC_OK
