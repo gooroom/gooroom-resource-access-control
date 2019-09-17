@@ -41,6 +41,12 @@ class GracDataCenter:
         #ALERT TIMESTAMP
         self._alert_timestamp = None
 
+        #SOUND PREVIOUS STATE
+        self.snd_prev_state = None
+        
+        #MICROPHONE PREVIOUS STATE
+        self.mic_prev_state = None
+
     def show(self):
         """
         show 

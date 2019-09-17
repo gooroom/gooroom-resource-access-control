@@ -19,7 +19,7 @@ class SoundMicInotify(pyinotify.ProcessEvent):
 
         self.data_center = data_center
 
-    def pactl_sound(self, state):
+    def pactl_sound(self, state, notimsg=True):
         """
         allow/disallow sound with pactl
         """
@@ -32,7 +32,7 @@ class SoundMicInotify(pyinotify.ProcessEvent):
         self.data_center.GRAC.grac_letter(json.dumps(letter))
         GracLog.get_logger().debug('SIGNAL SOUND {}'.format(state))
 
-        if state == JSON_RULE_DISALLOW:
+        if notimsg and state == JSON_RULE_DISALLOW:
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_SOUND, state)
             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
@@ -70,7 +70,7 @@ class SoundMicInotify(pyinotify.ProcessEvent):
                     GracLog.get_logger().debug('UNBLOCK SOUND')
         '''
         
-    def pactl_mic(self, state):
+    def pactl_mic(self, state, notimsg=True):
         """
         allow/disallow microphone with pactl
         """
@@ -83,7 +83,7 @@ class SoundMicInotify(pyinotify.ProcessEvent):
         self.data_center.GRAC.grac_letter(json.dumps(letter))
         GracLog.get_logger().debug('SIGNAL MIC {}'.format(state))
 
-        if state == JSON_RULE_DISALLOW:
+        if notimsg and state == JSON_RULE_DISALLOW:
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_MICROPHONE, state)
             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 

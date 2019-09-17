@@ -265,12 +265,14 @@ class GracSynchronizer:
         synchronize sound card
         """
 
-        data_center.sound_mic_inotify.pactl_sound(state)
-        if state == JSON_RULE_DISALLOW:
+        data_center.sound_mic_inotify.pactl_sound(state, notimsg=False)
+        if state == JSON_RULE_DISALLOW \
+            and data_center.snd_prev_state in (None, JSON_RULE_ALLOW):
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_SOUND, state)
             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
                 grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
+        data_center.snd_prev_state = state
 
     @classmethod
     def sync_microphone(cls, state, data_center):
@@ -278,12 +280,14 @@ class GracSynchronizer:
         synchronize microphone
         """
 
-        data_center.sound_mic_inotify.pactl_mic(state)
-        if state == JSON_RULE_DISALLOW:
+        data_center.sound_mic_inotify.pactl_mic(state, notimsg=False)
+        if state == JSON_RULE_DISALLOW \
+            and data_center.mic_prev_state in (None, JSON_RULE_ALLOW):
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_MICROPHONE, state)
             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
                 grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
+        data_center.mic_prev_state = state
 
     @classmethod
     def sync_mouse(cls, state, data_center):
