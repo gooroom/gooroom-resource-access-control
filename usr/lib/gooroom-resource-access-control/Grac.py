@@ -180,6 +180,7 @@ class Grac(dbus.service.Object):
                 if not self.data_center.sound_mic_inotify: 
                     self.data_center.sound_mic_inotify = \
                         SoundMicInotify(self.data_center)
+                    self.data_center.sound_mic_inotify.WM = \
                     self.start_sound_mic_inotify(self.data_center)
             except:
                 self.logger.error(grac_format_exc())
@@ -327,6 +328,7 @@ class Grac(dbus.service.Object):
         notifier = pyinotify.ThreadedNotifier(wm, data_center.sound_mic_inotify)
         notifier.daemon = True
         notifier.start()
+        return wm
 
     def start_clipboard_handler(self, data_center):
         """

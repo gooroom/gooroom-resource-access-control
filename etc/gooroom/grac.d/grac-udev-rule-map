@@ -54,3 +54,16 @@
     FILTER="""
     ACTION=="add", DEVNODE=="video[0-9]*", SUBSYSTEM=="video4linux", ENV{ID_BUS}=="usb", MODULE="camera disallow $devpath"
     """
+
+[sound]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", MODULE="sound disallow $devpath
+    """
+
+[microphone]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", ENV{ID_BUS}=="usb", ENV{ID_INPUT}=="1", ENV{ID_MODEL}==".*Audio*", ENV{DEVNAME}!=".*input/event*", MODULE="microphone disallow $devpath"
+    ACTION=="add", ENV{PCI_CLASS}=="403[0-9]*", MODULE="microphone disallow $devpath"
+    """
