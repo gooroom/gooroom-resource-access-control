@@ -28,21 +28,20 @@ def pactl_sound(state):
         if not 'index' in l:
             continue
 
-        sound_indexes = re.sub(r'\s+', '', l.split(':')[1])
+        sound_index = re.sub(r'\s+', '', l.split(':')[1])
 
-        for i in sound_indexes:
-            if state == RULE_DISALLOW:
-                p1 = subprocess.Popen(
-                    ['/usr/bin/pactl', 'set-sink-mute', i, '1'],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
-                pp_out, pp_err = p1.communicate()
-            else:
-                p1 = subprocess.Popen(
-                    ['/usr/bin/pactl', 'set-sink-mute', i, '0'],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
-                pp_out, pp_err = p1.communicate()
+        if state == RULE_DISALLOW:
+            p1 = subprocess.Popen(
+                ['/usr/bin/pactl', 'set-sink-mute', sound_index, '1'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            pp_out, pp_err = p1.communicate()
+        else:
+            p1 = subprocess.Popen(
+                ['/usr/bin/pactl', 'set-sink-mute', sound_index, '0'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            pp_out, pp_err = p1.communicate()
 
 #-----------------------------------------------------------------------
 def pactl_mic(state):
@@ -62,21 +61,20 @@ def pactl_mic(state):
             continue
         if not 'index' in l:
             continue
-        mic_indexes = re.sub(r'\s+', '', l.split(':')[1])
+        mic_index = re.sub(r'\s+', '', l.split(':')[1])
 
-        for i in mic_indexes:
-            if state == RULE_DISALLOW:
-                p1 = subprocess.Popen(
-                    ['/usr/bin/pactl', 'set-source-mute', i, '1'],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
-                pp_out, pp_err = p1.communicate()
-            else:
-                p1 = subprocess.Popen(
-                    ['/usr/bin/pactl', 'set-source-mute', i, '0'],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
-                pp_out, pp_err = p1.communicate()
+        if state == RULE_DISALLOW:
+            p1 = subprocess.Popen(
+                ['/usr/bin/pactl', 'set-source-mute', mic_index, '1'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            pp_out, pp_err = p1.communicate()
+        else:
+            p1 = subprocess.Popen(
+                ['/usr/bin/pactl', 'set-source-mute', mic_index, '0'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            pp_out, pp_err = p1.communicate()
 
 #-----------------------------------------------------------------------
 if __name__ == '__main__':
