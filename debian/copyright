@@ -2,7 +2,7 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Source: http://git.gooroom.kr/gpms-client-server-autoregistration
 
 Files:  *
-Copyright:  2018  gooroom  <hmkim@gooroom.kr>
+Copyright:  2018  gooroom  <gooroom@gooroom.kr>
 License:  GPL-3+
 
 License: GPL-3+
