@@ -164,6 +164,22 @@ class Grac(dbus.service.Object):
         bus_interface = dbus.Interface(bus_object, dbus_interface=DBUS_IFACE)
         return eval('bus_interface.stop(target)')
         
+    def reload_snd_mic_dev(self, wm):
+        """
+        reload sound|microphone devices
+        """
+
+        dev_snd_path = "/dev/snd/"
+        file_list = os.listdir(dev_snd_path)
+
+        for control_file in file_list:
+            if control_file.find("control") is not -1:
+                idx = control_file.split("controlC")
+                wm.add_watch(
+                    dev_snd_path + control_file, 
+                    pyinotify.IN_ACCESS, 
+                    rec=True)
+
     @dbus.service.method(DBUS_IFACE)
     def reload(self, args):
         """
@@ -182,6 +198,9 @@ class Grac(dbus.service.Object):
                         SoundMicInotify(self.data_center)
                     self.data_center.sound_mic_inotify.WM = \
                     self.start_sound_mic_inotify(self.data_center)
+                else:
+                    self.reload_snd_mic_dev(
+                        self.data_center.sound_mic_inotify.WM)
             except:
                 self.logger.error(grac_format_exc())
 
