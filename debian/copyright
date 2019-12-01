@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: gooroom-resource-access-control
-Source: <url://github.com/gooroom/gooroom-resource-access-control>
+Source: https://github.com/gooroom/gooroom-resource-access-control
 
 Files: *
 Copyright: 2019 gooroom <gooroom@gooroom.kr>
