@@ -1,3 +1,49 @@
+gooroom-resource-access-control (1.3.1+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [758b9935] fixed grac-synchronizer(return->continue)
+  * [b1352315] fixed bug that cannot add rules when policy is droped
+  * [6bbd4410] changed sound/microphone method. added clipboard/screen-capture
+  * [52e8e8c3] hanged how to check online account by confirming the .grm-user file but gooroom-online-account in passwd.
+  * [ec24409a] for building
+  * [4e0e5ef8] moved grac-editor category to System
+  * [694e66b0] fixed grac-editor port bug(65536)
+  * [a3e89a99] fixed previous commit bug (Ib1b65d82fb46c6696ffd39756cf5910e1c444e71)
+  * [e6186415] added a menu removing user rules
+  * [a9372f89] changed screencapture -> screen_capture.
+  * [df7452bd] added checking extensions(screen-capture/clipboard)
+  * [57576fee] changed screencapture to screen_capture
+  * [972d84ef] removed microphone in grac-udev-rule-map
+  * [33491b42] made sound/mic/screencapture/clipboard record journallog
+  * [40f3f875] limited the span of sound/microphone noti-messages to 3s
+  * [4db4880e] changed grac-editor's polkit policy for using auth_xxx_keep privilege
+  * [9f0e39ca] added grac-editor's desktop icon setting
+  * [0a02480b] fixed noti-msg timespan bug
+  * [70a3a59d] added grac_noti_forward signal receiver
+  * [f2171e8f] changed wireless control method
+  * [a279bf2a] fixed keyboard sync logic
+  * [562fd1ea] changed 마이크 to 녹음 in grac-editor
+  * [76f5c41f] changed positions of inotify-thread and clipboard-init to reload's
+  * [5a67dc28] changed polkit policy of grac-editor
+  * [87bb3f9a] removed duplicated noti-msg when synchronizing sound/microphone
+  * [93033de3] removed restart options of systemd
+  * [53c8745d] fixed snd/mic inotify targets bug
+  * [487e021c] fixed index bug of grac-pactl
+  * [727bca81] added polkit auth message to grac-editor in Korean
+  * [ec7f826e] changed copyright email address
+  * [1689fb64] changed Source of copyright
+  * [ac10dfbe] added reloading snd/mic devices to inotify when grac reloading.
+  * [51d0a01a] added which-grac-rule.py
+  * [58e1be41] changed how to check whether remote user or not to gecos
+  * [48a74e89] changed copyright from GPL-3 to GPL-2.0
+
+  [ jongkyung.woo ]
+  * [066f9c1a] Updated copyright
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Mon, 02 Dec 2019 11:45:55 +0900
+
 gooroom-resource-access-control (1.2.0+grm1u1) unstable; urgency=medium
 
   [ hmkim ]
