@@ -949,12 +949,12 @@ def check_online_account():
         return False, 'can not find login-account.'
 
     #user_id is a local account
-    ps = '/var/run/user/{}/gooroom/.grm-user'.format(getpwnam(user_id).pw_uid)
-    if not os.path.exists(ps):
+    gecos = getpwnam(user_id).pw_gecos.split(',')
+    if len(gecos) >= 5 and gecos[4] == 'gooroom-account':
+        return False, _('online-account can not use editor.')
+    else:
         user_id = '+' + user_id
         return True, ''
-    else:
-        return False, _('online-account can not use editor.')
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
