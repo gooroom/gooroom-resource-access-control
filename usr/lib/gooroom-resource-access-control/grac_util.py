@@ -416,5 +416,5 @@ def catch_user_id():
         except:
             GracLog.get_logger().debug(agent_format_exc())
 
-    return '-', display
+    return '-', ''
 
