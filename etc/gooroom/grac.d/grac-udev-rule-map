@@ -40,7 +40,7 @@
 [bluetooth]
     [[disallow]]
     FILTER="""
-    ACTION=="add", ENV{ID_BUS}=="bluetooth", MODULE="bluetooth disallow $attrs{uniq}"
+    ACTION=="add", ENV{ID_BUS}=="bluetooth", MODULE="bluetooth disallow $attrs{name}"
     """
 
 [wireless]
