@@ -1,3 +1,15 @@
+gooroom-resource-access-control (1.3.2+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [8abc5063] changed how to check remote user
+  * [7cadeaeb] fixed catch_user_id bug
+  * [bc00954b] changed bluetooth mac attr from uniq to name. fixed printer alert message bug.
+  * [77a55cf2] fixed bluetooth mac address bug
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 11 Feb 2020 11:38:14 +0900
+
 gooroom-resource-access-control (1.3.1+grm2u1) unstable; urgency=medium
 
   * Initial Release
