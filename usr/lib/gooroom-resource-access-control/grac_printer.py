@@ -111,7 +111,7 @@ class GracPrinter:
                         self._conn.deletePrinter(printer_name)
                         self.logger.debug('(watch) delete printer({})'.format(printer_name))
                         logmsg, notimsg, grmcode = \
-                            make_media_msg(JSON_RULE_BLUETOOTH, JSON_RULE_DISALLOW)
+                            make_media_msg(JSON_RULE_PRINTER, JSON_RULE_DISALLOW)
                         red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, self.data_center)
                 except:
                     self.logger.error(grac_format_exc())
@@ -193,7 +193,7 @@ class GracPrinter:
                 self._conn.deletePrinter(printer_name)
                 self.logger.debug('delete printer({})'.format(printer_name))
                 logmsg, notimsg, grmcode = \
-                    make_media_msg(JSON_RULE_BLUETOOTH, JSON_RULE_DISALLOW)
+                    make_media_msg(JSON_RULE_PRINTER, JSON_RULE_DISALLOW)
                 red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, self.data_center)
             except:
                 self.logger.error(grac_format_exc())
