@@ -1,3 +1,12 @@
+gooroom-resource-access-control (1.3.3+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [dc4373cb] fixed printer alert message comment
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Thu, 20 Feb 2020 19:18:03 +0900
+
 gooroom-resource-access-control (1.3.2+grm2u1) unstable; urgency=medium
 
   [ hmkim ]
