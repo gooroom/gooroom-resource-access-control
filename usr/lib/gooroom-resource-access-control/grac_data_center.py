@@ -68,6 +68,7 @@ class GracDataCenter:
             self.load_python_modules()
             self._bluetooth_whitelist = self.pick_bluetooth_whitelist(self._json_rules)
             self._usb_memory_whitelist = self.pick_usb_memory_whitelist(self._json_rules)
+            self._usb_network_whitelist = self.pick_usb_network_whitelist(self._json_rules)
 
             self.logger.info('END SHOW()')
 
@@ -346,6 +347,17 @@ class GracDataCenter:
 
         return json_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_MEMORY_WHITELIST]
 
+    def pick_usb_network_whitelist(self, json_rules):
+        """
+        pick usb-network whitelist in json rules
+        """
+        
+        if not JSON_RULE_USB_NETWORK in json_rules \
+            or not JSON_RULE_USB_NETWORK_WHITELIST in json_rules[JSON_RULE_USB_NETWORK]:
+            return {}
+
+        return json_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST]
+
     def get_bluetooth_whitelist(self):
         """
         get bluetooth whitelist
@@ -393,4 +405,35 @@ class GracDataCenter:
 
         finally:
             self._center_lock.release()
+
+    def get_usb_network_port_blacklist(self):
+        """
+        get usb network whitelist regex
+        """
+
+        usb_port_blacklist = '/usb[0-9]*/'
+        try:
+            block_usb_regex = re.compile('/usb[0-9]*/')
+            whitelist = self._usb_network_whitelist
+
+            ports = None
+            for k, v in whitelist.items():
+                if k.strip().lower() == 'port':
+                    ports = [int(n) for n in v.strip().split(',') if n]
+                    break
+            if not ports:
+                return usb_port_blacklist
+
+            if ports:
+                black = ''
+                for n in range(10):
+                    if n in ports:
+                        continue
+                    black += str(n)
+                if not black:
+                    return None
+                return '/usb[{}]*/'.format(black)
+        except:
+            self.logger.error(grac_format_exc())
+            return usb_port_blacklist
 

@@ -10,6 +10,7 @@ from grac_util import remount_readonly,bluetooth_exists
 from grac_util import search_dir,search_file_reversely,GracLog 
 from grac_util import make_media_msg,red_alert2,catch_user_id
 from grac_util import umount_mount_readonly,search_dir_list
+from grac_util import grac_format_exc
 from grac_define import *
 from grac_error import *
 
@@ -31,9 +32,57 @@ class GracSynchronizer:
                         (JSON_RULE_CAMERA, MC_TYPE_BCONFIG),
                         (JSON_RULE_BLUETOOTH, MC_TYPE_NA),
                         (JSON_RULE_CLIPBOARD, MC_TYPE_NOSYNC),
-                        (JSON_RULE_SCREEN_CAPTURE, MC_TYPE_ALLOWSYNC))
+                        (JSON_RULE_SCREEN_CAPTURE, MC_TYPE_ALLOWSYNC),
+                        (JSON_RULE_USB_NETWORK, MC_TYPE_AUTH))
 
     _logger = GracLog.get_logger()
+
+    @classmethod
+    def sync_usb_network(cls, state, data_center):
+        """
+        synchronize usb-network
+        """
+
+        #################### WHITE LIST ####################
+        usb_port_blacklist = data_center.get_usb_network_port_blacklist()
+        cls._logger.debug('(UNW SYNC) usb_port_blacklist={}'.format(usb_port_blacklist))
+        if not usb_port_blacklist:
+            cls._logger.info('(UNW SYNC) blacklist is empty')
+            return
+        ####################################################
+
+        block_base_path = '/sys/class/net/*'
+        block_usb_regex = re.compile(usb_port_blacklist)
+        
+        #block devices
+        for block_device in glob.glob(block_base_path):
+            device_node = block_device.split('/')[-1]
+
+            #/sys/devices
+            device_sys_path = block_device + '/device'
+            if not os.path.exists(device_sys_path):
+                continue
+                
+            device_real_path = os.path.realpath(device_sys_path)
+
+            #usb device
+            if block_usb_regex.search(device_real_path):
+                #authorized
+                authorized = search_file_reversely(
+                                            device_real_path, 
+                                            'authorized', 
+                                            REVERSE_LOOKUP_LIMIT)
+                if not authorized:
+                    cls._logger.error('{} not found authorized'.block_device)
+                    return
+
+                with open(authorized, 'w') as f:
+                    f.write('0')
+                    cls._logger.info('SYNC state={} authorized=0'.format(state))
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_USB_NETWORK, state)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    cls._logger.debug('***** USB NETWORK disallow {}'.format(block_device))
 
     @classmethod
     def sync_screen_capture(cls, state, data_center):

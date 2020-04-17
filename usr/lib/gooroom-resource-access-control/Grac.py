@@ -226,7 +226,6 @@ class Grac(dbus.service.Object):
             self.logger.info('GRAC RELOADED BY DBUS')
         except:
             self.logger.error(grac_format_exc())
-            return e
 
         return GRAC_OK
 

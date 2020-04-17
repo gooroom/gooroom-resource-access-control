@@ -28,6 +28,8 @@ JSON_RULE_NETWORK_STATE = 'state'
 JSON_RULE_NETWORK_VERSION = 'version'
 JSON_RULE_NETWORK_SRC_PORTS = 'src_ports'
 JSON_RULE_NETWORK_DST_PORTS = 'dst_ports'
+JSON_RULE_USB_NETWORK = 'usb_network'
+JSON_RULE_USB_NETWORK_WHITELIST = 'whitelist'
 
 #network
 NETWORK_ACCEPT = 'accept'
@@ -38,7 +40,8 @@ TITLE_WL_USB_MEMORY = 'usb memory'
 TITLE_WL_BLUETOOTH = 'bluetooth'
 TITLE_NETWORK_ADD = 'network add'
 TITLE_NETWORK_EDIT = 'network edit'
-
+TITLE_USB_NETWORK_WHITELIST_ADD = 'usb network whitelist add'
+TITLE_USB_NETWORK_WHITELIST_EDIT = 'usb network whitelist edit'
 #dbus
 DBUS_NAME = 'kr.gooroom.GRACDEVD'
 DBUS_OBJ = '/kr/gooroom/GRACDEVD'

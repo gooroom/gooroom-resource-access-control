@@ -181,6 +181,11 @@ class GracEditor:
         else:
             self.builder.get_object('btn_bluetooth').set_sensitive(True)
 
+        if self.builder.get_object('rdo+usb_network+allow').get_active():
+            self.builder.get_object('btn_usb_network').set_sensitive(False)
+        else:
+            self.builder.get_object('btn_usb_network').set_sensitive(True)
+
     def load_rules(self, rule_path):
         """
         load rules file
@@ -202,6 +207,124 @@ class GracEditor:
                     new_json_rules[k][k2] = v2
 
         return new_json_rules
+
+    def on_btn_dialog_usb_network_whitelist_add_clicked(self, obj):
+        """
+        add button of usb network whitelist
+        """
+
+        ent_unw_name = self.builder.get_object('ent_unw_name').set_text('')
+        ent_unw_contents = self.builder.get_object('ent_unw_contents').set_text('')
+
+        dg = self.builder.get_object('dialog_unw_input')
+        dg.set_title(TITLE_USB_NETWORK_WHITELIST_ADD)
+        dg.run()
+        dg.hide()
+
+    def on_btn_dialog_usb_network_whitelist_del_clicked(self, obj):
+        """
+        del button of usb network whitelist
+        """
+
+        treeview_network = self.builder.get_object('treeview_usb_network_whitelist')
+        list_store, list_store_iter = treeview_network.get_selection().get_selected()
+        if list_store_iter:
+            list_store.remove(list_store_iter)
+
+    def on_btn_dialog_usb_network_whitelist_edit_clicked(self, obj):
+        """
+        edit button of usb network whitelist
+        """
+
+        treeview_unw = self.builder.get_object('treeview_usb_network_whitelist')
+        list_store, list_store_iter = treeview_unw.get_selection().get_selected()
+        if list_store_iter:
+            name = list_store.get_value(list_store_iter, 0)
+            contents = list_store.get_value(list_store_iter, 1)
+
+            ent_name = self.builder.get_object('ent_unw_name')
+            ent_name.set_text(name)
+
+            ent_contents = self.builder.get_object('ent_unw_contents')
+            ent_contents.set_text(contents)
+
+            dg = self.builder.get_object('dialog_unw_input')
+            dg.set_title(TITLE_USB_NETWORK_WHITELIST_EDIT)
+            dg.run()
+            dg.hide()
+
+    def on_btn_dialog_unw_input_ok_clicked(self, obj):
+        """
+        ok button of unw input dialog
+        """
+
+        dg = self.builder.get_object('dialog_unw_input')
+        title = dg.get_title()
+
+        name = self.builder.get_object('ent_unw_name').get_text()
+        contents = self.builder.get_object('ent_unw_contents').get_text()
+
+        if title == TITLE_USB_NETWORK_WHITELIST_EDIT:
+            treeview_unw = self.builder.get_object('treeview_usb_network_whitelist')
+            list_store, list_store_iter = treeview_unw.get_selection().get_selected()
+            list_store.set_value(list_store_iter, 0, name)
+            list_store.set_value(list_store_iter, 1, contents)
+        else:
+            liststore = self.builder.get_object('liststore_usb_network_whitelist')
+            liststore.append([name, contents])
+            
+        dg.hide()
+
+    def on_btn_dialog_unw_input_cancel_clicked(self, obj):
+        """
+        cancel button of unw input dialog
+        """
+
+        self.builder.get_object('dialog_unw_input').hide()
+
+    def on_btn_dialog_usb_network_whitelist_ok_clicked(self, obj):
+        """
+        ok button of usb network whitelist dialog
+        """
+
+        liststore = self.builder.get_object('liststore_usb_network_whitelist')
+        wl = {}
+        for l in liststore:
+            name = l[0].strip()
+            contents = l[1].strip()
+            wl[name] = contents
+        self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST] = wl
+
+        self.builder.get_object('dialog_usb_network_whitelist').hide()
+
+    def on_btn_dialog_usb_network_whitelist_cancel_clicked(self, obj):
+        """
+        cancel button of usb network whitelist dialog
+        """
+
+        self.builder.get_object('dialog_usb_network_whitelist').hide()
+
+    def on_btn_usb_network_clicked(self, obj):
+        """
+        click event of usb-network whitelist
+        """
+
+        dg = self.builder.get_object('dialog_usb_network_whitelist')
+        dg.set_title(_('usb network whitelist'))
+
+        #clear textview 
+        self.clear_dialog_whitelist_textview()
+        liststore = self.builder.get_object('liststore_usb_network_whitelist')
+        liststore.clear()
+
+        #fill list in
+        if JSON_RULE_USB_NETWORK in self.media_rules \
+            and JSON_RULE_USB_NETWORK_WHITELIST in self.media_rules[JSON_RULE_USB_NETWORK]:
+            wls = self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST]
+            for name, contents in wls.items():
+                liststore.append([name, contents])
+        dg.run()
+        dg.hide()
 
     def on_window_main_destroy(self, obj):
         """
@@ -703,6 +826,16 @@ class GracEditor:
         else:
             self.builder.get_object('btn_bluetooth').set_sensitive(True)
 
+    def on_rdo_usb_network_disallow_toggled(self, obj):
+        """
+        usb-network-disallow readiobutton toggled
+        """
+
+        if self.builder.get_object('rdo+usb_network+allow').get_active():
+            self.builder.get_object('btn_usb_network').set_sensitive(False)
+        else:
+            self.builder.get_object('btn_usb_network').set_sensitive(True)
+
     def on_menu_save_activate(self, obj):
         """
         menu > File > save
@@ -720,6 +853,7 @@ class GracEditor:
                     state = v[2]
                     if not mediaid in self.media_rules:
                         continue
+
                     self.media_rules[mediaid][JSON_RULE_STATE] = state
                     '''
                     #microphone exception
@@ -916,6 +1050,15 @@ class GracEditor:
 
         #event
         self.builder.get_object('lbl_log').set_label(_('event log'))
+
+        #usb network
+        self.builder.get_object('btn_usb_network').set_label(_('WL'))
+        self.builder.get_object('rdo+usb_network+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+usb_network+disallow').set_label(_('disallow'))
+        self.builder.get_object('lbl_usb_network').set_label(_('USB Network'))
+        self.builder.get_object('btn_dialog_usb_network_whitelist_add').set_label(_('add'))
+        self.builder.get_object('btn_dialog_usb_network_whitelist_del').set_label(_('del'))
+        self.builder.get_object('btn_dialog_usb_network_whitelist_edit').set_label(_('edit'))
 
 #-----------------------------------------------------------------------
 def check_online_account():

@@ -1,9 +1,7 @@
 {
   "keyboard" : "allow",
   "mouse" : "allow",
-  "bluetooth" : {
-    "state" : "allow"
-  },
+  "bluetooth" : "allow",
   "printer" : "allow",
   "sound" : "allow",
   "usb_memory" : "allow",
@@ -16,5 +14,6 @@
     "state" : "allow"
   },
   "clipboard": "allow",
-  "screen_capture": "allow"
+  "screen_capture": "allow",
+  "usb_network": "allow"
 }
