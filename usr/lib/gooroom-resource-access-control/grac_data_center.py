@@ -418,7 +418,7 @@ class GracDataCenter:
 
             ports = None
             for k, v in whitelist.items():
-                if k.strip().lower() == 'port':
+                if k.strip().lower() == 'usbbus':
                     ports = [int(n) for n in v.strip().split(',') if n]
                     break
             if not ports:

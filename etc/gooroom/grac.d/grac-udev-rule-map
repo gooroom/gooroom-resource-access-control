@@ -1,3 +1,9 @@
+[usb_network]
+    [[disallow]]
+    FILTER="""
+    ACTION=="add", SUBSYSTEM=="net", ENV{ID_BUS}=="usb", MODULE="usb_network disallow $devpath"
+    """
+
 [usb_memory]
     [[disallow]]
     FILTER="""
