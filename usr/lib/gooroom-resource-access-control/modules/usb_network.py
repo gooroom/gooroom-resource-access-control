@@ -6,6 +6,7 @@ import threading
 import psutil
 import time
 import os
+import re
 
 from grac_util import remount_readonly,search_file_reversely
 from grac_util import GracConfig,GracLog,grac_format_exc
