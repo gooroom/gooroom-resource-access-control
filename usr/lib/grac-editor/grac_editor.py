@@ -217,7 +217,10 @@ class GracEditor:
         ent_unw_contents = self.builder.get_object('ent_unw_contents').set_text('')
 
         dg = self.builder.get_object('dialog_unw_input')
-        dg.set_title(TITLE_USB_NETWORK_WHITELIST_ADD)
+        self.unw_btn_type = 1
+        dg.set_title(_('usb network whitelist add'))
+        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
+        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
         dg.run()
         dg.hide()
 
@@ -249,7 +252,10 @@ class GracEditor:
             ent_contents.set_text(contents)
 
             dg = self.builder.get_object('dialog_unw_input')
-            dg.set_title(TITLE_USB_NETWORK_WHITELIST_EDIT)
+            self.unw_btn_type = 2
+            dg.set_title(_('usb network whitelist edit'))
+            dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
+            dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
             dg.run()
             dg.hide()
 
@@ -264,7 +270,7 @@ class GracEditor:
         name = self.builder.get_object('ent_unw_name').get_text()
         contents = self.builder.get_object('ent_unw_contents').get_text()
 
-        if title == TITLE_USB_NETWORK_WHITELIST_EDIT:
+        if self.unw_btn_type == 2:
             treeview_unw = self.builder.get_object('treeview_usb_network_whitelist')
             list_store, list_store_iter = treeview_unw.get_selection().get_selected()
             list_store.set_value(list_store_iter, 0, name)
@@ -323,6 +329,8 @@ class GracEditor:
             wls = self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST]
             for name, contents in wls.items():
                 liststore.append([name, contents])
+        dg.vbox.get_children()[2].get_children()[0].get_children()[0].set_label(_('OK'))
+        dg.vbox.get_children()[2].get_children()[0].get_children()[1].set_label(_('CANCEL'))
         dg.run()
         dg.hide()
 
@@ -352,7 +360,10 @@ class GracEditor:
             _('how to write: 01:23:45:ab:cd:ef'))
 
         dg = self.builder.get_object('dialog_whitelist')
-        dg.set_title(TITLE_WL_BLUETOOTH)
+        self.ub_btn_type = 2
+        dg.set_title(_('bluetooth whitelist'))
+        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
+        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
 
         #clear textview
         self.clear_dialog_whitelist_textview()
@@ -376,7 +387,10 @@ class GracEditor:
             _('how to write: ID_SERIAL_SHORT of udev event'))
 
         dg = self.builder.get_object('dialog_whitelist')
-        dg.set_title(TITLE_WL_USB_MEMORY)
+        self.ub_btn_type = 1
+        dg.set_title(_('usb memory whitelist'))
+        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
+        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
 
         #clear textview 
         self.clear_dialog_whitelist_textview()
@@ -409,14 +423,14 @@ class GracEditor:
 
         validate_res = VALIDATE_OK
 
-        if title == TITLE_WL_USB_MEMORY:
+        if self.ub_btn_type == 1:
             #validate text
 
             self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_SERIALNO] = \
                 v.strip('\n').split('\n')
             dg.hide()
 
-        elif title == TITLE_WL_BLUETOOTH:
+        elif self.ub_btn_type == 2:
             #validate text
             validate_res = self.validate_whitelist_bluetooth(v)
             if validate_res == VALIDATE_OK:
@@ -515,7 +529,10 @@ class GracEditor:
                 cb_state.set_active(1)
 
             dg = self.builder.get_object('dialog_network_add')
-            dg.set_title(TITLE_NETWORK_EDIT)
+            self.ne_btn_type = 2
+            dg.set_title(_('network edit'))
+            dg.vbox.get_children()[2].get_children()[0].get_children()[0].set_label(_('OK'))
+            dg.vbox.get_children()[2].get_children()[0].get_children()[1].set_label(_('CANCEL'))
             dg.run()
             dg.hide()
 
@@ -549,7 +566,7 @@ class GracEditor:
             lbl_network_log = self.builder.get_object('lbl_network_log')
             lbl_network_log.set_text(val_res)
         else:
-            if title == TITLE_NETWORK_EDIT:
+            if self.ne_btn_type == 2:
                 treeview_network = self.builder.get_object('treeview_network')
                 list_store, list_store_iter = treeview_network.get_selection().get_selected()
                 list_store.set_value(list_store_iter, 0, direction)
@@ -702,7 +719,10 @@ class GracEditor:
         cb_state = self.builder.get_object('cb_state').set_active(0)
 
         dg = self.builder.get_object('dialog_network_add')
-        dg.set_title(TITLE_NETWORK_ADD)
+        self.ne_btn_type = 1
+        dg.set_title(_('network add'))
+        dg.vbox.get_children()[2].get_children()[0].get_children()[0].set_label(_('OK'))
+        dg.vbox.get_children()[2].get_children()[0].get_children()[1].set_label(_('CANCEL'))
         dg.run()
         dg.hide()
 
