@@ -105,6 +105,7 @@ class GracNetwork:
                 return
 
             rules_json = network_json[JSON_RULE_NETWORK_RULES]
+            rules_json.reverse()
 
             for rule_json in rules_json:
                 ip = rule_json[JSON_RULE_NETWORK_IPADDRESS]
