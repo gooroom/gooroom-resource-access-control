@@ -1080,6 +1080,10 @@ class GracEditor:
         self.builder.get_object('btn_dialog_usb_network_whitelist_del').set_label(_('del'))
         self.builder.get_object('btn_dialog_usb_network_whitelist_edit').set_label(_('edit'))
 
+        #padding inactive
+        self.builder.get_object('mi_padding').set_sensitive(False)
+        self.builder.get_object('tb_padding').set_sensitive(False)
+
 #-----------------------------------------------------------------------
 def check_online_account():
     """
