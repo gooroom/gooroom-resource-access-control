@@ -1,3 +1,18 @@
+gooroom-resource-access-control (1.3.4+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [67466a62] added usb-network
+  * [db970780] added usb network rules
+  * [a73975b5] fixed usb_network.py
+  * [afb2af1f] changed title to Korean
+  * [8078a67f] reversed network rules
+  * [981970f4] fix dialog moving bug by menubar and toolbar
+  * [fb1db6bf] add scrollbar to media-grid of grac-editor
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 07 Jul 2020 14:49:49 +0900
+
 gooroom-resource-access-control (1.3.3+grm2u1) unstable; urgency=medium
 
   [ hmkim ]
