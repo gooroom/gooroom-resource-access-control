@@ -15,11 +15,13 @@ from grac_util import catch_user_id
 
 #-----------------------------------------------------------------------
 #for clipboard...
+'''
 g_session_user, g_session_display = catch_user_id()
 if len(g_session_user) > 0 and g_session_user[0] == '+':
     g_session_user = g_session_user[1:]
 os.environ['DISPLAY'] = g_session_display
 os.environ['XAUTHORITY'] = '/home/{}/.Xauthority'.format(g_session_user)
+'''
 
 #-----------------------------------------------------------------------
 import gi
@@ -205,12 +207,14 @@ class Grac(dbus.service.Object):
                 self.logger.error(grac_format_exc())
 
             #CLIPBOARD
+            '''
             try:
                 if not self.clipboard_init:
                     self.clipboard_init = True
                     self.start_clipboard_handler(self.data_center)
             except:
                 self.logger.error(grac_format_exc())
+            '''
 
             if self.udev_dispatcher:
                 self.udev_dispatcher.stop_monitor()
