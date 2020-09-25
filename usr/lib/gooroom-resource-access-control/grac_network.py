@@ -78,6 +78,9 @@ class GracNetwork:
         reload
         """
             
+        #MOFA TEMPORARY PATCH
+        return
+
         try:
             json_rules = self.data_center.get_json_rules()
             network_json = json_rules[JSON_RULE_NETWORK]
