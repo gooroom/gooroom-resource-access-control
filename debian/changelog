@@ -1,3 +1,10 @@
+gooroom-resource-access-control (1.3.5+grm2u1+mofa01) unstable; urgency=medium
+
+  [ hmkim ]
+  * [84193926] mofa argent temporary patch:grac_network disable.
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 06 Oct 2020 12:55:49 +0900
+
 gooroom-resource-access-control (1.3.5+grm2u1) unstable; urgency=medium
 
   [ hmkim ]
