@@ -2,6 +2,7 @@
 
 #-----------------------------------------------------------------------
 import subprocess
+import datetime
 import glob
 import re
 import os
@@ -10,7 +11,7 @@ from grac_util import remount_readonly,bluetooth_exists
 from grac_util import search_dir,search_file_reversely,GracLog 
 from grac_util import make_media_msg,red_alert2,catch_user_id
 from grac_util import umount_mount_readonly,search_dir_list
-from grac_util import grac_format_exc
+from grac_util import grac_format_exc,write_event_log
 from grac_define import *
 from grac_error import *
 
@@ -165,6 +166,14 @@ class GracSynchronizer:
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_BLUETOOTH, state)
                     red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_BLUETOOTH, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
 
         cls._logger.info('SYNC state={}'.format(state))
             
@@ -246,6 +255,14 @@ class GracSynchronizer:
                             logmsg, notimsg, grmcode = \
                                 make_media_msg(JSON_RULE_USB_MEMORY, state)
                             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                            write_event_log(SOMANSA, 
+                                            datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                            JSON_RULE_USB_MEMORY, 
+                                            SOMANSA_STATE_READONLY, 
+                                            'null', 
+                                            'null', 
+                                            'null', 
+                                            'null')
                             skeep_uuid = True
                             break
                     if skeep_uuid:
@@ -305,6 +322,14 @@ class GracSynchronizer:
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_USB_MEMORY, state)
                     red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_USB_MEMORY, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
                     cls._logger.debug('***** USB disallow {}'.format(block_device))
 
 
@@ -428,6 +453,14 @@ class GracSynchronizer:
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_CD_DVD, state)
                     red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_CD_DVD, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
                     cls._logger.debug('***** DVD disallow {}'.format(block_device))
 
     @classmethod
@@ -468,6 +501,14 @@ class GracSynchronizer:
                         logmsg, notimsg, grmcode = \
                             make_media_msg(JSON_RULE_WIRELESS, state)
                         red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                        write_event_log(SOMANSA, 
+                                        datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                        JSON_RULE_WIRELESS, 
+                                        SOMANSA_STATE_DISALLOW, 
+                                        'null', 
+                                        'null', 
+                                        'null', 
+                                        'null')
 
     @classmethod
     def sync_camera(cls, state, data_center):

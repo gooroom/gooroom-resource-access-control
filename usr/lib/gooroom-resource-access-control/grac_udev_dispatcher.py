@@ -126,7 +126,10 @@ class GracUdevDispatcher():
                             elif lhs == 'devnodes':
                                 v = getattr(device, 'device_node')
                             else:
-                                v = getattr(device, lhs)
+                                try:
+                                    v = getattr(device, lhs)
+                                except:
+                                    v = None
                             self.logger.debug(
                                 '(prop) lhs={} rhs={} op={} v={}'.format(lhs, rhs, op, v))
                             if not self.match_item(regex, op, v):
@@ -177,7 +180,10 @@ class GracUdevDispatcher():
         for arg in argv:
             arg = arg.strip()
             if arg[0] == '$':
-                arg = arg[1:].lower()
+                if arg[1] == '$':
+                    arg = arg[2:]
+                else:
+                    arg = arg[1:].lower()
 
             self.logger.debug('--module arg={}'.format(arg))
             if arg.startswith(RULES_MAP_TYPE_ENV.lower()):

@@ -1,8 +1,10 @@
 #! /usr/bin/env python3
 
 #-----------------------------------------------------------------------
+import datetime
+
 from grac_util import GracConfig,GracLog,grac_format_exc,search_file_reversely
-from grac_util import make_media_msg,red_alert2
+from grac_util import make_media_msg,red_alert2,write_event_log
 from grac_define import *
 
 #-----------------------------------------------------------------------
@@ -32,6 +34,14 @@ def do_task(param, data_center):
             logmsg, notimsg, grmcode = \
                 make_media_msg(JSON_RULE_WIRELESS, mode)
             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+            write_event_log(SOMANSA, 
+                            datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                            JSON_RULE_WIRELESS, 
+                            SOMANSA_STATE_DISALLOW, 
+                            'null', 
+                            'null', 
+                            'null', 
+                            'null')
     except:
         e = grac_format_exc()
         logger.error(e)
