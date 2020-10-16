@@ -1031,8 +1031,8 @@ class GracEditor:
         self.builder.get_object('lbl_microphone').set_label(_('Microphone'))
         self.builder.get_object('lbl_wireless').set_label(_('Wireless'))
         self.builder.get_object('lbl_bluetooth').set_label(_('Bluetooth'))
-        self.builder.get_object('lbl_keyboard').set_label(_('Keyboard'))
-        self.builder.get_object('lbl_mouse').set_label(_('Mouse'))
+        self.builder.get_object('lbl_keyboard').set_label(_('USB Keyboard'))
+        self.builder.get_object('lbl_mouse').set_label(_('USB Mouse'))
         self.builder.get_object('lbl_screen_capture').set_label(_('ScreenCapture'))
         self.builder.get_object('lbl_clipboard').set_label(_('Clipboard'))
 
