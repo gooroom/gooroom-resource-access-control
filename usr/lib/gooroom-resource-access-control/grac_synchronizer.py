@@ -487,28 +487,36 @@ class GracSynchronizer:
                         cls._logger.error('{} not found remove'.format(wl_inner))
                         continue
 
-                    #v2.0
-                    remove = '/'.join(remove.split('/')[:-2]) + '/remove'
-                    if not os.path.exists(remove):
-                        cls._logger.error('(v2.0)In parent dir, {} not found remove'.format(wl_inner))
-                        continue
-
                     with open(remove, 'w') as f:
                         f.write('1')
-                        with open(META_FILE_PCI_RESCAN, 'a') as f:
-                            f.write('wireless=>{}'.format(remove))
-                        cls._logger.info('SYNC state={} remove=1'.format(state))
-                        logmsg, notimsg, grmcode = \
-                            make_media_msg(JSON_RULE_WIRELESS, state)
-                        red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
-                        write_event_log(SOMANSA, 
-                                        datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
-                                        JSON_RULE_WIRELESS, 
-                                        SOMANSA_STATE_DISALLOW, 
-                                        'null', 
-                                        'null', 
-                                        'null', 
-                                        'null')
+
+                    if os.path.exists(remove):
+                        remove_second = '/'.join(remove.split('/')[:-2]) + '/remove'
+                        if not os.path.exists(remove_second):
+                            logger.error('wireless=>FAIL TO REMOVE 1')
+                            continue
+                        else:
+                            with open(remove_second, 'w') as sf:
+                                sf.write('1')
+                            
+                    if os.path.exists(remove):
+                        logger.error('wireless=>FAIL TO REMOVE 2')
+                        continue
+
+                    with open(META_FILE_PCI_RESCAN, 'a') as f:
+                        f.write('wireless=>{}'.format(remove))
+                    cls._logger.info('SYNC state={} remove=1'.format(state))
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_WIRELESS, state)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_WIRELESS, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
 
     @classmethod
     def sync_camera(cls, state, data_center):
