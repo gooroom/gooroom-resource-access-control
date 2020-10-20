@@ -151,6 +151,9 @@ class GracSynchronizer:
                     if wl.upper() == mac:
                         break
                 else:
+                    if not GracSynchronizer.bluetooth_dev_is_connected(mac):
+                        continue
+
                     p1 = subprocess.Popen(['echo', '-e', 'disconnect {}\nquit'.format(mac)], 
                                             stdout=subprocess.PIPE)
                     p2 = subprocess.Popen(['bluetoothctl'], 
@@ -577,4 +580,34 @@ class GracSynchronizer:
         with open(bConfigurationValue_path, 'w') as f2:
             f2.write('1')
             cls._logger.info('{}\'bConfigurationValue is set 1'.format(target))
+
+    @classmethod
+    def bluetooth_dev_is_connected(cls, mac):
+        """
+        check if bluetooth device is connected to controller
+        """
+
+        c1 = subprocess.Popen(
+                            ['echo', '-e', 'info {}\nquit'.format(mac)], 
+                            stdout=subprocess.PIPE
+                            )
+        c2 = subprocess.Popen(
+                            ['bluetoothctl'], 
+                            stdin=c1.stdout, 
+                            stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE
+                            )
+        c1.stdout.close()
+        c2_out = c2.communicate()[0]
+        if not c2_out:
+            return True
+
+        dev_info = c2_out.decode('utf8')
+        for di in dev_info.split('\n'):
+            di = di.strip()
+            if di.startswith('Connected:') \
+                and di.split(':')[1].strip().lower() == 'no':
+                return False
+
+        return True
 
