@@ -375,12 +375,15 @@ class GracSynchronizer:
         mouse_base_path = '/sys/class/input'
         mouse_regex = re.compile('mouse[0-9]*')
         mouse_usb_regex = re.compile('/usb[0-9]*/')
+        mouse_bluetooth_regex = re.compile('bluetooth')
 
         for mouse in glob.glob(mouse_base_path+'/*'):
             mouse_node = mouse.split('/')[-1]
             if mouse_regex.match(mouse_node):
                 mouse_real_path = os.path.realpath(mouse+'/device')
                 if not mouse_usb_regex.search(mouse_real_path):
+                    continue
+                if mouse_bluetooth_regex.search(mouse_real_path):
                     continue
 
                 bConfigurationValue = search_file_reversely(
@@ -405,10 +408,13 @@ class GracSynchronizer:
         """
 
         keyboard_usb_regex = re.compile('/usb[0-9]*/')
+        keyboard_bluetooth_regex = re.compile('bluetooth')
 
         keyboard_real_path_list = search_dir_list('/sys/devices', '.*::capslock')
         for keyboard_real_path in keyboard_real_path_list:
             if not keyboard_usb_regex.search(keyboard_real_path):
+                continue
+            if keyboard_bluetooth_regex.search(keyboard_real_path):
                 continue
 
             bConfigurationValue = search_file_reversely(
