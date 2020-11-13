@@ -786,6 +786,7 @@ class GracEditor:
         """
 
         try:
+            self.media_rules = self.load_rules(DEFAULT_RULES_PATH)
             self.draw_media(self.media_rules)
             self.draw_network(self.media_rules)
             self.logging(_('reset success'))
