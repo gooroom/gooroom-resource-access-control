@@ -12,6 +12,9 @@ from grac_util import GracLog,GracConfig,grac_format_exc,catch_user_id
 from grac_define import *
 
 #-----------------------------------------------------------------------
+LSF_REGISTERED = 'GOOROOM-LIGHTWEIGHT-SECURITY-FRAMEWORK'
+
+#-----------------------------------------------------------------------
 class GracApi:
     """
     GRAC API
@@ -101,7 +104,7 @@ class GracApi:
         exe = ps.exe().split()[0]
         cmds = ps.cmdline()
 
-        checking_usernames = []
+        checking_usernames = [LSF_REGISTERED]
         login_username = self.get_login_username()
         if login_username:
             if login_username[0] == '+':
