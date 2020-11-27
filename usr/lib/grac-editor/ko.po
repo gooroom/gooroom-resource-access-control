@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: grac-editor 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-23 19:08+0900\n"
+"POT-Creation-Date: 2020-10-16 18:52+0900\n"
 "PO-Revision-Date: 2018-09-28 16:24+0900\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -152,12 +152,12 @@ msgid "Bluetooth"
 msgstr "블루투스"
 
 #: grac_editor.py:1034
-msgid "Keyboard"
-msgstr "키보드"
+msgid "USB Keyboard"
+msgstr "USB 키보드"
 
 #: grac_editor.py:1035
-msgid "Mouse"
-msgstr "마우스"
+msgid "USB Mouse"
+msgstr "USB 마우스"
 
 #: grac_editor.py:1036
 msgid "ScreenCapture"
@@ -259,7 +259,7 @@ msgstr "이벤트 보기"
 msgid "USB Network"
 msgstr "USB 네트워크"
 
-#: grac_editor.py:1117
+#: grac_editor.py:1121
 msgid "online-account can not use editor."
 msgstr "원격계정은 에디터를 사용할 수 없습니다."
 

@@ -11,6 +11,7 @@ import subprocess
 import traceback
 import importlib
 import logging
+import shutil
 import struct
 import glob
 import dbus
@@ -418,3 +419,28 @@ def catch_user_id():
 
     return '-', ''
 
+#-----------------------------------------------------------------------
+def write_event_log(third_party, *args):
+    """
+    write event log for 3rd party
+    """
+
+    try:
+        mdl = sys.modules['grac_define']
+        path = getattr(mdl, third_party+'_PATH')
+        if not os.path.exists(path): 
+            return
+
+        fullpath = path + '/' + getattr(mdl, third_party+'_FNAME')
+        if os.path.exists(fullpath):
+            max_size = getattr(mdl, third_party+'_FILE_SIZE')
+            fsize = os.stat(fullpath).st_size
+            if fsize >= max_size:
+               dst_fullpath = path + '/' + getattr(mdl, third_party+'_FNAME_PREV') 
+               shutil.move(fullpath, dst_fullpath)
+
+        msg = '\t'.join([arg if isinstance(arg, str) else str(arg) for arg in args])
+        with open(fullpath, 'a') as f:
+            f.write(msg+'\n')
+    except:
+        GracLog.get_logger().debug(agent_format_exc())

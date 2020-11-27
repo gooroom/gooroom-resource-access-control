@@ -12,6 +12,7 @@ import os
 
 from grac_define import EXTENSION_FULLPATH
 from grac_util import catch_user_id
+from grac_api import GracApi
 
 #-----------------------------------------------------------------------
 #for clipboard...
@@ -233,6 +234,22 @@ class Grac(dbus.service.Object):
 
         return GRAC_OK
 
+    @dbus.service.method(DBUS_IFACE, sender_keyword='sender', in_signature='s', out_signature='s')
+    def do_api(self, args, sender=None):
+        """
+        media api method
+        """
+
+        try:
+            msg = json.loads(args)
+            api = GracApi(self)
+            return api.do_api(msg, sender)
+
+        except: 
+            e = grac_format_exc()
+            self.logger.error(e)
+            return args
+
     @dbus.service.signal(DBUS_IFACE, signature='v')
     def grac_noti(self, msg):
         """
@@ -247,6 +264,15 @@ class Grac(dbus.service.Object):
         """
         send signal to user session 
         so as to send grac-letter
+        """
+
+        pass
+
+    @dbus.service.signal(DBUS_IFACE, signature='s')
+    def media_usb_info(self, msg):
+        """
+        send signal to user session 
+        so as to send media-usb-info
         """
 
         pass

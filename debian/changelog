@@ -1,3 +1,34 @@
+gooroom-resource-access-control (1.3.8+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [c18a7a54] add LSF_REGISTERED to do_api of grac_api
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 20 Nov 2020 11:43:12 +0900
+
+gooroom-resource-access-control (1.3.7+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [5d1d6dab] add load_rules at reload menu
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 20 Nov 2020 11:31:55 +0900
+
+gooroom-resource-access-control (1.3.6+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [2afdd298] ===== ADD LSF AND USB-WHITELIST =====
+  * [d1222f02] change how to find WIRELESS remove file
+  * [5641fcd0] split usb-keyboard/mouse and bluetooth-keyboard/mouse
+  * [fd49b954] add checking if bluetooth device is conneted
+  * [66766eed] change how to prevent bluetooth mouse/keyboard from usb mouse/keyboard disallow
+
+  [ Gooroom Autobuilder ]
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Mon, 02 Nov 2020 16:17:02 +0900
+
 gooroom-resource-access-control (1.3.5+grm2u1+mofa01) unstable; urgency=medium
 
   [ hmkim ]

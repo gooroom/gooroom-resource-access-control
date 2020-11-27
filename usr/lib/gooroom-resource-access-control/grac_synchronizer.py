@@ -2,6 +2,7 @@
 
 #-----------------------------------------------------------------------
 import subprocess
+import datetime
 import glob
 import re
 import os
@@ -10,7 +11,7 @@ from grac_util import remount_readonly,bluetooth_exists
 from grac_util import search_dir,search_file_reversely,GracLog 
 from grac_util import make_media_msg,red_alert2,catch_user_id
 from grac_util import umount_mount_readonly,search_dir_list
-from grac_util import grac_format_exc
+from grac_util import grac_format_exc,write_event_log
 from grac_define import *
 from grac_error import *
 
@@ -150,6 +151,9 @@ class GracSynchronizer:
                     if wl.upper() == mac:
                         break
                 else:
+                    if not GracSynchronizer.bluetooth_dev_is_connected(mac):
+                        continue
+
                     p1 = subprocess.Popen(['echo', '-e', 'disconnect {}\nquit'.format(mac)], 
                                             stdout=subprocess.PIPE)
                     p2 = subprocess.Popen(['bluetoothctl'], 
@@ -165,6 +169,14 @@ class GracSynchronizer:
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_BLUETOOTH, state)
                     red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_BLUETOOTH, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
 
         cls._logger.info('SYNC state={}'.format(state))
             
@@ -246,6 +258,14 @@ class GracSynchronizer:
                             logmsg, notimsg, grmcode = \
                                 make_media_msg(JSON_RULE_USB_MEMORY, state)
                             red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                            write_event_log(SOMANSA, 
+                                            datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                            JSON_RULE_USB_MEMORY, 
+                                            SOMANSA_STATE_READONLY, 
+                                            'null', 
+                                            'null', 
+                                            'null', 
+                                            'null')
                             skeep_uuid = True
                             break
                     if skeep_uuid:
@@ -305,6 +325,14 @@ class GracSynchronizer:
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_USB_MEMORY, state)
                     red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_USB_MEMORY, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
                     cls._logger.debug('***** USB disallow {}'.format(block_device))
 
 
@@ -346,11 +374,18 @@ class GracSynchronizer:
 
         mouse_base_path = '/sys/class/input'
         mouse_regex = re.compile('mouse[0-9]*')
+        mouse_usb_regex = re.compile('/usb[0-9]*/')
+        mouse_bluetooth_regex = re.compile('bluetooth')
 
         for mouse in glob.glob(mouse_base_path+'/*'):
             mouse_node = mouse.split('/')[-1]
             if mouse_regex.match(mouse_node):
                 mouse_real_path = os.path.realpath(mouse+'/device')
+                if not mouse_usb_regex.search(mouse_real_path):
+                    continue
+                if mouse_bluetooth_regex.search(mouse_real_path):
+                    continue
+
                 bConfigurationValue = search_file_reversely(
                                                     mouse_real_path, 
                                                     'bConfigurationValue', 
@@ -372,8 +407,16 @@ class GracSynchronizer:
         synchronize keyboard
         """
 
+        keyboard_usb_regex = re.compile('/usb[0-9]*/')
+        keyboard_bluetooth_regex = re.compile('bluetooth')
+
         keyboard_real_path_list = search_dir_list('/sys/devices', '.*::capslock')
         for keyboard_real_path in keyboard_real_path_list:
+            if not keyboard_usb_regex.search(keyboard_real_path):
+                continue
+            if keyboard_bluetooth_regex.search(keyboard_real_path):
+                continue
+
             bConfigurationValue = search_file_reversely(
                                                     keyboard_real_path,
                                                     'bConfigurationValue',
@@ -428,6 +471,14 @@ class GracSynchronizer:
                     logmsg, notimsg, grmcode = \
                         make_media_msg(JSON_RULE_CD_DVD, state)
                     red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_CD_DVD, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
                     cls._logger.debug('***** DVD disallow {}'.format(block_device))
 
     @classmethod
@@ -454,20 +505,36 @@ class GracSynchronizer:
                         cls._logger.error('{} not found remove'.format(wl_inner))
                         continue
 
-                    #v2.0
-                    remove = '/'.join(remove.split('/')[:-2]) + '/remove'
-                    if not os.path.exists(remove):
-                        cls._logger.error('(v2.0)In parent dir, {} not found remove'.format(wl_inner))
-                        continue
-
                     with open(remove, 'w') as f:
                         f.write('1')
-                        with open(META_FILE_PCI_RESCAN, 'a') as f:
-                            f.write('wireless=>{}'.format(remove))
-                        cls._logger.info('SYNC state={} remove=1'.format(state))
-                        logmsg, notimsg, grmcode = \
-                            make_media_msg(JSON_RULE_WIRELESS, state)
-                        red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+
+                    if os.path.exists(remove):
+                        remove_second = '/'.join(remove.split('/')[:-2]) + '/remove'
+                        if not os.path.exists(remove_second):
+                            logger.error('wireless=>FAIL TO REMOVE 1')
+                            continue
+                        else:
+                            with open(remove_second, 'w') as sf:
+                                sf.write('1')
+                            
+                    if os.path.exists(remove):
+                        logger.error('wireless=>FAIL TO REMOVE 2')
+                        continue
+
+                    with open(META_FILE_PCI_RESCAN, 'a') as f:
+                        f.write('wireless=>{}'.format(remove))
+                    cls._logger.info('SYNC state={} remove=1'.format(state))
+                    logmsg, notimsg, grmcode = \
+                        make_media_msg(JSON_RULE_WIRELESS, state)
+                    red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, grmcode, data_center)
+                    write_event_log(SOMANSA, 
+                                    datetime.datetime.now().strftime('%Y%m%d %H:%M:%S'),
+                                    JSON_RULE_WIRELESS, 
+                                    SOMANSA_STATE_DISALLOW, 
+                                    'null', 
+                                    'null', 
+                                    'null', 
+                                    'null')
 
     @classmethod
     def sync_camera(cls, state, data_center):
@@ -519,4 +586,34 @@ class GracSynchronizer:
         with open(bConfigurationValue_path, 'w') as f2:
             f2.write('1')
             cls._logger.info('{}\'bConfigurationValue is set 1'.format(target))
+
+    @classmethod
+    def bluetooth_dev_is_connected(cls, mac):
+        """
+        check if bluetooth device is connected to controller
+        """
+
+        c1 = subprocess.Popen(
+                            ['echo', '-e', 'info {}\nquit'.format(mac)], 
+                            stdout=subprocess.PIPE
+                            )
+        c2 = subprocess.Popen(
+                            ['bluetoothctl'], 
+                            stdin=c1.stdout, 
+                            stdout=subprocess.PIPE, 
+                            stderr=subprocess.PIPE
+                            )
+        c1.stdout.close()
+        c2_out = c2.communicate()[0]
+        if not c2_out:
+            return True
+
+        dev_info = c2_out.decode('utf8')
+        for di in dev_info.split('\n'):
+            di = di.strip()
+            if di.startswith('Connected:') \
+                and di.split(':')[1].strip().lower() == 'no':
+                return False
+
+        return True
 

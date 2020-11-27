@@ -118,3 +118,16 @@ RED_ALERT_ALL = 'all'
 #extension(screencpature/clipboard) path
 EXTENSION_FULLPATH = '/usr/lib/xorg/modules/extensions/xsm.so'
 
+#API
+API_SUCCESS = '200'
+API_ERROR = '411'
+
+#3rd party
+SOMANSA = 'SOMANSA'
+SOMANSA_PATH = '/var/log/pvilog'
+SOMANSA_FNAME = 'media-event.log'
+SOMANSA_FNAME_PREV = 'media-event.prev'
+SOMANSA_FILE_SIZE = 10000000 #10M
+SOMANSA_STATE_DISALLOW = 3
+SOMANSA_STATE_READONLY = 2
+
