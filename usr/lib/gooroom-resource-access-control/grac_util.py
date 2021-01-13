@@ -393,7 +393,7 @@ def catch_user_id():
                 elif k == 'Name' and v != user:
                     break
                 elif k == 'Service':
-                    if v == 'lightdm':
+                    if 'lightdm' in v:
                         service_lightdm = True
                     else:
                         break
