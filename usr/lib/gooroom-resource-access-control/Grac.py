@@ -5,6 +5,8 @@ import simplejson as json
 import subprocess
 import pyinotify
 import dbus.service
+import filecmp
+import shutil
 import dbus
 import time
 import sys
@@ -183,6 +185,23 @@ class Grac(dbus.service.Object):
                     pyinotify.IN_ACCESS, 
                     rec=True)
 
+    def check_cert(self):
+        """
+        check server certification
+        """
+
+        if not os.path.exists(META_PREV_SERVER_CERT_PATH):
+            shutil.copyfile(META_SERVER_CERT_PATH, META_PREV_SERVER_CERT_PATH)
+        else:
+            if not filecmp.cmp(META_PREV_SERVER_CERT_PATH, META_SERVER_CERT_PATH):
+                user_json_rules_path = GracConfig.get_config().get(
+                                                    'MAIN', 
+                                                    'GRAC_USER_JSON_RULES_PATH')
+                if os.path.exists(user_json_rules_path):
+                    os.remove(user_json_rules_path)
+                if os.path.exists(META_PREV_SERVER_CERT_PATH):
+                    os.remove(META_PREV_SERVER_CERT_PATH)
+
     @dbus.service.method(DBUS_IFACE)
     def reload(self, args):
         """
@@ -191,6 +210,11 @@ class Grac(dbus.service.Object):
 
         try:
             self.logger.info('GRAC RELOADING BY DBUS')
+
+            try:
+                self.check_cert()
+            except:
+                self.logger.error(grac_format_exc())
 
             self.data_center.show()
 

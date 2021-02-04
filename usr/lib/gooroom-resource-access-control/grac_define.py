@@ -79,6 +79,7 @@ META_FILE_PRINTER_BACKUP_PATH = META_ROOT+'/printers'
 META_FILE_PRINTER_LIST = 'printer-list'
 META_SERVER_CERT_PATH = '/etc/gooroom/agent/server_certificate.crt'
 META_SIGNATURE_PATH = '/var/tmp/gooroom-agent-service'
+META_PREV_SERVER_CERT_PATH = '/var/tmp/GRAC_PREV_SVR_CRT'
 
 #media control type
 MC_TYPE_AUTH = 'authorized'
