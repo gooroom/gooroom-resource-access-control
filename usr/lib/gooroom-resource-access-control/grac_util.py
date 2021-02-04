@@ -415,7 +415,7 @@ def catch_user_id():
                     else:
                         return '+{}'.format(user), display
         except:
-            GracLog.get_logger().debug(agent_format_exc())
+            GracLog.get_logger().debug(grac_format_exc())
 
     return '-', ''
 
@@ -443,4 +443,4 @@ def write_event_log(third_party, *args):
         with open(fullpath, 'a') as f:
             f.write(msg+'\n')
     except:
-        GracLog.get_logger().debug(agent_format_exc())
+        GracLog.get_logger().debug(grac_format_exc())
