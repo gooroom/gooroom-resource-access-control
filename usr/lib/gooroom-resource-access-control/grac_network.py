@@ -6,6 +6,7 @@ os.environ['XTABLES_LIBDIR'] = '/usr/lib/x86_64-linux-gnu/xtables/'
 import iptc
 
 #-----------------------------------------------------------------------
+import subprocess
 import ipaddress
 
 from grac_util import GracLog,GracConfig,grac_format_exc
@@ -73,6 +74,74 @@ class GracNetwork:
             input_chain6.set_policy(drop_policy)
             output_chain6.set_policy(drop_policy)
 
+    def now_v2_x(self, policy_state, network_json):
+        """
+        processing more than v2.x with raw input
+        """
+
+        rules = network_json[JSON_RULE_NETWORK_RULES]
+        rules = [(int(rule['seq']), 'MENUAL', rule) for rule in rules]
+        rules_law = network_json[JSON_RULE_NETWORK_RULES_RAW]
+        rules_law = [(int(rule_law['seq']), 'RAW', rule_law) for rule_law in rules_law]
+        rules_all = sorted(rules+rules_law, key=lambda i:i[0])
+        rules_all.reverse()
+
+        with open(GRAC_IPTABLES_SV_PATH, 'w') as f:
+            f.write('*filter\n')
+            f.write(':INPUT {}\n'.format(policy_state.upper()))
+            f.write(':FORWARD {}\n'.format(policy_state.upper()))
+            f.write(':OUTPUT {}\n'.format(policy_state.upper()))
+
+            if len(rules_all) == 0:
+                return
+
+            for rule in rules_all:
+                try:
+                    if rule[1] == 'MENUAL':
+                        l = rule[2]
+                        direction = l['direction']
+                        protocol = l['protocol']
+                        ipaddress = l['ipaddress']
+                        src_ports = l['src_ports']
+                        dst_ports = l['dst_ports']
+                        state = l['state']
+
+                        if direction.lower() == 'all':
+                            directions = ('INPUT', 'OUTPUT')
+                        else:
+                            directions = (direction.upper(),)
+                        for di in directions:
+                            s = ''
+                            s += '-A {}'.format(di)
+                            s += ' -p {}'.format(protocol)
+                            if ipaddress:
+                                s += ' -s {}'.format(ipaddress)
+                            if src_ports and protocol != 'icmp':
+                                if protocol.lower() != 'icmp':
+                                    s += ' -m multiport'
+                                s += ' --sports {}'.format(src_ports)
+                            if dst_ports and protocol != 'icmp':
+                                if protocol.lower() != 'icmp':
+                                    s += ' -m multiport'
+                                s += ' --dports {}'.format(dst_ports)
+                            s += ' -j {}'.format(state.upper())
+                            f.write(s+'\n')
+                    else:
+                        f.write(rule[2]['cmd']+'\n')
+                except:
+                    self.logger.error(grac_format_exc())
+            f.write('COMMIT\n')
+
+        with open(GRAC_IPTABLES_SV_PATH, 'r') as fi:
+            p0 = subprocess.Popen(
+                ['/sbin/iptables-legacy-restore'],
+                stdin=fi,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            pp_out, pp_err = p0.communicate()
+            if pp_err:
+                self.logger.error(pp_err.decode('utf8'))
+        
     def reload(self):
         """
         reload
@@ -91,6 +160,10 @@ class GracNetwork:
                 policy_state = network_json[JSON_RULE_NETWORK_STATE]
                 if 'version' in network_json:
                     server_version = network_json[JSON_RULE_NETWORK_VERSION]
+
+            if server_version.startswith('2.'):
+                self.now_v2_x(policy_state, network_json)
+                return
 
             #flush
             self.flush_chain()
