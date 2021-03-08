@@ -5,7 +5,8 @@
 	<vendor>The Gooroom Project</vendor>
 	<action id="kr.gooroom.grac-editor">
 		<message>Authentication is required.</message>
-		<message xml:lang="en_US">Authentication is required.</message>
+		<message xml:lang="en_AU">Authentication is required.</message>
+		<message xml:lang="en_GB">Authentication is required.</message>
 		<message xml:lang="ko">매체제어 편집기를 실행하기 위해 인증이 필요합니다.</message>
 		<defaults>
 			<allow_any>auth_admin</allow_any>

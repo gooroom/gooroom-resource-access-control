@@ -9,231 +9,229 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: grac_editor.py:221
-msgid "usb network whitelist add"
-msgstr "USB 네트워크 화이트리스트 추가"
+#: grac_editor.py:228
+msgid "Input usb bus number"
+msgstr "USB 버스 번호를 입력하세요"
 
-#: grac_editor.py:222 grac_editor.py:257 grac_editor.py:332 grac_editor.py:365
-#: grac_editor.py:392 grac_editor.py:534 grac_editor.py:724
-msgid "OK"
-msgstr "확인"
+#: grac_editor.py:250
+msgid "USB Bus No.:"
+msgstr "USB 버스 번호:"
 
-#: grac_editor.py:223 grac_editor.py:258 grac_editor.py:333 grac_editor.py:366
-#: grac_editor.py:393 grac_editor.py:535 grac_editor.py:725
-msgid "CANCEL"
-msgstr "취소"
-
-#: grac_editor.py:256
-msgid "usb network whitelist edit"
-msgstr "USB 네트워크 화이트리스트 수정"
-
-#: grac_editor.py:319
+#: grac_editor.py:253
 msgid "usb network whitelist"
 msgstr "USB 네트워크 화이트리스트"
 
-#: grac_editor.py:360
+#: grac_editor.py:266 grac_editor.py:299 grac_editor.py:326 grac_editor.py:468
+#: grac_editor.py:658 grac_editor.py:714
+msgid "OK"
+msgstr "확인"
+
+#: grac_editor.py:267 grac_editor.py:300 grac_editor.py:327 grac_editor.py:469
+#: grac_editor.py:659
+msgid "CANCEL"
+msgstr "취소"
+
+#: grac_editor.py:294
 msgid "how to write: 01:23:45:ab:cd:ef"
 msgstr "작성법: 01:23:45:ab:cd:ef"
 
-#: grac_editor.py:364
+#: grac_editor.py:298
 msgid "bluetooth whitelist"
 msgstr "블루투스 화이트리스트"
 
-#: grac_editor.py:387
+#: grac_editor.py:321
 msgid "how to write: ID_SERIAL_SHORT of udev event"
 msgstr "작성법: udev의 ID_SERIAL_SHORT를 사용"
 
-#: grac_editor.py:391
+#: grac_editor.py:325
 msgid "usb memory whitelist"
 msgstr "USB 메모리 화이트리스트"
 
-#: grac_editor.py:533
+#: grac_editor.py:467
 msgid "network edit"
 msgstr "네트워크 수정"
 
-#: grac_editor.py:599
+#: grac_editor.py:533
 msgid "invalid mac format(ex 01:23:45:ab:cd:ef)"
 msgstr "잘못된 맥주소 형식(예 01:23:45:ab:cd:ef)"
 
-#: grac_editor.py:638
+#: grac_editor.py:572
 msgid "need address or port"
 msgstr "주소 혹은 포트 필요"
 
-#: grac_editor.py:723
+#: grac_editor.py:657
 msgid "network add"
 msgstr "네트워크 추가"
 
-#: grac_editor.py:737
+#: grac_editor.py:671
 msgid "removing success"
 msgstr "삭제 성공"
 
-#: grac_editor.py:744 grac_editor.py:761
+#: grac_editor.py:678 grac_editor.py:695
 msgid "apply success"
 msgstr "적용 성공"
 
-#: grac_editor.py:747
+#: grac_editor.py:681
 msgid "apply fail"
 msgstr "적용 실패"
 
-#: grac_editor.py:764
+#: grac_editor.py:698
 msgid "save fail"
 msgstr "저장 실패"
 
-#: grac_editor.py:779
+#: grac_editor.py:713
 msgid "About"
 msgstr "정보"
 
-#: grac_editor.py:791
+#: grac_editor.py:727
 msgid "reset success"
 msgstr "다시읽기 성공"
 
-#: grac_editor.py:794
+#: grac_editor.py:730
 msgid "reset fail"
 msgstr "다시읽기 실패"
 
-#: grac_editor.py:986
+#: grac_editor.py:922
 msgid "save success"
 msgstr "저장 성공"
 
-#: grac_editor.py:996
+#: grac_editor.py:932
 msgid "GRAC Editor"
 msgstr "매체제어 에디터"
 
-#: grac_editor.py:999 grac_editor.py:1000 grac_editor.py:1001
-#: grac_editor.py:1002 grac_editor.py:1003 grac_editor.py:1004
-#: grac_editor.py:1005 grac_editor.py:1006 grac_editor.py:1007
-#: grac_editor.py:1008 grac_editor.py:1009 grac_editor.py:1010
-#: grac_editor.py:1076
+#: grac_editor.py:935 grac_editor.py:936 grac_editor.py:937 grac_editor.py:938
+#: grac_editor.py:939 grac_editor.py:940 grac_editor.py:941 grac_editor.py:942
+#: grac_editor.py:943 grac_editor.py:944 grac_editor.py:945 grac_editor.py:946
+#: grac_editor.py:1012
 msgid "allow"
 msgstr "허용"
 
-#: grac_editor.py:1012 grac_editor.py:1013 grac_editor.py:1014
-#: grac_editor.py:1015 grac_editor.py:1016 grac_editor.py:1017
-#: grac_editor.py:1018 grac_editor.py:1019 grac_editor.py:1020
-#: grac_editor.py:1021 grac_editor.py:1023 grac_editor.py:1024
-#: grac_editor.py:1077
+#: grac_editor.py:948 grac_editor.py:949 grac_editor.py:950 grac_editor.py:951
+#: grac_editor.py:952 grac_editor.py:953 grac_editor.py:954 grac_editor.py:955
+#: grac_editor.py:956 grac_editor.py:957 grac_editor.py:959 grac_editor.py:960
+#: grac_editor.py:1013
 msgid "disallow"
 msgstr "비허용"
 
-#: grac_editor.py:1022
+#: grac_editor.py:958
 msgid "read only"
 msgstr "읽기전용"
 
-#: grac_editor.py:1026
+#: grac_editor.py:962
 msgid "USB Memory"
 msgstr "USB 메모리"
 
-#: grac_editor.py:1027
+#: grac_editor.py:963
 msgid "Printer"
 msgstr "프린터"
 
-#: grac_editor.py:1028
+#: grac_editor.py:964
 msgid "CD/DVD"
 msgstr "CD/DVD"
 
-#: grac_editor.py:1029
+#: grac_editor.py:965
 msgid "Camera"
 msgstr "카메라"
 
-#: grac_editor.py:1030
+#: grac_editor.py:966
 msgid "Sound"
 msgstr "사운드"
 
-#: grac_editor.py:1031
+#: grac_editor.py:967
 msgid "Microphone"
 msgstr "녹음"
 
-#: grac_editor.py:1032
+#: grac_editor.py:968
 msgid "Wireless"
 msgstr "무선인터넷"
 
-#: grac_editor.py:1033
+#: grac_editor.py:969
 msgid "Bluetooth"
 msgstr "블루투스"
 
-#: grac_editor.py:1034
+#: grac_editor.py:970
 msgid "USB Keyboard"
 msgstr "USB 키보드"
 
-#: grac_editor.py:1035
+#: grac_editor.py:971
 msgid "USB Mouse"
 msgstr "USB 마우스"
 
-#: grac_editor.py:1036
+#: grac_editor.py:972
 msgid "ScreenCapture"
 msgstr "스크린캡쳐"
 
-#: grac_editor.py:1037
+#: grac_editor.py:973
 msgid "Clipboard"
 msgstr "클립보드"
 
-#: grac_editor.py:1039 grac_editor.py:1040 grac_editor.py:1075
+#: grac_editor.py:975 grac_editor.py:976 grac_editor.py:1011
 msgid "WL"
 msgstr ""
 "화이트\n"
 "리스트"
 
-#: grac_editor.py:1043
+#: grac_editor.py:979
 msgid "media"
 msgstr "미디어"
 
-#: grac_editor.py:1044
+#: grac_editor.py:980
 msgid "network"
 msgstr "네트워크"
 
-#: grac_editor.py:1047
+#: grac_editor.py:983
 msgid "_File(F)"
 msgstr "_파일(F)"
 
-#: grac_editor.py:1048
+#: grac_editor.py:984
 msgid "_Help(H)"
 msgstr "_도움(H)"
 
-#: grac_editor.py:1049
+#: grac_editor.py:985
 msgid "_Reset(R)"
 msgstr "_다시읽기(R)"
 
-#: grac_editor.py:1050
+#: grac_editor.py:986
 msgid "_Save(S)"
 msgstr "_저장(S)"
 
-#: grac_editor.py:1051
+#: grac_editor.py:987
 msgid "_Quit(Q)"
 msgstr "_종료(Q)"
 
-#: grac_editor.py:1052
+#: grac_editor.py:988
 msgid "_About(A)"
 msgstr "_정보(A)"
 
-#: grac_editor.py:1053
+#: grac_editor.py:989
 msgid "_Remove User Rule(U)"
 msgstr "서버정책삭제(U)"
 
-#: grac_editor.py:1056
+#: grac_editor.py:992
 msgid "POLICY"
 msgstr "정책"
 
-#: grac_editor.py:1057
+#: grac_editor.py:993
 msgid "accept"
 msgstr "허용"
 
-#: grac_editor.py:1058
+#: grac_editor.py:994
 msgid "drop"
 msgstr "비허용"
 
-#: grac_editor.py:1060 grac_editor.py:1079
+#: grac_editor.py:996 grac_editor.py:1015
 msgid "add"
 msgstr "추가"
 
-#: grac_editor.py:1061 grac_editor.py:1080
+#: grac_editor.py:997 grac_editor.py:1016
 msgid "del"
 msgstr "삭제"
 
-#: grac_editor.py:1062 grac_editor.py:1081
+#: grac_editor.py:998 grac_editor.py:1017
 msgid "edit"
 msgstr "편집"
 
-#: grac_editor.py:1065
+#: grac_editor.py:1001
 msgid ""
 "Gooroom Platform\n"
 "\n"
@@ -243,25 +241,31 @@ msgstr ""
 "\n"
 "매체제어 에디터 1.0.0"
 
-#: grac_editor.py:1068
+#: grac_editor.py:1004
 msgid "reset"
 msgstr "다시읽기"
 
-#: grac_editor.py:1069
+#: grac_editor.py:1005
 msgid "save"
 msgstr "저장"
 
-#: grac_editor.py:1072
+#: grac_editor.py:1008
 msgid "event log"
 msgstr "이벤트 보기"
 
-#: grac_editor.py:1078
+#: grac_editor.py:1014
 msgid "USB Network"
 msgstr "USB 네트워크"
 
-#: grac_editor.py:1121
+#: grac_editor.py:1057
 msgid "online-account can not use editor."
 msgstr "원격계정은 에디터를 사용할 수 없습니다."
+
+#~ msgid "usb network whitelist add"
+#~ msgstr "USB 네트워크 화이트리스트 추가"
+
+#~ msgid "usb network whitelist edit"
+#~ msgstr "USB 네트워크 화이트리스트 수정"
 
 #~ msgid "bluetooth"
 #~ msgstr "블루투스"

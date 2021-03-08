@@ -208,57 +208,6 @@ class GracEditor:
 
         return new_json_rules
 
-    def on_btn_dialog_usb_network_whitelist_add_clicked(self, obj):
-        """
-        add button of usb network whitelist
-        """
-
-        ent_unw_name = self.builder.get_object('ent_unw_name').set_text('')
-        ent_unw_contents = self.builder.get_object('ent_unw_contents').set_text('')
-
-        dg = self.builder.get_object('dialog_unw_input')
-        self.unw_btn_type = 1
-        dg.set_title(_('usb network whitelist add'))
-        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
-        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
-        dg.run()
-        dg.hide()
-
-    def on_btn_dialog_usb_network_whitelist_del_clicked(self, obj):
-        """
-        del button of usb network whitelist
-        """
-
-        treeview_network = self.builder.get_object('treeview_usb_network_whitelist')
-        list_store, list_store_iter = treeview_network.get_selection().get_selected()
-        if list_store_iter:
-            list_store.remove(list_store_iter)
-
-    def on_btn_dialog_usb_network_whitelist_edit_clicked(self, obj):
-        """
-        edit button of usb network whitelist
-        """
-
-        treeview_unw = self.builder.get_object('treeview_usb_network_whitelist')
-        list_store, list_store_iter = treeview_unw.get_selection().get_selected()
-        if list_store_iter:
-            name = list_store.get_value(list_store_iter, 0)
-            contents = list_store.get_value(list_store_iter, 1)
-
-            ent_name = self.builder.get_object('ent_unw_name')
-            ent_name.set_text(name)
-
-            ent_contents = self.builder.get_object('ent_unw_contents')
-            ent_contents.set_text(contents)
-
-            dg = self.builder.get_object('dialog_unw_input')
-            self.unw_btn_type = 2
-            dg.set_title(_('usb network whitelist edit'))
-            dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
-            dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
-            dg.run()
-            dg.hide()
-
     def on_btn_dialog_unw_input_ok_clicked(self, obj):
         """
         ok button of unw input dialog
@@ -267,18 +216,23 @@ class GracEditor:
         dg = self.builder.get_object('dialog_unw_input')
         title = dg.get_title()
 
-        name = self.builder.get_object('ent_unw_name').get_text()
+        name = 'usbbus'
         contents = self.builder.get_object('ent_unw_contents').get_text()
 
-        if self.unw_btn_type == 2:
-            treeview_unw = self.builder.get_object('treeview_usb_network_whitelist')
-            list_store, list_store_iter = treeview_unw.get_selection().get_selected()
-            list_store.set_value(list_store_iter, 0, name)
-            list_store.set_value(list_store_iter, 1, contents)
-        else:
-            liststore = self.builder.get_object('liststore_usb_network_whitelist')
-            liststore.append([name, contents])
-            
+        if not name or not contents:
+            md = Gtk.MessageDialog(
+                None, 
+                0, 
+                Gtk.MessageType.WARNING, 
+                Gtk.ButtonsType.CLOSE, 
+                _('Input usb bus number'))
+            md.run()
+            md.destroy()
+            return
+
+        wl = {name:contents}
+        self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST] = wl
+
         dg.hide()
 
     def on_btn_dialog_unw_input_cancel_clicked(self, obj):
@@ -288,49 +242,29 @@ class GracEditor:
 
         self.builder.get_object('dialog_unw_input').hide()
 
-    def on_btn_dialog_usb_network_whitelist_ok_clicked(self, obj):
-        """
-        ok button of usb network whitelist dialog
-        """
-
-        liststore = self.builder.get_object('liststore_usb_network_whitelist')
-        wl = {}
-        for l in liststore:
-            name = l[0].strip()
-            contents = l[1].strip()
-            wl[name] = contents
-        self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST] = wl
-
-        self.builder.get_object('dialog_usb_network_whitelist').hide()
-
-    def on_btn_dialog_usb_network_whitelist_cancel_clicked(self, obj):
-        """
-        cancel button of usb network whitelist dialog
-        """
-
-        self.builder.get_object('dialog_usb_network_whitelist').hide()
-
     def on_btn_usb_network_clicked(self, obj):
         """
         click event of usb-network whitelist
         """
 
-        dg = self.builder.get_object('dialog_usb_network_whitelist')
+        self.builder.get_object('ent_unw_name').set_text(_('USB Bus No.:'))
+
+        dg = self.builder.get_object('dialog_unw_input')
         dg.set_title(_('usb network whitelist'))
 
-        #clear textview 
-        self.clear_dialog_whitelist_textview()
-        liststore = self.builder.get_object('liststore_usb_network_whitelist')
-        liststore.clear()
-
-        #fill list in
         if JSON_RULE_USB_NETWORK in self.media_rules \
             and JSON_RULE_USB_NETWORK_WHITELIST in self.media_rules[JSON_RULE_USB_NETWORK]:
+
             wls = self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST]
             for name, contents in wls.items():
-                liststore.append([name, contents])
-        dg.vbox.get_children()[2].get_children()[0].get_children()[0].set_label(_('OK'))
-        dg.vbox.get_children()[2].get_children()[0].get_children()[1].set_label(_('CANCEL'))
+                if name == 'usbbus':
+                    self.builder.get_object('ent_unw_contents').set_text(contents)
+                    break
+            else:
+                self.builder.get_object('ent_unw_contents').set_text('')
+
+        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
+        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
         dg.run()
         dg.hide()
 
@@ -777,6 +711,7 @@ class GracEditor:
 
         dg = self.builder.get_object('dialog_about')
         dg.set_title(_('About'))
+        dg.vbox.get_children()[0].get_children()[4].set_label(_('OK'))
         dg.run()
         dg.hide()
 
