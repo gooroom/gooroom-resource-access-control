@@ -8,6 +8,7 @@ from gi.repository import Gtk, Gdk
 import simplejson as json
 import traceback
 import gettext
+import shutil
 import signal
 import dbus
 import sys
@@ -916,8 +917,11 @@ class GracEditor:
                     org_form[k] = v
             
             ###save to file
-            with open(DEFAULT_RULES_PATH, 'w') as f:
+            TMP_MEDIA_DEFAULT = '/var/tmp/TMP-MEDIA-DEFAULT'
+            with open(TMP_MEDIA_DEFAULT, 'w') as f:
                 f.write(json.dumps(org_form, indent=4))
+
+            shutil.copy(TMP_MEDIA_DEFAULT, DEFAULT_RULES_PATH)
 
             self.logging(_('save success'))
         except:

@@ -2094,7 +2094,6 @@ GRAC Editor 0.1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_btn_dialog_usb_network_whitelist_ok_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -2108,7 +2107,6 @@ GRAC Editor 0.1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_btn_dialog_usb_network_whitelist_cancel_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -2169,7 +2167,6 @@ GRAC Editor 0.1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_btn_dialog_usb_network_whitelist_add_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -2183,7 +2180,6 @@ GRAC Editor 0.1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_btn_dialog_usb_network_whitelist_del_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -2197,7 +2193,6 @@ GRAC Editor 0.1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_btn_dialog_usb_network_whitelist_edit_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
