@@ -360,13 +360,17 @@ class GracSynchronizer:
         synchronize microphone
         """
 
-        data_center.sound_mic_inotify.pactl_mic(state, notimsg=False)
-        if state == JSON_RULE_DISALLOW \
-            and data_center.mic_prev_state in (None, JSON_RULE_ALLOW):
-            logmsg, notimsg, grmcode = \
-                make_media_msg(JSON_RULE_MICROPHONE, state)
-            red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
-                grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
+        if state == JSON_RULE_ALLOW: 
+            if data_center.mic_prev_state == JSON_RULE_DISALLOW:
+                data_center.sound_mic_inotify.pactl_mic(state, notimsg=False)
+        else:
+            data_center.sound_mic_inotify.pactl_mic(state, notimsg=False)
+
+            if data_center.mic_prev_state in (None, JSON_RULE_ALLOW):
+                logmsg, notimsg, grmcode = \
+                    make_media_msg(JSON_RULE_MICROPHONE, state)
+                red_alert2(logmsg, notimsg, JLEVEL_DEFAULT_NOTI, 
+                    grmcode, data_center)#, flag=RED_ALERT_ALERTONLY)
         data_center.mic_prev_state = state
 
     @classmethod
