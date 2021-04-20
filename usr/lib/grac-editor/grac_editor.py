@@ -716,6 +716,12 @@ class GracEditor:
         dg.run()
         dg.hide()
 
+    def on_menu_help_activate(self, obj):
+        """
+        menu > Help > Help
+        """
+        os.system("yelp help:grac-editors")
+
     def on_menu_load_activate(self, obj):
         """
         menu > File > load
@@ -990,6 +996,7 @@ class GracEditor:
         self.builder.get_object('menu_apply').set_label(_('_Save(S)'))
         self.builder.get_object('menu_quit').set_label(_('_Quit(Q)'))
         self.builder.get_object('menu_about').set_label(_('_About(A)'))
+        self.builder.get_object('menu_help').set_label(_('_Help'))
         self.builder.get_object('menu_remove_user_rule').set_label(_('_Remove User Rule(U)'))
 
         #network

@@ -203,6 +203,10 @@ msgstr "_종료(Q)"
 msgid "_About(A)"
 msgstr "_정보(A)"
 
+#: grac_editor.py:988
+msgid "_Help"
+msgstr "_도움말"
+
 #: grac_editor.py:989
 msgid "_Remove User Rule(U)"
 msgstr "서버정책삭제(U)"
