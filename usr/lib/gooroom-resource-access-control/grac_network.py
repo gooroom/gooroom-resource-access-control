@@ -84,7 +84,7 @@ class GracNetwork:
         rules_law = network_json[JSON_RULE_NETWORK_RULES_RAW]
         rules_law = [(int(rule_law['seq']), 'RAW', rule_law) for rule_law in rules_law]
         rules_all = sorted(rules+rules_law, key=lambda i:i[0])
-        rules_all.reverse()
+        #rules_all.reverse()
 
         with open(GRAC_IPTABLES_SV_PATH, 'w') as f:
             f.write('*filter\n')
