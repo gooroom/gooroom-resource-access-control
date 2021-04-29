@@ -87,10 +87,16 @@ class GracNetwork:
         #rules_all.reverse()
 
         with open(GRAC_IPTABLES_SV_PATH, 'w') as f:
+            '''
             f.write('*filter\n')
             f.write(':INPUT {}\n'.format(policy_state.upper()))
             f.write(':FORWARD {}\n'.format(policy_state.upper()))
             f.write(':OUTPUT {}\n'.format(policy_state.upper()))
+            '''
+            f.write('/sbin/iptables-legacy -F\n')
+            f.write('/sbin/iptables-legacy -P INPUT {}\n'.format(policy_state.upper()))
+            f.write('/sbin/iptables-legacy -P OUTPUT {}\n'.format(policy_state.upper()))
+            f.write('/sbin/iptables-legacy -P FORWARD {}\n'.format(policy_state.upper()))
 
             if len(rules_all) == 0:
                 return
@@ -115,7 +121,10 @@ class GracNetwork:
                             s += '-A {}'.format(di)
                             s += ' -p {}'.format(protocol)
                             if ipaddress:
-                                s += ' -s {}'.format(ipaddress)
+                                if di == 'INPUT':
+                                    s += ' -s {}'.format(ipaddress)
+                                else:
+                                    s += ' -d {}'.format(ipaddress)
                             if src_ports and protocol != 'icmp':
                                 if protocol.lower() != 'icmp':
                                     s += ' -m multiport'
@@ -125,13 +134,14 @@ class GracNetwork:
                                     s += ' -m multiport'
                                 s += ' --dports {}'.format(dst_ports)
                             s += ' -j {}'.format(state.upper())
-                            f.write(s+'\n')
+                            f.write('/sbin/iptables-legacy ' +s+'\n')
                     else:
-                        f.write(rule[2]['cmd']+'\n')
+                        f.write('/sbin/iptables-legacy ' + rule[2]['cmd']+'\n')
                 except:
                     self.logger.error(grac_format_exc())
-            f.write('COMMIT\n')
+            #f.write('COMMIT\n')
 
+        '''
         with open(GRAC_IPTABLES_SV_PATH, 'r') as fi:
             p0 = subprocess.Popen(
                 ['/sbin/iptables-legacy-restore'],
@@ -141,6 +151,14 @@ class GracNetwork:
             pp_out, pp_err = p0.communicate()
             if pp_err:
                 self.logger.error(pp_err.decode('utf8'))
+        '''
+        p0 = subprocess.Popen(
+            ['/bin/bash', GRAC_IPTABLES_SV_PATH],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        pp_out, pp_err = p0.communicate()
+        if pp_err:
+            self.logger.error(pp_err.decode('utf8'))
         
     def reload(self):
         """
