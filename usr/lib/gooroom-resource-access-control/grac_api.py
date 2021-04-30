@@ -212,7 +212,7 @@ class GracApi:
             rules[media_name] = media_state
 
         self.save_default_rules(rules)
-        self.GRAC.reload('from API')
+        self.I_reload()
             
         self.make_response(msg, API_SUCCESS, None)
 
@@ -273,7 +273,7 @@ class GracApi:
             rules[media_name][wl_name] = wl
 
         self.save_default_rules(rules)
-        self.GRAC.reload('from API')
+        self.I_reload()
             
         self.make_response(msg, API_SUCCESS, None)
 
@@ -301,7 +301,7 @@ class GracApi:
             rules[media_name][wl_name] = wl
 
         self.save_default_rules(rules)
-        self.GRAC.reload('from API')
+        self.I_reload()
             
         self.make_response(msg, API_SUCCESS, None)
 
@@ -321,6 +321,17 @@ class GracApi:
             state[wl_name] = [w for w in state[wl_name] if not w in wl]
                 
         self.save_default_rules(rules)
-        self.GRAC.reload('from API')
+        self.I_reload()
             
         self.make_response(msg, API_SUCCESS, None)
+
+    def I_reload(self):
+        """
+        reload myself
+        """
+
+        server_rule = '/etc/gooroom/grac.d/user.rules'
+        if os.path.exists(server_rule):
+            os.unlink(server_rule)
+        self.GRAC.reload('from API')
+
