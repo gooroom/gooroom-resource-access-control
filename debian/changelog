@@ -1,3 +1,14 @@
+gooroom-resource-access-control (1.4.0+grm2u1) unstable; urgency=medium
+
+  [ boyeon.choi ]
+  * [02fcfc4d] Enable the help program
+
+  [ hmkim ]
+  * [06641111] remove reversing iptables list
+  * [4c8eb884] change iptables-restore => iptables-legacy
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 04 May 2021 19:38:57 +0900
+
 gooroom-resource-access-control (1.3.9+grm2u1) unstable; urgency=medium
 
   [ hmkim ]
