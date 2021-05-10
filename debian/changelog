@@ -1,3 +1,15 @@
+gooroom-resource-access-control (1.4.1+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [2b4f8a3a] remove server rules when using media api
+  * [2a74a150] change how to save grac-api rules
+  * [1d095a01] change /sbin/iptables-legacy to /usr/sbin/iptables-legacy
+
+  [ boyeon.choi ]
+  * [5a0622c4] Created help contents
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Tue, 11 May 2021 08:16:11 +0900
+
 gooroom-resource-access-control (1.4.0+grm2u1) unstable; urgency=medium
 
   [ boyeon.choi ]
