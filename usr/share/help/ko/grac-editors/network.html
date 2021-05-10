@@ -1,0 +1,110 @@
+<HTML>
+  <HEAD>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css" type="text/css">
+  </HEAD>
+  <BODY>
+
+    <!--nav bar-->
+    <nav class="navbar navbar-fixed-top" style="top:20px;margin-left:30px;margin-right:30px;">
+      <ul>
+        <li><img class="img" src="help.svg">
+        <li><a href="index">매체제어 편집기</a>
+        <li><img class="img" src="grey.svg">
+        <li><a href="index#policy">정책</a>
+        <li><img class="img" src="grey.svg">
+        <li><a href="#top">네트워크</a>
+      </ul>
+     </nav> <!--end of navbar-->
+
+    <!-- header -->
+    <header><a name="top"></a></header>
+
+   <!-- contents  -->
+
+   <!-- for align 30px -->
+   <div class="div_root">
+
+     <!--sub title-->
+     <font class="font sub_title">네트워크</font><br>
+
+     <!-- Rectangle-->
+     <div class="Rectangle">
+       <font class="font text">
+        <img class="img" src ="iptables.png">
+         <pre>네트워크 정책은 매체제어 편집기의 두 번째 탭에서 적용할 수 있습니다.
+
+정책의 허용/비허용 라디오 버튼을 통해 기본 값을 선택할 수 있습니다. <i>허용</i>으로 선택시 모든 들어오고 나가는 신호를 허용한다는 의미이며, <i>비허용</i>으로 선택 시 기본 값은 모든 들어오고 나가는 신호를 허용하는 않는 것입니다. 즉, <i>비허용</i>으로 선택하면 인터넷을 사용할 수 없게 됩니다.
+
+아래의 ip table을 통해 블랙 리스트, 화이트 리스트를 관리할 수 있습니다. 이러한 특별한 리스트를 추가하기 위해서는 <i>추가</i> 버튼을, 삭제하기 위해서는 <i>삭제</i>버튼을, 이미 있는 목록을 편집하기 위해서는 <i>편집</i> 버튼을 클릭하세요.
+
+<div  style="margin:30">
+  <B>네트워크 정책 추가 및 편집</B><br>
+  <pre>
+  <i>추가</i> 혹은 <i>편집</i> 버튼을 클릭하면 아래와 같은 창이 열립니다.
+
+  <img class="img" src="edit_tables.png">
+
+  <table class="font text" style="width:80%; border-spacing:10px;">
+    <tr>
+      <td>DIRECTION</td><td>신호의 방향을 선택할 수 있습니다.  로컬로 들어오는 신호일 경우 [INPUT]을, 로컬에서 외부로 나가는 신호일 경우 [OUTPUT]을, 두 경우 모두 일 때는 [ALL]을 선택해주세요.</td>
+    </tr>
+    <tr>
+      <td>PROTOCOL</td><td>통신 방식을 선택할 수 있습니다. 종류에 맞춰 [TCP], [UDP], [ICMP] 중 선택해 주세요. </td>
+    </tr>
+    <tr>
+      <td>ADDRESS</td><td>DIRECTION의 경우에 따라 달라집니다. DIRECTION이 [INPUT]인 경우 source ip 주소를, DIRECTION이 OUTPUT일 경우 destination ip를, ALL인 경우는 상대의 ip 주소를 입력해주세요. </td>
+    </tr>
+    <tr>
+      <td>SRC PORT</td><td>source가 이용하는 포트 번호를 의미합니다. </td>
+    </tr>
+    <tr>
+      <td>DST PORT</td><td>목적지에서 이용하는 포트 번호 입니다.</td>
+    </tr>
+    <tr>
+      <td>STATE</td><td>상태를 나타냅니다. 화이트 리스트를 구성하려는 경우 [ACCEPT]를, 블랙리스트를 구성하는 경우 [DROP]을 선택해주세요.</td>
+    </tr>
+    </table>
+
+모든 설정을 마치면 <i>확인</i>버튼을 클릭하시고, 최종적으로 <i>저장</i>버튼까지 클릭하셔야 반영됩니다. </div></pre>
+</div><!--end of sub rectangle-->
+         </pre>
+         
+       </font>
+     </div>
+
+   </div>   <!-- end of div_root-->
+
+  <footer>
+  <font class="font" style="font-size:14px;line-height:2;"><B>자세한 정보</B><br>
+  <a href="index#policy">정책</a></font> <br><br>
+  </footer>
+
+  <footer class="info">
+    <a onClick="showMore('name')"
+    class="Options none" onMouseOver="this.className='OptionsOnMouse';"
+    onMouseOut="this.className='Options';"><B>정보</B></a><br>
+
+    <div id=name style="display:none; width:90%;">
+      <table class="font text" style="display:inline-block;" cellspacing="7px" cellpadding="3px">
+        <tr>
+          <td colspan="2" style="text-align:center">© 2014, 2016, 2017, 2018 조성호<br></td>
+        </tr>
+        <tr>
+          <td style="text-align:center;"><pre><B>번역자</B>
+조성호</pre></td> <td style="text-align:center;"><pre><B>작성자</B>
+조성호</pre></td>
+        </tr>
+        <tr>
+          <td colspan="2" style="text-align:center"><B>Creative Commons</B></td>
+        </tr>
+        <tr>
+          <td colspan="2"><pre>이 문서는 <a href=https://creativecommons.org/licenses/?lang=ko>크리에이티브 커먼즈 저작자표시-동일조건변경허락 3.0 Unported 라이선스</a>에 따른 활용을 허가합니다.</pre></td>
+        </tr>
+      </table>
+    </div><!--end of name-->
+  </footer>
+
+</BODY>
+</HTML>
+

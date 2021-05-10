@@ -1,0 +1,220 @@
+<HTML>
+  <HEAD>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="style.css" type="text/css">
+  </HEAD>
+  <BODY>
+
+    <!--nav bar-->
+    <nav class="navbar navbar-fixed-top" style="top:20px;margin-left:30px;margin-right:30px;">
+     <ul>
+       <li><img class="img" src="help.svg">
+       <li><a href="index">매체제어 편집기</a>
+       <li><img class="img" src="grey.svg">
+       <li><a href="index#policy">정책</a>
+       <li><img class="img" src="grey.svg">
+       <li><a href="#top">미디어</a>
+     </ul>
+    </nav> <!--end of navbar-->
+
+    <!-- header -->
+    <header><a name="top"></a></header>
+
+   <!-- contents  -->
+
+   <!-- for align 30px -->
+   <div class="div_root">
+
+     <!--sub title-->
+     <font class="font sub_title">정책 지원 미디어 종류</font><br>
+
+     <!-- Rectangle-->
+     <div class="Rectangle">
+       <font class="font text">
+         <pre>구름 플랫폼에서 사용 허용/비허용 정책을 지원하는 미디어의 종류는 다음과 같습니다.</pre>
+         
+         <div style="margin-left:30px;">
+           <table class="font text" style="width:80%; border-spacing:10px;">
+             <tr>
+               <td>USB 메모리<td>
+             </tr>
+             <tr>
+               <td>프린터</td>
+             </tr>
+             <tr>
+               <td>CD/DVD</td>
+             </tr>
+               <td>카메라</td>
+             </tr>
+             </tr>
+               <td>사운드</td>
+             </tr>
+             </tr>
+               <td>녹음</td>
+             </tr>
+             </tr>
+               <td>무선인터넷</td>
+             </tr>
+             </tr>
+               <td>블루투스</td>
+             </tr>
+             </tr>
+               <td>USB 키보드</td>
+             </tr>
+             </tr>
+               <td>USB 마우스</td>
+             </tr>
+             </tr>
+               <td>스크린캡쳐</td>
+             </tr>
+             </tr>
+               <td>클립보드</td>
+             </tr>
+             </tr>
+               <td>USB 네트워크</td>
+             </tr>
+           </table>
+         </div>
+       </font>
+     </div> <!-- end of Rectangle-->
+
+     <br><br>
+
+     <!--sub title-->
+     <font class="font sub_title">정책 적용</font><br>
+
+     <!-- Rectangle-->
+     <div class="Rectangle">
+       <font class="font text">
+         <pre>매체제어 편집기에서 다음과 같이 라디오 버튼을 클릭함으로써 정책을 변경할 수 있습니다. 변경을 마친 후에는 반드시 <i>저장</i>버튼을 클릭하셔야 상태가 저장됩니다.
+        
+<img class="img" src="grac-editors.png">
+
+이벤트 보기를 통해 원하는 작업의 성공여부를 확인할 수 있습니다.
+
+예를 들어, USB 메모리의 상태를 비허용으로 변경 후 저장 버튼을 클릭하면 USB 메모리를 사용할 수 없는 상태가 됩니다. 만약 USB 메모리가 비허용 상태인데, USB 메모리를 삽입하면 모니터 우측 상단에 다음과 같은 안내 메시지가 나타납니다<div class="">
+
+<img class="img" src="message.png">
+
+또한, 하단의 보안 상태 역시 <i>취약</i>상태로 변경되고, USB 메모리가 마운트 되지 않습니다.
+
+USB 메모리의 정책을 <i>읽기전용</i>으로 변경한 후 USB를 삽입하면,
+비허용 상태와 같은 메시지가 오른쪽 상단에 출력됩니다. 보안 상태 역시 <i>취약</i>으로 변경됩니다. 하지만 USB는 마운트가 가능하고, 메모리의 자료들도 읽기 가능합니다.
+메모리의 정보를 수정하거나, 자료를 추가할 시에는 다음과 같은 안내 메시지가 출력되며 저장할 수 없습니다.
+
+<img class="img" src="read-only.png">
+</div></pre>
+       </font>
+     </div> <!--end of Rectangle-->
+
+     <br><br>
+     <!--sub title-->
+     <font class="font sub_title">화이트 리스트</font><br>
+
+     <!-- Rectangle-->
+     <div class="Rectangle">
+       <font class="font text">
+         <pre><i>화이트 리스트</i>는 미디어 매체에 대해서 비허용으로 설정하더라도 특정 매체에 대해서 명시적으로 허가하는 목록입니다. 구름 플랫폼의 매체제어 편집기에서는  USB 메모리, 블루투스, USB 네트워크에 대해 화이트 리스트 기능을 지원하고 있습니다.</pre>
+         <div style="margin-left:30px;">
+          <B>USB 메모리</B> <br>
+            <pre>USB 메모리의 <i>화이트 리스트</i>버튼을 클릭하고 아래의 절차에 따라 화이트 리스트를 작성해주세요.</pre>
+            <!--flow-->
+            <div class="discription"><pre>1.터미널을 실행 합니다.
+
+2. 다음 명령어를 입력한 후 암호를 넣어줍니다.
+
+<div style="background-color:cornsilk; text-align: center; padding: 15;">
+sudo udevadm monitor -p | grep ID_SERIAL_SHORT
+</div>
+
+3. USB 메모리를 삽입합니다.
+
+4. 시리얼 넘버를 확인하여 리스트를 작성합니다.
+
+<img class="img" src="usb_serial.png">
+
+5. 확인 버튼을 클릭하고, 저장 버튼을 눌러 적용시킵니다. </pre></div><!--end of flow-->
+
+<br><br>
+          <B>블루투스</B> <br>
+            <pre>블루투스의 <i>화이트 리스트</i>버튼을 클릭하고 아래의 절차에 따라 화이트 리스트를 작성해주세요.</pre>
+            <!--flow-->
+            <div class="discription"><pre>1.터미널을 실행 합니다.
+
+2. 다음 명령어를 입력한 후 암호를 넣어줍니다.
+
+<div style="background-color:cornsilk; text-align: center; padding: 15;">
+sudo bluetoothctl 
+</div>
+
+3. 블루투스를 연결 합니다.
+
+4. MAC주소를 확인하여 리스트를 작성합니다.
+
+5. 확인 버튼을 클릭하고, 저장 버튼을 눌러 적용시킵니다. </pre></div><!--end of flow-->
+<br><br>
+          <B>USB 네트워크</B> <br>
+            <pre>USB네트워크는 USB로 설치하는 bluetooth, lancard, network 장비를 의미합니다. USB 네트워크의 <i>화이트 리스트</i>버튼을 클릭하고 아래의 절차에 따라 화이트 리스트를 작성해주세요.</pre>
+            <!--flow-->
+            <div class="discription"><pre>1.터미널을 실행 합니다.
+
+2. usbutils 패키지를 설치하기위해 아래의 명령어를 입력합니다. 필요한 경우 사용자 암호를 넣습니다.
+
+<div style="background-color:cornsilk; text-align: center; padding: 15;">
+sudo  apt install usbutils
+</div>
+
+3.아래의 명령어를 이용해 버스 넘버를 확인합니다.  
+
+<div style="background-color:cornsilk; text-align: center; padding: 15;">
+lsusb -t
+</div>
+
+4. 화이트 리스트 창에서 <i>추가</i> 버튼을 클릭합니다.
+
+5. Name 부분에는  <i>usbbus</i> 라고 입력하고, Contents 부분에는 터미널에서 확인한 버스 넘버를 입력합니다. 
+  - <i>삭제</i> 버튼은 화이트 리스트에서 목록을 삭제하기 위해 사용됩니다.
+  - <i>편집</i> 버튼은 이미 추가된 항목의 편집을 위해 사용됩니다.
+
+  <img class="img" src="usb_network_white_list.png">
+
+  6. <i>확인</i> 버튼 클릭 후 <i>저장</i> 버튼을 눌러 정책을 반영시킵니다.</pre></div><!--end of flow-->
+
+         </div><!--end of sub_rectangle-->
+       </font>
+     </div> <!--end of Rectangle-->
+   </div>   <!-- end of div_root-->
+
+  <footer>
+  <font class="font" style="font-size:14px;line-height:2;"><B>자세한 정보</B><br>
+  <a href="index#policy">정책</a></font> <br><br>
+  </footer>
+
+  <footer class="info">
+    <a onClick="showMore('name')"
+    class="Options none" onMouseOver="this.className='OptionsOnMouse';"
+    onMouseOut="this.className='Options';"><B>정보</B></a><br>
+
+    <div id=name style="display:none; width:90%;">
+      <table class="font text" style="display:inline-block;" cellspacing="7px" cellpadding="3px">
+        <tr>
+          <td colspan="2" style="text-align:center">© 2014, 2016, 2017, 2018 조성호<br></td>
+        </tr>
+        <tr>
+          <td style="text-align:center;"><pre><B>번역자</B>
+조성호</pre></td> <td style="text-align:center;"><pre><B>작성자</B>
+조성호</pre></td>
+        </tr>
+        <tr>
+          <td colspan="2" style="text-align:center"><B>Creative Commons</B></td>
+        </tr>
+        <tr>
+          <td colspan="2"><pre>이 문서는 <a href=https://creativecommons.org/licenses/?lang=ko>크리에이티브 커먼즈 저작자표시-동일조건변경허락 3.0 Unported 라이선스</a>에 따른 활용을 허가합니다.</pre></td>
+        </tr>
+      </table>
+    </div><!--end of name-->
+  </footer>
+
+</BODY>
+</HTML>
+
