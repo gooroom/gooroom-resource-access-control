@@ -79,27 +79,24 @@ class GracNetwork:
         processing more than v2.x with raw input
         """
 
-        rules = network_json[JSON_RULE_NETWORK_RULES]
-        rules = [(int(rule['seq']), 'MENUAL', rule) for rule in rules]
-        rules_law = network_json[JSON_RULE_NETWORK_RULES_RAW]
-        rules_law = [(int(rule_law['seq']), 'RAW', rule_law) for rule_law in rules_law]
+        if not isinstance(network_json, str) and JSON_RULE_NETWORK_RULES in network_json:
+            rules = network_json[JSON_RULE_NETWORK_RULES]
+            rules = [(int(rule['seq']), 'MENUAL', rule) for rule in rules]
+        else:
+            rules = []
+
+        if not isinstance(network_json, str) and JSON_RULE_NETWORK_RULES_RAW in network_json:
+            rules_law = network_json[JSON_RULE_NETWORK_RULES_RAW]
+            rules_law = [(int(rule_law['seq']), 'RAW', rule_law) for rule_law in rules_law]
+        else:
+            rules_law = []
         rules_all = sorted(rules+rules_law, key=lambda i:i[0])
-        #rules_all.reverse()
 
         with open(GRAC_IPTABLES_SV_PATH, 'w') as f:
-            '''
-            f.write('*filter\n')
-            f.write(':INPUT {}\n'.format(policy_state.upper()))
-            f.write(':FORWARD {}\n'.format(policy_state.upper()))
-            f.write(':OUTPUT {}\n'.format(policy_state.upper()))
-            '''
-            f.write('/sbin/iptables-legacy -F\n')
-            f.write('/sbin/iptables-legacy -P INPUT {}\n'.format(policy_state.upper()))
-            f.write('/sbin/iptables-legacy -P OUTPUT {}\n'.format(policy_state.upper()))
-            f.write('/sbin/iptables-legacy -P FORWARD {}\n'.format(policy_state.upper()))
-
-            if len(rules_all) == 0:
-                return
+            f.write('/usr/sbin/iptables-legacy -F\n')
+            f.write('/usr/sbin/iptables-legacy -P INPUT {}\n'.format(policy_state.upper()))
+            f.write('/usr/sbin/iptables-legacy -P OUTPUT {}\n'.format(policy_state.upper()))
+            f.write('/usr/sbin/iptables-legacy -P FORWARD {}\n'.format(policy_state.upper()))
 
             for rule in rules_all:
                 try:
@@ -134,24 +131,12 @@ class GracNetwork:
                                     s += ' -m multiport'
                                 s += ' --dports {}'.format(dst_ports)
                             s += ' -j {}'.format(state.upper())
-                            f.write('/sbin/iptables-legacy ' +s+'\n')
+                            f.write('/usr/sbin/iptables-legacy ' +s+'\n')
                     else:
-                        f.write('/sbin/iptables-legacy ' + rule[2]['cmd']+'\n')
+                        f.write('/usr/sbin/iptables-legacy ' + rule[2]['cmd']+'\n')
                 except:
                     self.logger.error(grac_format_exc())
-            #f.write('COMMIT\n')
 
-        '''
-        with open(GRAC_IPTABLES_SV_PATH, 'r') as fi:
-            p0 = subprocess.Popen(
-                ['/sbin/iptables-legacy-restore'],
-                stdin=fi,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-            pp_out, pp_err = p0.communicate()
-            if pp_err:
-                self.logger.error(pp_err.decode('utf8'))
-        '''
         p0 = subprocess.Popen(
             ['/bin/bash', GRAC_IPTABLES_SV_PATH],
             stdout=subprocess.PIPE,
@@ -184,6 +169,7 @@ class GracNetwork:
                 return
 
             #flush
+            self.flush_chain()
             self.flush_chain()
 
             #policy to accept
