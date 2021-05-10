@@ -4,6 +4,7 @@
 import simplejson as json
 import threading
 import psutil
+import shutil
 import dbus
 import pwd
 import os
@@ -177,8 +178,16 @@ class GracApi:
         save default.rules
         """
 
+        '''
         with open(self.default_rules_path, 'w') as f:
             f.write(json.dumps(rules))
+        '''
+
+        TMP_MEDIA_DEFAULT_API = '/var/tmp/TMP-MEDIA-DEFAULT-API'
+        with open(TMP_MEDIA_DEFAULT_API, 'w') as f:
+            f.write(json.dumps(rules, indent=4))
+
+        shutil.copy(TMP_MEDIA_DEFAULT_API, self.default_rules_path)
 
     def lsf_media_get_state(self, msg):
         """
