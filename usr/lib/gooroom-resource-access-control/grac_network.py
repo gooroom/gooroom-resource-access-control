@@ -93,10 +93,10 @@ class GracNetwork:
         rules_all = sorted(rules+rules_law, key=lambda i:i[0])
 
         with open(GRAC_IPTABLES_SV_PATH, 'w') as f:
-            f.write('/usr/sbin/iptables-legacy -F\n')
-            f.write('/usr/sbin/iptables-legacy -P INPUT {}\n'.format(policy_state.upper()))
-            f.write('/usr/sbin/iptables-legacy -P OUTPUT {}\n'.format(policy_state.upper()))
-            f.write('/usr/sbin/iptables-legacy -P FORWARD {}\n'.format(policy_state.upper()))
+            f.write('/usr/sbin/iptables -F\n')
+            f.write('/usr/sbin/iptables -P INPUT {}\n'.format(policy_state.upper()))
+            f.write('/usr/sbin/iptables -P OUTPUT {}\n'.format(policy_state.upper()))
+            f.write('/usr/sbin/iptables -P FORWARD {}\n'.format(policy_state.upper()))
 
             for rule in rules_all:
                 try:
@@ -131,9 +131,9 @@ class GracNetwork:
                                     s += ' -m multiport'
                                 s += ' --dports {}'.format(dst_ports)
                             s += ' -j {}'.format(state.upper())
-                            f.write('/usr/sbin/iptables-legacy ' +s+'\n')
+                            f.write('/usr/sbin/iptables ' +s+'\n')
                     else:
-                        f.write('/usr/sbin/iptables-legacy ' + rule[2]['cmd']+'\n')
+                        f.write('/usr/sbin/iptables ' + rule[2]['cmd']+'\n')
                 except:
                     self.logger.error(grac_format_exc())
 
