@@ -97,7 +97,7 @@ msgstr "저장 성공"
 
 #: grac_editor.py:932
 msgid "GRAC Editor"
-msgstr "매체제어 에디터"
+msgstr "매체제어 편집기"
 
 #: grac_editor.py:935 grac_editor.py:936 grac_editor.py:937 grac_editor.py:938
 #: grac_editor.py:939 grac_editor.py:940 grac_editor.py:941 grac_editor.py:942
@@ -243,7 +243,7 @@ msgid ""
 msgstr ""
 "구름 플랫폼\n"
 "\n"
-"매체제어 에디터 1.0.0"
+"매체제어 편집기 1.0.0"
 
 #: grac_editor.py:1004
 msgid "reset"
