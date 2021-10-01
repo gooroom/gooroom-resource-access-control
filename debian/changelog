@@ -1,3 +1,13 @@
+gooroom-resource-access-control (1.4.2+grm2u1) unstable; urgency=medium
+
+  [ boyeon.choi ]
+  * [2a17cff0] Fixed the typo
+
+  [ hmkim ]
+  * [b500b639] change iptables-legacy to iptables
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 01 Oct 2021 20:22:29 +0900
+
 gooroom-resource-access-control (1.4.1+grm2u1) unstable; urgency=medium
 
   [ hmkim ]
