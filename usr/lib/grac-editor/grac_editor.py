@@ -19,6 +19,16 @@ from ge_define import *
 gettext.install('grac-editor', '/usr/share/gooroom/locale')
 
 #-------------------------------------------------------------------------------
+cssProvider = Gtk.CssProvider()
+cssProvider.load_from_path('/usr/lib/grac-editor/theme.css')
+screen = Gdk.Screen.get_default()
+styleContext = Gtk.StyleContext()
+styleContext.add_provider_for_screen(screen, cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
+LBL_ALLOW = _('allow')
+LBL_DISALLOW = _('disallow')
+
+#-------------------------------------------------------------------------------
 class GracEditor:
     """
     GRAC EDITOR
@@ -46,9 +56,6 @@ class GracEditor:
         #DRAW MEDIA
         self.draw_media(self.media_rules)
 
-        #DRAW NETWORK
-        self.draw_network(self.media_rules)
-
         #LANG
         self.lang()
 
@@ -57,136 +64,111 @@ class GracEditor:
         write on textview_log
         """
 
-        buff = self.builder.get_object('textview_log').get_buffer()
+        buff = self.builder.get_object('txtvw_log').get_buffer()
         ei = buff.get_end_iter()
         buff.insert(ei, txt+'\n')
         ei = buff.get_end_iter()
         mark = buff.create_mark('end', ei, False)
-        buff = self.builder.get_object('textview_log').scroll_to_mark(
+        buff = self.builder.get_object('txtvw_log').scroll_to_mark(
                                                         mark, 
                                                         0.05,
                                                         True,
                                                         0.0,0.0)
 
-    def draw_network(self, rules):
+    def write_txtvw(self, vw_id, txt):
         """
-        setting network page as values of rules file
         """
 
-        network_rule = rules[JSON_RULE_NETWORK]
+        buff = self.builder.get_object(vw_id).get_buffer()
+        si = buff.get_start_iter()
+        ei = buff.get_end_iter()
+        buff.delete(si, ei)
 
-        #set policy
-        policy = network_rule[JSON_RULE_STATE]
-        if policy == JSON_RULE_ALLOW \
-            or policy == NETWORK_ACCEPT:
-            policy = NETWORK_ACCEPT
-        else:
-            policy = NETWORK_DROP
+        buff = self.builder.get_object(vw_id).get_buffer()
+        ei = buff.get_end_iter()
+        buff.insert(ei, txt)
 
-        policy_cb = self.builder.get_object('rdo_policy_{}'.format(policy))
-        policy_cb.set_active(True)
+    def read_txtvw(self, vw_id):
+        """
+        """
 
-        #set treeview
-        treeview = self.builder.get_object('treeview_network')
-
-        liststore_network = self.builder.get_object('liststore_network')
-        liststore_network.clear()
-
-        if not JSON_RULE_NETWORK_RULE in network_rule:
-            return
-
-        rules = network_rule[JSON_RULE_NETWORK_RULE]
-        if not rules or len(rules) <= 0:
-            return
-
-        #sort by address
-        cell_renderer = Gtk.CellRendererText()
-        col = Gtk.TreeViewColumn('ADDRESS', cell_renderer)
-        col.set_sort_column_id(2)
-
-        if JSON_RULE_NETWORK_VERSION in network_rule:
-            server_version = network_rule[JSON_RULE_NETWORK_VERSION]
-        else:
-            server_version = '1.0'
-
-        for rule in rules:
-            #SERVER VERSION 1.0
-            if server_version.startswith('1.0'):
-                address = rule[JSON_RULE_NETWORK_ADDRESS]
-                state = rule[JSON_RULE_NETWORK_STATE]
-                if state == JSON_RULE_ALLOW:
-                    state = NETWORK_ACCEPT
-                else:
-                    state = NETWORK_DROP
-                state = state.upper()
-
-                direction = rule[JSON_RULE_NETWORK_DIRECTION].upper()
-
-                if not JSON_RULE_NETWORK_PORTS in rule \
-                    or len(rule[JSON_RULE_NETWORK_PORTS]) <= 0:
-                    liststore_network.append([direction, '', address, '', '', state])
-                    continue
-                ports = rule[JSON_RULE_NETWORK_PORTS]
-
-                for port in ports:
-                    src_port = dst_port = ''
-                    if JSON_RULE_NETWORK_SRC_PORT in port:
-                        src_port = ','.join(port[JSON_RULE_NETWORK_SRC_PORT])
-                    if JSON_RULE_NETWORK_DST_PORT in port:
-                        dst_port = ','.join(port[JSON_RULE_NETWORK_DST_PORT])
-                    proto = port[JSON_RULE_NETWORK_PROTO].upper()
-                    liststore_network.append([direction, proto, address, src_port, dst_port, state])
-            #SERVER NOT VERSION 1.0
-            else:
-                address = rule[JSON_RULE_NETWORK_ADDRESS]
-                state = rule[JSON_RULE_NETWORK_STATE]
-                if state == JSON_RULE_ALLOW \
-                    or state == NETWORK_ACCEPT:
-                    state = NETWORK_ACCEPT
-                else:
-                    state = NETWORK_DROP
-                state = state.upper()
-
-                direction = rule[JSON_RULE_NETWORK_DIRECTION].upper()
-                proto = rule[JSON_RULE_NETWORK_PROTO].upper()
-                src_ports = rule[JSON_RULE_NETWORK_SRC_PORTS]
-                dst_ports = rule[JSON_RULE_NETWORK_DST_PORTS]
-                liststore_network.append([direction, proto, address, src_ports, dst_ports, state])
+        buff = self.builder.get_object(vw_id).get_buffer()
+        si = buff.get_start_iter()
+        ei = buff.get_end_iter()
+        return buff.get_text(si, ei, True)
 
     def draw_media(self, rules):
         """
-        setting media page as the values of rules file
         """
-    
+
         for k, v in rules.items():
-            obj_name = 'rdo+{}+{}'.format(k, v['state'])
-            '''
-            #microphone exception
-            if obj_name == 'rdo+microphone+allow' \
-                or obj_name == 'rdo+microphone+disallow':
-                continue
-            '''
-            cb = self.builder.get_object(obj_name)
-            if cb:
-                cb.set_active(True)
+            #SWITCH
+            swtch = self.builder.get_object('swtch+{}'.format(k))
+            if swtch:
+                if v[JSON_RULE_STATE] == JSON_RULE_ALLOW:
+                    swtch.set_state(True)
+                elif v[JSON_RULE_STATE] == JSON_RULE_READONLY:
+                    swtch.set_state(False)
+                    ckb = self.builder.get_object('ckb+{}'.format(k))
+                    if ckb:
+                        ckb.set_active(True)
+                else:
+                    swtch.set_state(False)
             else:
                 pass
 
-        if self.builder.get_object('rdo+usb_memory+allow').get_active():
-            self.builder.get_object('btn_usb_memory').set_sensitive(False)
-        else:
-            self.builder.get_object('btn_usb_memory').set_sensitive(True)
+            #SWITCH LABEL
+            swtch_state = self.builder.get_object('lbl+{}+state'.format(k))
+            if swtch_state:
+                if v[JSON_RULE_STATE] == JSON_RULE_ALLOW:
+                    state = LBL_ALLOW
+                else:
+                    state = LBL_DISALLOW
+                swtch_state.set_text(state)
+            else:
+                pass
 
-        if self.builder.get_object('rdo+bluetooth+allow').get_active():
-            self.builder.get_object('btn_bluetooth').set_sensitive(False)
-        else:
-            self.builder.get_object('btn_bluetooth').set_sensitive(True)
+            #WHITE LIST
+            if k == JSON_RULE_USB_MEMORY and JSON_RULE_USB_SERIALNO in v:
+                self.write_txtvw(
+                    'txtvw_usb_whitelist', 
+                    '\n'.join(self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_SERIALNO]))
+            if k == JSON_RULE_BLUETOOTH and JSON_RULE_MAC_ADDRESS in v:
+                self.write_txtvw(
+                    'txtvw_bluetooth_whitelist', 
+                    '\n'.join(self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_MAC_ADDRESS]))
+            if k == JSON_RULE_USB_NETWORK and JSON_RULE_USB_NETWORK_WHITELIST in v:
+                ent_unw = self.builder.get_object('ent_usb_network_whitelist')
+                wls = self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST]
+                for name, contents in wls.items():
+                    if name == 'usbbus':
+                        ent_unw.set_text(contents)
+                        break
+                else:
+                    ent_unw.set_text('')
 
-        if self.builder.get_object('rdo+usb_network+allow').get_active():
-            self.builder.get_object('btn_usb_network').set_sensitive(False)
-        else:
-            self.builder.get_object('btn_usb_network').set_sensitive(True)
+            #WHITE LIST SENSITIVE
+            if k == JSON_RULE_USB_MEMORY and v[JSON_RULE_STATE] == JSON_RULE_ALLOW:
+                self.builder.get_object('txtvw_usb_whitelist').set_sensitive(False)
+                self.builder.get_object('ckb+{}'.format(JSON_RULE_USB_MEMORY)).set_sensitive(False)
+            if k == JSON_RULE_BLUETOOTH and v[JSON_RULE_STATE] == JSON_RULE_ALLOW:
+                self.builder.get_object('txtvw_bluetooth_whitelist').set_sensitive(False)
+            if k == JSON_RULE_USB_NETWORK and v[JSON_RULE_STATE] == JSON_RULE_ALLOW:
+                self.builder.get_object('ent_usb_network_whitelist').set_sensitive(False)
 
+            #IPTABLES
+            if k == JSON_RULE_NETWORK and JSON_RULE_NETWORK_RULES_RAW in v:
+                rules_raw = v[JSON_RULE_NETWORK_RULES_RAW]
+                rules_raw = [(int(rule_raw['seq']), rule_raw['cmd']) for rule_raw in rules_raw]
+                rules_raw = sorted(rules_raw, key=lambda i:i[0])
+
+                txt = ''
+                for rr in rules_raw:
+                    txt += rr[1] + '\n'
+                if txt:
+                    self.write_txtvw('txtvw_iptables', txt)
+                    
+                
     def load_rules(self, rule_path):
         """
         load rules file
@@ -209,65 +191,131 @@ class GracEditor:
 
         return new_json_rules
 
-    def on_btn_dialog_unw_input_ok_clicked(self, obj):
+    def on_swtch_usb_memory_button_release_event(self, obj, e):
         """
-        ok button of unw input dialog
-        """
-
-        dg = self.builder.get_object('dialog_unw_input')
-        title = dg.get_title()
-
-        name = 'usbbus'
-        contents = self.builder.get_object('ent_unw_contents').get_text()
-
-        if not name or not contents:
-            md = Gtk.MessageDialog(
-                None, 
-                0, 
-                Gtk.MessageType.WARNING, 
-                Gtk.ButtonsType.CLOSE, 
-                _('Input usb bus number'))
-            md.run()
-            md.destroy()
-            return
-
-        wl = {name:contents}
-        self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST] = wl
-
-        dg.hide()
-
-    def on_btn_dialog_unw_input_cancel_clicked(self, obj):
-        """
-        cancel button of unw input dialog
         """
 
-        self.builder.get_object('dialog_unw_input').hide()
+        if not obj.get_active():
+            self.builder.get_object('txtvw_usb_whitelist').set_sensitive(False)
+            self.builder.get_object('ckb+{}'.format(JSON_RULE_USB_MEMORY)).set_sensitive(False)
+            self.builder.get_object('ckb+{}'.format(JSON_RULE_USB_MEMORY)).set_active(False)
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_MEMORY)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('txtvw_usb_whitelist').set_sensitive(True)
+            self.builder.get_object('ckb+{}'.format(JSON_RULE_USB_MEMORY)).set_sensitive(True)
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_MEMORY)).set_text(LBL_DISALLOW)
 
-    def on_btn_usb_network_clicked(self, obj):
+    def on_swtch_printer_button_release_event(self, obj, e):
         """
-        click event of usb-network whitelist
         """
 
-        self.builder.get_object('ent_unw_name').set_text(_('USB Bus No.:'))
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_PRINTER)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_PRINTER)).set_text(LBL_DISALLOW)
 
-        dg = self.builder.get_object('dialog_unw_input')
-        dg.set_title(_('usb network whitelist'))
+    def on_swtch_cd_dvd_button_release_event(self, obj, e):
+        """
+        """
 
-        if JSON_RULE_USB_NETWORK in self.media_rules \
-            and JSON_RULE_USB_NETWORK_WHITELIST in self.media_rules[JSON_RULE_USB_NETWORK]:
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CD_DVD)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CD_DVD)).set_text(LBL_DISALLOW)
 
-            wls = self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST]
-            for name, contents in wls.items():
-                if name == 'usbbus':
-                    self.builder.get_object('ent_unw_contents').set_text(contents)
-                    break
-            else:
-                self.builder.get_object('ent_unw_contents').set_text('')
+    def on_swtch_camera_button_release_event(self, obj, e):
+        """
+        """
 
-        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
-        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
-        dg.run()
-        dg.hide()
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CAMERA)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CAMERA)).set_text(LBL_DISALLOW)
+
+    def on_swtch_sound_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SOUND)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SOUND)).set_text(LBL_DISALLOW)
+
+    def on_swtch_microphone_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MICROPHONE)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MICROPHONE)).set_text(LBL_DISALLOW)
+
+    def on_swtch_wireless_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_WIRELESS)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_WIRELESS)).set_text(LBL_DISALLOW)
+
+    def on_swtch_bluetooth_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_BLUETOOTH)).set_text(LBL_ALLOW)
+            self.builder.get_object('txtvw_bluetooth_whitelist').set_sensitive(False)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_BLUETOOTH)).set_text(LBL_DISALLOW)
+            self.builder.get_object('txtvw_bluetooth_whitelist').set_sensitive(True)
+
+    def on_swtch_keyboard_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_KEYBOARD)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_KEYBOARD)).set_text(LBL_DISALLOW)
+
+    def on_swtch_mouse_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MOUSE)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MOUSE)).set_text(LBL_DISALLOW)
+
+    def on_swtch_screen_capture_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SCREEN_CAPTURE)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SCREEN_CAPTURE)).set_text(LBL_DISALLOW)
+
+    def on_swtch_clipboard_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CLIPBOARD)).set_text(LBL_ALLOW)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CLIPBOARD)).set_text(LBL_DISALLOW)
+
+    def on_swtch_usb_network_button_release_event(self, obj, e):
+        """
+        """
+
+        if not obj.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_NETWORK)).set_text(LBL_ALLOW)
+            self.builder.get_object('ent_usb_network_whitelist').set_sensitive(False)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_NETWORK)).set_text(LBL_DISALLOW)
+            self.builder.get_object('ent_usb_network_whitelist').set_sensitive(True)
 
     def on_window_main_destroy(self, obj):
         """
@@ -275,253 +323,6 @@ class GracEditor:
         """
 
         Gtk.main_quit()
-
-    def clear_dialog_whitelist_textview(self):
-        """
-        clear textview of whitelist of dialog(usb_memory|bluetooth)
-        """
-
-        buff = self.builder.get_object('textview_whitelist').get_buffer()
-        si = buff.get_start_iter()
-        ei = buff.get_end_iter()
-        buff.delete(si, ei)
-
-    def on_btn_bluetooth_clicked(self, obj):
-        """
-        click event of bluetooth whitelist
-        """
-
-        self.builder.get_object('lbl_whitelist_log').set_text(
-            _('how to write: 01:23:45:ab:cd:ef'))
-
-        dg = self.builder.get_object('dialog_whitelist')
-        self.ub_btn_type = 2
-        dg.set_title(_('bluetooth whitelist'))
-        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
-        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
-
-        #clear textview
-        self.clear_dialog_whitelist_textview()
-
-        #fill list in
-        if JSON_RULE_MAC_ADDRESS in self.media_rules[JSON_RULE_BLUETOOTH]:
-            v = '\n'.join(self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_MAC_ADDRESS])
-            buff = self.builder.get_object('textview_whitelist').get_buffer()
-            ei = buff.get_end_iter()
-            buff.insert(ei, v)
-
-        dg.run()
-        dg.hide()
-
-    def on_btn_usb_memory_clicked(self, obj):
-        """
-        click event of usb-memory whitelist
-        """
-
-        self.builder.get_object('lbl_whitelist_log').set_text(
-            _('how to write: ID_SERIAL_SHORT of udev event'))
-
-        dg = self.builder.get_object('dialog_whitelist')
-        self.ub_btn_type = 1
-        dg.set_title(_('usb memory whitelist'))
-        dg.vbox.get_children()[1].get_children()[0].get_children()[0].set_label(_('OK'))
-        dg.vbox.get_children()[1].get_children()[0].get_children()[1].set_label(_('CANCEL'))
-
-        #clear textview 
-        self.clear_dialog_whitelist_textview()
-
-        #fill list in
-        if JSON_RULE_USB_SERIALNO in self.media_rules[JSON_RULE_USB_MEMORY]:
-            v = '\n'.join(self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_SERIALNO])
-            buff = self.builder.get_object('textview_whitelist').get_buffer()
-            ei = buff.get_end_iter()
-            buff.insert(ei, v)
-
-        dg.run()
-        dg.hide()
-
-    def on_btn_dialog_whitelist_ok_clicked(self, obj):
-        """
-        ok button of whitelist dialog
-        """
-
-        dg = self.builder.get_object('dialog_whitelist')
-
-        #which media title
-        title = dg.get_title()
-
-        #get text
-        buff = self.builder.get_object('textview_whitelist').get_buffer()
-        si = buff.get_start_iter()
-        ei = buff.get_end_iter()
-        v = buff.get_text(si, ei, True)
-
-        validate_res = VALIDATE_OK
-
-        if self.ub_btn_type == 1:
-            #validate text
-
-            self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_SERIALNO] = \
-                v.strip('\n').split('\n')
-            dg.hide()
-
-        elif self.ub_btn_type == 2:
-            #validate text
-            validate_res = self.validate_whitelist_bluetooth(v)
-            if validate_res == VALIDATE_OK:
-                self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_MAC_ADDRESS] = \
-                    v.strip('\n').split('\n')
-                dg.hide()
-            else:
-                lbl_whitelist_log = self.builder.get_object('lbl_whitelist_log')
-                lbl_whitelist_log.set_text(validate_res)
-
-        if validate_res == VALIDATE_OK:
-            #clear textview
-            self.clear_dialog_whitelist_textview()
-
-    def on_btn_dialog_whitelist_cancel_clicked(self, obj):
-        """
-        cancel button of whitelist dialog
-        """
-
-        #clear textview
-        self.clear_dialog_whitelist_textview()
-        self.builder.get_object('dialog_whitelist').hide()
-
-        title = self.builder.get_object('dialog_whitelist').get_title()
-
-    def on_btn_network_del_clicked(self, obj):
-        """
-        del button of network page
-        """
-
-        treeview_network = self.builder.get_object('treeview_network')
-        list_store, list_store_iter = treeview_network.get_selection().get_selected()
-        if list_store_iter:
-            list_store.remove(list_store_iter)
-
-    def on_btn_network_edit_clicked(self, obj):
-        """
-        edit button of network page
-        """
-
-        self.builder.get_object('lbl_network_log').set_text('')
-
-        treeview_network = self.builder.get_object('treeview_network')
-        list_store, list_store_iter = treeview_network.get_selection().get_selected()
-        if list_store_iter:
-            direction = list_store.get_value(list_store_iter, 0)
-            proto = list_store.get_value(list_store_iter, 1)
-            address = list_store.get_value(list_store_iter, 2)
-            src_port = list_store.get_value(list_store_iter, 3)
-            dst_port = list_store.get_value(list_store_iter, 4)
-            state = list_store.get_value(list_store_iter, 5)
-
-            cb_direction = self.builder.get_object('cb_direction')
-            liststore_direction = self.builder.get_object('liststore_direction')
-            liststore_direction.clear()
-            liststore_direction.append(['INPUT'])
-            liststore_direction.append(['OUTPUT'])
-            liststore_direction.append(['ALL'])
-            if direction == 'INPUT':
-                cb_direction.set_active(0)
-            elif direction == 'OUTPUT':
-                cb_direction.set_active(1)
-            else:
-                cb_direction.set_active(2)
-
-            cb_protocol = self.builder.get_object('cb_protocol')
-            liststore_protocol = self.builder.get_object('liststore_protocol')
-            liststore_protocol.clear()
-            liststore_protocol.append(['TCP'])
-            liststore_protocol.append(['UDP'])
-            liststore_protocol.append(['ICMP'])
-            if proto == 'TCP':
-                cb_protocol.set_active(0)
-            elif proto == 'UDP':
-                cb_protocol.set_active(1)
-            else:
-                cb_protocol.set_active(2)
-
-            ent_address = self.builder.get_object('ent_address')
-            ent_address.set_text(address)
-
-            ent_src_port = self.builder.get_object('ent_src_port')
-            ent_src_port.set_text(src_port)
-
-            ent_dst_port = self.builder.get_object('ent_dst_port')
-            ent_dst_port.set_text(dst_port)
-
-            cb_state = self.builder.get_object('cb_state')
-            liststore_state = self.builder.get_object('liststore_state')
-            liststore_state.clear()
-            liststore_state.append(['ACCEPT'])
-            liststore_state.append(['DROP'])
-            if state == 'ACCEPT':
-                cb_state.set_active(0)
-            else:
-                cb_state.set_active(1)
-
-            dg = self.builder.get_object('dialog_network_add')
-            self.ne_btn_type = 2
-            dg.set_title(_('network edit'))
-            dg.vbox.get_children()[2].get_children()[0].get_children()[0].set_label(_('OK'))
-            dg.vbox.get_children()[2].get_children()[0].get_children()[1].set_label(_('CANCEL'))
-            dg.run()
-            dg.hide()
-
-    def on_btn_dialog_network_add_ok_clicked(self, obj):
-        """
-        ok button of network_add dialog
-        """
-
-        dg = self.builder.get_object('dialog_network_add')
-        title = dg.get_title()
-
-        cb_direction = self.builder.get_object('cb_direction')
-        liststore_direction = self.builder.get_object('liststore_direction')
-        cb_protocol = self.builder.get_object('cb_protocol')
-        liststore_protocol = self.builder.get_object('liststore_protocol')
-        ent_address = self.builder.get_object('ent_address')
-        ent_src_port = self.builder.get_object('ent_src_port')
-        ent_dst_port = self.builder.get_object('ent_dst_port')
-        cb_state = self.builder.get_object('cb_state')
-        liststore_state = self.builder.get_object('liststore_state')
-
-        direction = liststore_direction.get_value(cb_direction.get_active_iter(), 0)
-        proto = liststore_protocol.get_value(cb_protocol.get_active_iter(), 0)
-        address = ent_address.get_text()
-        src_port = ent_src_port.get_text()
-        dst_port = ent_dst_port.get_text()
-        state = liststore_state.get_value(cb_state.get_active_iter(), 0)
-
-        val_res = self.validate_network(address, src_port, dst_port)
-        if val_res != VALIDATE_OK:
-            lbl_network_log = self.builder.get_object('lbl_network_log')
-            lbl_network_log.set_text(val_res)
-        else:
-            if self.ne_btn_type == 2:
-                treeview_network = self.builder.get_object('treeview_network')
-                list_store, list_store_iter = treeview_network.get_selection().get_selected()
-                list_store.set_value(list_store_iter, 0, direction)
-                list_store.set_value(list_store_iter, 1, proto)
-                list_store.set_value(list_store_iter, 2, address)
-                list_store.set_value(list_store_iter, 3, src_port)
-                list_store.set_value(list_store_iter, 4, dst_port)
-                list_store.set_value(list_store_iter, 5, state)
-            else:
-                liststore_network = self.builder.get_object('liststore_network')
-                liststore_network.append([direction, proto, address, src_port, dst_port, state])
-
-            dg.hide()
-
-    def on_btn_dialog_network_add_cancel_clicked(self, obj):
-        """
-        cancel button of network_add dialog
-        """
-
-        self.builder.get_object('dialog_network_add').hide()
 
     def validate_whitelist_bluetooth(self, txt):
         """
@@ -622,45 +423,6 @@ class GracEditor:
                 
         return VALIDATE_OK
 
-    def on_btn_network_add_clicked(self, obj):
-        """
-        add button of network page
-        """
-
-        self.builder.get_object('lbl_network_log').set_text('')
-
-        ent_address = self.builder.get_object('ent_address').set_text('')
-        ent_src_port = self.builder.get_object('ent_src_port').set_text('')
-        ent_dst_port = self.builder.get_object('ent_dst_port').set_text('')
-
-        liststore_direction = self.builder.get_object('liststore_direction')
-        liststore_direction.clear()
-        liststore_direction.append(['INPUT'])
-        liststore_direction.append(['OUTPUT'])
-        liststore_direction.append(['ALL'])
-        cb_direction = self.builder.get_object('cb_direction').set_active(0)
-
-        liststore_protocol = self.builder.get_object('liststore_protocol')
-        liststore_protocol.clear()
-        liststore_protocol.append(['TCP'])
-        liststore_protocol.append(['UDP'])
-        liststore_protocol.append(['ICMP'])
-        cb_protocol = self.builder.get_object('cb_protocol').set_active(0)
-
-        liststore_state = self.builder.get_object('liststore_state')
-        liststore_state.clear()
-        liststore_state.append(['ACCEPT'])
-        liststore_state.append(['DROP'])
-        cb_state = self.builder.get_object('cb_state').set_active(0)
-
-        dg = self.builder.get_object('dialog_network_add')
-        self.ne_btn_type = 1
-        dg.set_title(_('network add'))
-        dg.vbox.get_children()[2].get_children()[0].get_children()[0].set_label(_('OK'))
-        dg.vbox.get_children()[2].get_children()[0].get_children()[1].set_label(_('CANCEL'))
-        dg.run()
-        dg.hide()
-
     def on_menu_remove_user_rule_activate(self, obj):
         """
         menu > File > remove user rule
@@ -678,8 +440,71 @@ class GracEditor:
             bus_interface.reload('')
             self.logging(_('apply success'))
         except:
-            self.logging(traceback.format_exc())
+            self.logging(raceback.format_exc())
             self.logging(_('apply fail'))
+
+    def on_menu_save_activate(self, obj):
+        """
+        menu > File > save
+        """
+
+        try:
+            for k, v in self.media_rules.items():
+                #SWITCH
+                swtch = self.builder.get_object('swtch+{}'.format(k))
+                if swtch:
+                    widgetid = Gtk.Buildable.get_name(swtch)
+                    v = widgetid.split('+')
+                    mediaid = v[1]
+
+                    if k == JSON_RULE_USB_MEMORY:
+                        ckb = self.builder.get_object('ckb+{}'.format(k))
+                        if ckb and ckb.get_active():
+                            self.media_rules[mediaid][JSON_RULE_STATE] = JSON_RULE_READONLY
+                            continue
+
+                    state = JSON_RULE_ALLOW if swtch.get_active() else JSON_RULE_DISALLOW
+                    self.media_rules[mediaid][JSON_RULE_STATE] = state
+
+            #WHITE LIST
+            usb_wl = self.read_txtvw('txtvw_usb_whitelist')
+            self.media_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_SERIALNO] = \
+                usb_wl.strip('\n').split('\n')
+
+            bluetooth_wl = self.read_txtvw('txtvw_bluetooth_whitelist')
+            self.media_rules[JSON_RULE_BLUETOOTH][JSON_RULE_MAC_ADDRESS] = \
+                bluetooth_wl.strip('\n').split('\n')
+
+            usb_network_wl = self.builder.get_object('ent_usb_network_whitelist').get_text()
+            self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST] = \
+                {'busno':usb_network_wl}
+
+            #IPTABLES
+            txt_list = self.read_txtvw('txtvw_iptables').split('\n')
+            rules_raw = []
+            for seq, tl in enumerate(txt_list):
+                if tl:
+                    rules_raw.append({'seq':str(seq+1), 'cmd':tl})
+
+            self.media_rules[JSON_RULE_NETWORK][JSON_RULE_NETWORK_RULES_RAW] = rules_raw
+
+            #SAVE TO MEMORY
+            org_form = {}
+            for k, v in self.media_rules.items():
+                if len(v) == 1:
+                    org_form[k] = v[JSON_RULE_STATE]
+                else:
+                    org_form[k] = v
+            
+            #SAVE TO FILE
+            TMP_MEDIA_DEFAULT = '/var/tmp/TMP-MEDIA-DEFAULT'
+            with open(TMP_MEDIA_DEFAULT, 'w') as f:
+                f.write(json.dumps(org_form, indent=4))
+            shutil.copy(TMP_MEDIA_DEFAULT, DEFAULT_RULES_PATH)
+
+            self.logging(_('save success'))
+        except:
+            self.logging(traceback.format_exc())
 
     def on_menu_apply_activate(self, obj):
         """
@@ -705,17 +530,6 @@ class GracEditor:
 
         Gtk.main_quit()
 
-    def on_menu_about_activate(self, obj):
-        """
-        menu > About > about
-        """
-
-        dg = self.builder.get_object('dialog_about')
-        dg.set_title(_('About'))
-        dg.vbox.get_children()[0].get_children()[4].set_label(_('OK'))
-        dg.run()
-        dg.hide()
-
     def on_menu_help_activate(self, obj):
         """
         menu > Help > Help
@@ -730,244 +544,18 @@ class GracEditor:
         try:
             self.media_rules = self.load_rules(DEFAULT_RULES_PATH)
             self.draw_media(self.media_rules)
-            self.draw_network(self.media_rules)
             self.logging(_('reset success'))
         except:
             self.logging(traceback.format_exc())
             self.logging(_('reset fail'))
         
-    def on_btn_about_ok_clicked(self, obj):
-        """
-        ok button of About dialog
-        """
-
-        dg = self.builder.get_object('dialog_about')
-        dg.hide()
-
-    def on_cb_protocol_changed(self, obj):
-        """
-        selecting protocol in network diallog
-        """
-
-        idx = obj.get_active()
-        if idx < 0:
-            return
-        if obj.get_model()[idx][0].lower() == 'icmp':
-            sp = self.builder.get_object('ent_src_port').set_sensitive(False)
-            dp = self.builder.get_object('ent_dst_port').set_sensitive(False)
-        else:
-            sp = self.builder.get_object('ent_src_port').set_sensitive(True)
-            dp = self.builder.get_object('ent_dst_port').set_sensitive(True)
-
-    def on_rdo_usb_memory_disallow_toggled(self, obj):
-        """
-        usb-memory-disallow radiobutton toggled
-        """
-
-        if self.builder.get_object('rdo+usb_memory+allow').get_active():
-            self.builder.get_object('btn_usb_memory').set_sensitive(False)
-        else:
-            self.builder.get_object('btn_usb_memory').set_sensitive(True)
-
-    def on_rdo_usb_memory_readonly_toggled(self, obj):
-        """
-        usb-memory-readonly radiobutton toggled
-        """
-
-        if self.builder.get_object('rdo+usb_memory+allow').get_active():
-            self.builder.get_object('btn_usb_memory').set_sensitive(False)
-        else:
-            self.builder.get_object('btn_usb_memory').set_sensitive(True)
-
-    def on_rdo_bluetooth_disallow_toggled(self, obj):
-        """
-        bluetooth-disallow readiobutton toggled
-        """
-
-        if self.builder.get_object('rdo+bluetooth+allow').get_active():
-            self.builder.get_object('btn_bluetooth').set_sensitive(False)
-        else:
-            self.builder.get_object('btn_bluetooth').set_sensitive(True)
-
-    def on_rdo_usb_network_disallow_toggled(self, obj):
-        """
-        usb-network-disallow readiobutton toggled
-        """
-
-        if self.builder.get_object('rdo+usb_network+allow').get_active():
-            self.builder.get_object('btn_usb_network').set_sensitive(False)
-        else:
-            self.builder.get_object('btn_usb_network').set_sensitive(True)
-
-    def on_menu_save_activate(self, obj):
-        """
-        menu > File > save
-        """
-
-        try:
-            ###set current media values in media_rules of memory
-            grid_media = self.builder.get_object('grid_media')
-            radios = [w for w in grid_media.get_children() if isinstance(w, Gtk.RadioButton)]
-            for r in radios:
-                if r.get_active():
-                    widgetid = Gtk.Buildable.get_name(r)
-                    v = widgetid.split('+')
-                    mediaid = v[1]
-                    state = v[2]
-                    if not mediaid in self.media_rules:
-                        continue
-
-                    self.media_rules[mediaid][JSON_RULE_STATE] = state
-                    '''
-                    #microphone exception
-                    if mediaid == 'sound' and 'microphone' in self.media_rules:
-                        self.media_rules['microphone'][JSON_RULE_STATE] = state
-                    '''
-
-            ###whitelist is modified as pushing ok button of whitelist dialog
-
-            ###network
-            network = self.media_rules[JSON_RULE_NETWORK]
-
-            #policy
-            policy = None
-            if self.builder.get_object('rdo_policy_accept').get_active():
-                policy = JSON_RULE_ALLOW
-            else:
-                policy = JSON_RULE_DISALLOW
-            network[JSON_RULE_NETWORK_STATE] = policy
-
-            #server version
-            if JSON_RULE_NETWORK_VERSION in network:
-                server_version = network[JSON_RULE_NETWORK_VERSION]
-            else:
-                server_version = '1.0'
-
-            #iptables
-            liststore_network = self.builder.get_object('liststore_network')
-            new_network_rules = []
-            disassemble_rules = {}
-            for ln in liststore_network:
-                #SERVER VERSION 1.0
-                if server_version.startswith('1.0'):
-                    direction = ln[0]
-                    address = ln[2]
-                    state = ln[5]
-
-                    proto = ln[1]
-                    src_port = ln[3]
-                    dst_port = ln[4]
-                    
-                    if (direction,address,state) in disassemble_rules:
-                        disassemble_rules[(direction,address,state)].append((proto, src_port, dst_port))
-                    else:
-                        disassemble_rules[(direction,address,state)] = [(proto, src_port, dst_port)]
-                #SERVER NOT VERSION 1.0
-                else:
-                    direction = ln[0]
-                    address = ln[2]
-                    state = ln[5]
-
-                    proto = ln[1]
-                    src_port = ln[3]
-                    dst_port = ln[4]
-                    
-                    rule = {}
-                    rule[JSON_RULE_NETWORK_DIRECTION] = direction.lower()
-                    rule[JSON_RULE_NETWORK_ADDRESS] = address
-                    rule[JSON_RULE_NETWORK_STATE] = state.lower()
-                    rule[JSON_RULE_NETWORK_PROTO] = proto.lower()
-                    rule[JSON_RULE_NETWORK_SRC_PORTS] = src_port
-                    rule[JSON_RULE_NETWORK_DST_PORTS] = dst_port
-                    new_network_rules.append(rule)
-
-            #SERVER VERSION 1.0
-            if server_version.startswith('1.0'):
-                for das, psd_list in disassemble_rules.items():
-                    rule = {}
-                    direction, address, state = das
-                    rule[JSON_RULE_NETWORK_DIRECTION] = direction
-                    rule[JSON_RULE_NETWORK_ADDRESS] = address
-
-                    if state == 'ACCEPT':
-                        state = JSON_RULE_ALLOW
-                    else:
-                        state = JSON_RULE_DISALLOW
-
-                    rule[JSON_RULE_NETWORK_STATE] = state
-
-                    if psd_list and len(psd_list) > 0:
-                        rule[JSON_RULE_NETWORK_PORTS] = []
-                        for psd in psd_list:
-                            proto, src_port, dst_port = psd
-                            if proto or src_port or dst_port:
-                                rule[JSON_RULE_NETWORK_PORTS].append({
-                                                JSON_RULE_NETWORK_SRC_PORT:src_port.split(','),
-                                                JSON_RULE_NETWORK_PROTO:proto,
-                                                JSON_RULE_NETWORK_DST_PORT:dst_port.split(',')})
-
-                    new_network_rules.append(rule)
-
-            if len(new_network_rules) > 0:
-                network[JSON_RULE_NETWORK_RULE] = new_network_rules
-            else:
-                if JSON_RULE_NETWORK_RULE in self.media_rules[JSON_RULE_NETWORK]:
-                    del network[JSON_RULE_NETWORK_RULE]
-
-            ###transform editor structure to orginal's
-            org_form = {}
-            for k, v in self.media_rules.items():
-                if len(v) == 1:
-                    org_form[k] = v[JSON_RULE_STATE]
-                else:
-                    org_form[k] = v
-            
-            ###save to file
-            TMP_MEDIA_DEFAULT = '/var/tmp/TMP-MEDIA-DEFAULT'
-            with open(TMP_MEDIA_DEFAULT, 'w') as f:
-                f.write(json.dumps(org_form, indent=4))
-
-            shutil.copy(TMP_MEDIA_DEFAULT, DEFAULT_RULES_PATH)
-
-            self.logging(_('save success'))
-        except:
-            self.logging(traceback.format_exc())
-
     def lang(self):
         """
         under international flag
         """
 
         #main
-        self.builder.get_object('window_main').set_title(_('GRAC Editor'))
-
-        #media
-        self.builder.get_object('rdo+cd_dvd+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+printer+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+wireless+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+camera+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+keyboard+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+sound+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+mouse+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+bluetooth+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+microphone+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+usb_memory+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+screen_capture+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+clipboard+allow').set_label(_('allow'))
-
-        self.builder.get_object('rdo+cd_dvd+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+printer+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+wireless+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+camera+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+keyboard+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+sound+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+mouse+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+bluetooth+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+microphone+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+usb_memory+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+usb_memory+read_only').set_label(_('read only'))
-        self.builder.get_object('rdo+screen_capture+disallow').set_label(_('disallow'))
-        self.builder.get_object('rdo+clipboard+disallow').set_label(_('disallow'))
+        self.builder.get_object('hbar_main').set_title(_('GRAC Editor'))
 
         self.builder.get_object('lbl_usb_memory').set_label(_('USB Memory'))
         self.builder.get_object('lbl_printer').set_label(_('Printer'))
@@ -981,55 +569,20 @@ class GracEditor:
         self.builder.get_object('lbl_mouse').set_label(_('USB Mouse'))
         self.builder.get_object('lbl_screen_capture').set_label(_('ScreenCapture'))
         self.builder.get_object('lbl_clipboard').set_label(_('Clipboard'))
-
-        self.builder.get_object('btn_usb_memory').set_label(_('WL'))
-        self.builder.get_object('btn_bluetooth').set_label(_('WL'))
-
-        #notebook
-        self.builder.get_object('lbl_media').set_label(_('media'))
-        self.builder.get_object('lbl_network').set_label(_('network'))
+        self.builder.get_object('lbl_readonly').set_label(_('readonly'))
+        self.builder.get_object('lbl_input_serial').set_label(_('Input serial'))
+        self.builder.get_object('lbl_input_mac').set_label(_('Input mac'))
+        self.builder.get_object('lbl_input_busno').set_label(_('Input busno'))
+        self.builder.get_object('lbl_firewall').set_label(_('Firewall'))
+        self.builder.get_object('lbl_first_subtitle').set_label(_('Media Control'))
+        self.builder.get_object('lbl_second_subtitle').set_label(_('Device'))
 
         #menu
-        self.builder.get_object('menuitem1').set_label(_('_File(F)'))
-        self.builder.get_object('menuitem4').set_label(_('_Help(H)'))
         self.builder.get_object('menu_load').set_label(_('_Reset(R)'))
         self.builder.get_object('menu_apply').set_label(_('_Save(S)'))
         self.builder.get_object('menu_quit').set_label(_('_Quit(Q)'))
-        self.builder.get_object('menu_about').set_label(_('_About(A)'))
         self.builder.get_object('menu_help').set_label(_('_Help'))
         self.builder.get_object('menu_remove_user_rule').set_label(_('_Remove User Rule(U)'))
-
-        #network
-        self.builder.get_object('lbl_policy').set_label(_('POLICY'))
-        self.builder.get_object('rdo_policy_accept').set_label(_('accept'))
-        self.builder.get_object('rdo_policy_drop').set_label(_('drop'))
-
-        self.builder.get_object('btn_network_add').set_label(_('add'))
-        self.builder.get_object('btn_network_del').set_label(_('del'))
-        self.builder.get_object('btn_network_edit').set_label(_('edit'))
-
-        #about
-        self.builder.get_object('lbl_about').set_label(_('Gooroom Platform\n\nGRAC Editor 1.0.0'))
-        
-        #toolbar
-        self.builder.get_object('toolbar_reload').set_label(_('reset'))
-        self.builder.get_object('toolbar_apply').set_label(_('save'))
-
-        #event
-        self.builder.get_object('lbl_log').set_label(_('event log'))
-
-        #usb network
-        self.builder.get_object('btn_usb_network').set_label(_('WL'))
-        self.builder.get_object('rdo+usb_network+allow').set_label(_('allow'))
-        self.builder.get_object('rdo+usb_network+disallow').set_label(_('disallow'))
-        self.builder.get_object('lbl_usb_network').set_label(_('USB Network'))
-        self.builder.get_object('btn_dialog_usb_network_whitelist_add').set_label(_('add'))
-        self.builder.get_object('btn_dialog_usb_network_whitelist_del').set_label(_('del'))
-        self.builder.get_object('btn_dialog_usb_network_whitelist_edit').set_label(_('edit'))
-
-        #padding inactive
-        self.builder.get_object('mi_padding').set_sensitive(False)
-        self.builder.get_object('tb_padding').set_sensitive(False)
 
 #-----------------------------------------------------------------------
 def check_online_account():

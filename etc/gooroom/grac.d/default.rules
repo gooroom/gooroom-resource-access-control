@@ -10,7 +10,7 @@
   "camera" : "allow",
   "microphone" : "allow",
   "network" : {
-    "version" : "1.2",
+    "version" : "2.0",
     "state" : "allow"
   },
   "clipboard": "allow",

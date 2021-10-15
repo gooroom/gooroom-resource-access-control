@@ -1,0 +1,110 @@
+#wdn_lbl_title {
+    min-height: 19px;
+    margin: 25px 0 0 25px;
+    font-family: NotoSansCJKkr;
+    font-size: 20px;
+    color: #000100
+}
+
+#wdn_lbl_subtitle {
+    min-height: 19px;
+    margin: 30px 0 5px 25px;
+    font-family: NotoSansCJKkr;
+    font-size: 13px;
+    color: #000100
+}
+
+#wdn_box_main {
+    min-width: 600px;
+}
+
+#wdn_box_media {
+    border-radius: 10px;
+    margin: 0 25px 0 25px;
+    background-color: rgba(106, 159, 221, 0.1);
+}
+
+.MediaBoxClass {
+    /*min-width: 550px;*/
+    min-height: 50px;
+    border-radius: 10px;
+    background-color: rgba(106, 159, 221, 0.1);
+}
+
+.MediaBoxAlphaClass {
+    /*min-width: 550px;*/
+    min-height: 50px;
+    border-radius: 10px;
+}
+
+.MediaNameClass {
+    min-width: 100px;
+    min-height: 19px;
+    margin: 0 0 0 10px;
+    font-family: NotoSansCJKkr;
+    font-size: 13px;
+    color: #000100
+}
+
+.MediaSwitchClass {
+    margin: 15px 0 15px 200px;
+}
+
+.MediaOnOffLabelClass {
+    margin: 0 0 0 20px;
+    font-family: NotoSansCJKkr;
+    font-size: 13px;
+    color: #5ea80d;
+}
+
+.WhitelistBoxClass {
+    min-height: 50px;
+    margin: 10px 10px;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.WhitelistBoxTitleClass {
+    min-height: 19px;
+    margin: 20px 0px 0px 20px;
+    font-family: NotoSansCJKkr;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+#wdn_ckb_usb_readonly {
+    min-height: 16px;
+    margin: 20px 0px 0px 20px;
+}
+
+#wdn_lbl_usb_readonly {
+    min-height: 16px;
+    margin: 20px 0px 0px 10px;
+    font-family: NotoSansCJKkr;
+    font-size: 13px;
+    color: #000100;
+}
+
+#wdn_scrlwin_usb_whitelist {
+    margin: 12px 0px 20px 20px;
+    min-width: 446px;
+    min-height: 60px;
+}
+
+#wdn_scrlwin_bluetooth_whitelist {
+    margin: 12px 0px 20px 20px;
+    min-width: 446px;
+    min-height: 60px;
+}
+
+#wdn_ent_usb_network_whitelist {
+    margin: 12px 0px 20px 20px;
+    min-width: 200px;
+    min-height: 30px;
+}
+
+#wdn_scrlwin_firewall {
+    margin: 12px 0px 20px 20px;
+    min-width: 446px;
+    min-height: 100px;
+}
