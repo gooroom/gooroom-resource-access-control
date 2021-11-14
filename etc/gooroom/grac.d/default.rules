@@ -11,7 +11,7 @@
   "microphone" : "allow",
   "network" : {
     "version" : "2.0",
-    "state" : "allow"
+    "state" : "accept"
   },
   "clipboard": "allow",
   "screen_capture": "allow",

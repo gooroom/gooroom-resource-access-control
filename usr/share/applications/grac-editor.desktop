@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Name=Grac Editor
-Name[ko]=매체제어 편집기
+Name[ko]=매체제어 편집
 GenericName=Grac Editor
-GenericName[ko]=매체제어 편집기
+GenericName[ko]=매체제어 편집
 Exec=/usr/bin/grac-editor
 Terminal=false
 X-MultipleArgs=false
