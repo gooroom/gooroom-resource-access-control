@@ -436,8 +436,8 @@ def write_event_log(third_party, *args):
             max_size = getattr(mdl, third_party+'_FILE_SIZE')
             fsize = os.stat(fullpath).st_size
             if fsize >= max_size:
-               dst_fullpath = path + '/' + getattr(mdl, third_party+'_FNAME_PREV') 
-               shutil.move(fullpath, dst_fullpath)
+                dst_fullpath = path + '/' + getattr(mdl, third_party+'_FNAME_PREV') 
+                shutil.move(fullpath, dst_fullpath)
 
         msg = '\t'.join([arg if isinstance(arg, str) else str(arg) for arg in args])
         with open(fullpath, 'a') as f:

@@ -74,7 +74,7 @@ class GracSynchronizer:
                                             'authorized', 
                                             REVERSE_LOOKUP_LIMIT)
                 if not authorized:
-                    cls._logger.error('{} not found authorized'.block_device)
+                    cls._logger.error('{} not found authorized'.format(block_device))
                     return
 
                 with open(authorized, 'w') as f:
@@ -316,7 +316,7 @@ class GracSynchronizer:
                                             'authorized', 
                                             REVERSE_LOOKUP_LIMIT)
                 if not authorized:
-                    cls._logger.error('{} not found authorized'.block_device)
+                    cls._logger.error('{} not found authorized'.format(block_device))
                     return
 
                 with open(authorized, 'w') as f:
