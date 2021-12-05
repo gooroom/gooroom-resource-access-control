@@ -1,3 +1,12 @@
+gooroom-resource-access-control (1.4.3+grm3u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [ce7f3785] 3.0 first commit:change UI
+  * [b72cd27b] change 매체제어 편집기 to 매체제어 편집 in desktop file and network's default state(accept) in default rules
+  * [6bca798f] gooroom-3.0 static-code-analysis
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Sun, 05 Dec 2021 14:45:22 +0900
+
 gooroom-resource-access-control (1.4.2+grm2u1) unstable; urgency=medium
 
   [ boyeon.choi ]
