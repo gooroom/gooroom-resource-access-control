@@ -25,6 +25,25 @@ def do_task(param, data_center):
         mode = param[0]
         unique = param[1].strip() if param[1] else param[1]
         name = param[2].strip() if param[2] else param[2]
+
+        pre1 = subprocess.Popen(['echo', '-e', 'paired-devices\nquit'], 
+                                stdout=subprocess.PIPE)
+
+        pre2 = subprocess.Popen(['bluetoothctl'], 
+                                stdin=pre1.stdout, 
+                                stdout=subprocess.PIPE, 
+                                stderr=subprocess.PIPE)
+
+        pre1.stdout.close()
+
+        mac = ''
+        oo = pre2.communicate()[0].decode('utf8')
+        for o in oo.split('\n'):
+            logger.info('{} {} {}'.format(o, type(o), len(o)))
+            if o.startswith('Device'):
+                mac = o.split(' ')[1]
+
+        '''
         mac = ''
         if unique:
             mac = unique
@@ -46,6 +65,8 @@ def do_task(param, data_center):
             else:
                 if (delim_cnt == 0 or delim_cnt == 5) and num_cnt == 12 :
                     mac = name
+        '''
+
         if not mac:
             raise Exception('!! bluetooth mac not found')
 

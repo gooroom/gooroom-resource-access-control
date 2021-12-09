@@ -250,6 +250,8 @@ def red_alert2(logmsg, notimsg, priority, grmcode, data_center, flag=RED_ALERT_A
         timespan_target = JSON_RULE_SOUND
     if grmcode == GRMCODE_MICROPHONE_DISALLOW:
         timespan_target = JSON_RULE_MICROPHONE
+    if grmcode == GRMCODE_BLUETOOTH_DISALLOW:
+        timespan_target = JSON_RULE_BLUETOOTH
     if timespan_target:
         if timespan_target in ts_map:
             target_ts = ts_map[timespan_target]

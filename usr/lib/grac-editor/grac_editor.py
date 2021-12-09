@@ -477,7 +477,7 @@ class GracEditor:
 
             usb_network_wl = self.builder.get_object('ent_usb_network_whitelist').get_text()
             self.media_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST] = \
-                {'busno':usb_network_wl}
+                {'usbbus':usb_network_wl}
 
             #IPTABLES
             txt_list = self.read_txtvw('txtvw_iptables').split('\n')
