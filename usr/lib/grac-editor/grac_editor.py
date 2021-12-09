@@ -169,8 +169,8 @@ class GracEditor:
                     self.write_txtvw('txtvw_iptables', txt)
                     
             #TEMPORARY
-            self.builder.get_object('swtch+clipboard').set_sensitive(False)
-            self.builder.get_object('swtch+screen_capture').set_sensitive(False)
+            #self.builder.get_object('swtch+clipboard').set_sensitive(False)
+            #self.builder.get_object('swtch+screen_capture').set_sensitive(False)
                 
     def load_rules(self, rule_path):
         """
