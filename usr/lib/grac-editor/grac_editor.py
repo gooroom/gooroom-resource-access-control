@@ -579,6 +579,7 @@ class GracEditor:
         self.builder.get_object('lbl_firewall').set_label(_('Firewall'))
         self.builder.get_object('lbl_first_subtitle').set_label(_('Media Control'))
         self.builder.get_object('lbl_second_subtitle').set_label(_('Device'))
+        self.builder.get_object('lbl_usb_network').set_label(_('USB Network'))
 
         #menu
         self.builder.get_object('menu_load').set_label(_('_Reset(R)'))
