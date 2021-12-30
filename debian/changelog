@@ -1,3 +1,12 @@
+gooroom-resource-access-control (1.4.4+grm3u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [aa684e5e] fix 4241(usb network:busno->usbbus) and 3987(bluetooth mac)
+  * [d3e6f7d0] disallow screencapture/clipboard by fixing xsm.so
+  * [bd3192c3] re-allow clipboard/screencapture
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Thu, 09 Dec 2021 20:25:02 +0900
+
 gooroom-resource-access-control (1.4.3+grm3u1) unstable; urgency=medium
 
   [ hmkim ]
