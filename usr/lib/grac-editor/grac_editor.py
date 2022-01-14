@@ -159,7 +159,23 @@ class GracEditor:
         """
     
         for k, v in rules.items():
-            obj_name = 'rdo+{}+{}'.format(k, v['state'])
+            if isinstance(v, list):
+                etc_v = None
+                for tk, tv in v[0].items():
+                    etc_v = tv
+                    break
+                if not etc_v:
+                    continue
+                vid = etc_v['items'][0]['vid']
+                pid = etc_v['items'][0]['pid']
+                if vid:
+                    self.builder.get_object('ent_vendor').set_text(vid)
+                if pid:
+                    self.builder.get_object('ent_product').set_text(pid)
+
+                obj_name = 'rdo+{}+{}'.format(k, etc_v['state'])
+            else:
+                obj_name = 'rdo+{}+{}'.format(k, v['state'])
             '''
             #microphone exception
             if obj_name == 'rdo+microphone+allow' \
@@ -202,6 +218,8 @@ class GracEditor:
             if isinstance(v, str):
                 new_json_rules[k] = {}
                 new_json_rules[k][JSON_RULE_STATE] = v
+            elif isinstance(v, list):
+                new_json_rules[k] = v
             else:
                 new_json_rules[k] = {}
                 for k2, v2 in v.items():
@@ -817,7 +835,21 @@ class GracEditor:
                     if not mediaid in self.media_rules:
                         continue
 
-                    self.media_rules[mediaid][JSON_RULE_STATE] = state
+                    if isinstance(self.media_rules[mediaid], list):
+                        etc_v = None
+                        for tk, tv in self.media_rules[mediaid][0].items():
+                            etc_v = tv
+                            break
+                        if not etc_v:
+                            continue
+                        etc_v['state'] = state
+                        vid = self.builder.get_object('ent_vendor').get_text()
+                        pid = self.builder.get_object('ent_product').get_text()
+                        etc_v['items'][0]['vid'] = vid
+                        etc_v['items'][0]['pid'] = pid
+                    else:
+                        self.media_rules[mediaid][JSON_RULE_STATE] = state
+
                     '''
                     #microphone exception
                     if mediaid == 'sound' and 'microphone' in self.media_rules:
@@ -917,7 +949,8 @@ class GracEditor:
             ###transform editor structure to orginal's
             org_form = {}
             for k, v in self.media_rules.items():
-                if len(v) == 1:
+                #if len(v) == 1:
+                if isinstance(v, tuple):
                     org_form[k] = v[JSON_RULE_STATE]
                 else:
                     org_form[k] = v
@@ -954,6 +987,7 @@ class GracEditor:
         self.builder.get_object('rdo+usb_memory+allow').set_label(_('allow'))
         self.builder.get_object('rdo+screen_capture+allow').set_label(_('allow'))
         self.builder.get_object('rdo+clipboard+allow').set_label(_('allow'))
+        self.builder.get_object('rdo+usb_etc+allow').set_label(_('allow'))
 
         self.builder.get_object('rdo+cd_dvd+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+printer+disallow').set_label(_('disallow'))
@@ -968,6 +1002,7 @@ class GracEditor:
         self.builder.get_object('rdo+usb_memory+read_only').set_label(_('read only'))
         self.builder.get_object('rdo+screen_capture+disallow').set_label(_('disallow'))
         self.builder.get_object('rdo+clipboard+disallow').set_label(_('disallow'))
+        self.builder.get_object('rdo+usb_etc+disallow').set_label(_('disallow'))
 
         self.builder.get_object('lbl_usb_memory').set_label(_('USB Memory'))
         self.builder.get_object('lbl_printer').set_label(_('Printer'))
@@ -981,6 +1016,7 @@ class GracEditor:
         self.builder.get_object('lbl_mouse').set_label(_('USB Mouse'))
         self.builder.get_object('lbl_screen_capture').set_label(_('ScreenCapture'))
         self.builder.get_object('lbl_clipboard').set_label(_('Clipboard'))
+        self.builder.get_object('lbl_usb_etc').set_label(_('USB ETC'))
 
         self.builder.get_object('btn_usb_memory').set_label(_('WL'))
         self.builder.get_object('btn_bluetooth').set_label(_('WL'))

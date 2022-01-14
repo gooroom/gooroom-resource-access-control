@@ -1,3 +1,9 @@
+[usb_etc]
+    [[NA]]
+    FILTER="""
+    ACTION=="add", SUBSYSTEM=="usb", ENV{ID_BUS}=="usb", ATTR{authorized}=="1", MODULE="usb_etc NA $devpath $$attrs{idVendor} $$attrs{idProduct}"
+    """
+
 [usb_network]
     [[disallow]]
     FILTER="""
