@@ -1,3 +1,11 @@
+gooroom-resource-access-control (1.4.5+grm3u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [eff69e3a] fix theme.css(4185) and USB 네트워크(4182)
+  * [88c9555e] change iptables -> iptables-legacy AGAIN
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Sun, 27 Feb 2022 16:29:33 +0900
+
 gooroom-resource-access-control (1.4.4+grm3u1) unstable; urgency=medium
 
   [ hmkim ]
