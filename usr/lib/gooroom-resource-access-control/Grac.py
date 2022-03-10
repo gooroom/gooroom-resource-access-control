@@ -131,13 +131,50 @@ class Grac(dbus.service.Object):
 
         self.logger.info('GRAC QUIT')
 
-    @dbus.service.method(DBUS_IFACE)
-    def stop(self, args):
+    def get_sender_pid(self, sender):
+        """
+        get sender's pid
+        """
+
+        pid = -1
+
+        try:
+            bus_object = dbus.SystemBus().get_object(
+                'org.freedesktop.DBus', '/org/freedesktop/DBus')
+            bus_interface = dbus.Interface(
+                bus_object, dbus_interface='org.freedesktop.DBus')
+            pid = bus_interface.GetConnectionUnixProcessID(sender)
+
+        except:
+            GracLog.get_logger().error(grac_format_exc())
+
+        return pid
+
+    def watch_admin(self, sender):
+        """
+        """
+
+        pid = self.get_sender_pid(sender)
+
+        with open('/proc/{}/status'.format(pid), 'r') as f:
+            for l in f.readlines():
+                if l.startswith('Uid:'):
+                    if int(l.split()[2]) == 0:
+                        return True
+
+        return False
+
+    @dbus.service.method(DBUS_IFACE, sender_keyword='sender')
+    def stop(self, args, sender=None):
         """
         dbus stop
         """
 
         try:
+            if not self.watch_admin(sender):
+                self.logger.error('!! TRY TO STOP BY NO-ADMIN')
+                return
+
             self.logger.info('GRAC STOPPING BY DBUS')
 
             if self.udev_dispatcher:
@@ -202,13 +239,17 @@ class Grac(dbus.service.Object):
                 if os.path.exists(META_PREV_SERVER_CERT_PATH):
                     os.remove(META_PREV_SERVER_CERT_PATH)
 
-    @dbus.service.method(DBUS_IFACE)
-    def reload(self, args):
+    @dbus.service.method(DBUS_IFACE, sender_keyword='sender')
+    def reload(self, args, sender=None):
         """
         reload
         """
 
         try:
+            if not self.watch_admin(sender):
+                self.logger.error('!! TRY TO RELOAD BY NO-ADMIN')
+                return
+
             self.logger.info('GRAC RELOADING BY DBUS')
 
             try:
