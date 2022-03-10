@@ -9,7 +9,7 @@ GLADE_PATH = '/usr/lib/grac-editor/grac_editor.glade'
 #rule items
 JSON_RULE_ALLOW = 'allow'
 JSON_RULE_DISALLOW = 'disallow'
-JSON_RULE_READONLY = 'readonly'
+JSON_RULE_READONLY = 'read_only'
 
 JSON_RULE_STATE = 'state'
 JSON_RULE_MAC_ADDRESS = 'mac_address'
