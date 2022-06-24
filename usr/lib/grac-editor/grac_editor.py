@@ -194,11 +194,8 @@ class GracEditor:
 
         return new_json_rules
 
-    def on_swtch_usb_memory_button_release_event(self, obj, e):
-        """
-        """
-
-        if not obj.get_active():
+    def on_swtch_usb_memory_active_notify(self, switch, state):
+        if switch.get_active():
             self.builder.get_object('txtvw_usb_whitelist').set_sensitive(False)
             self.builder.get_object('ckb+{}'.format(JSON_RULE_USB_MEMORY)).set_sensitive(False)
             self.builder.get_object('ckb+{}'.format(JSON_RULE_USB_MEMORY)).set_active(False)
@@ -208,112 +205,113 @@ class GracEditor:
             self.builder.get_object('ckb+{}'.format(JSON_RULE_USB_MEMORY)).set_sensitive(True)
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_MEMORY)).set_text(LBL_DISALLOW)
 
-    def on_swtch_printer_button_release_event(self, obj, e):
+
+    def on_swtch_printer_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_PRINTER)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_PRINTER)).set_text(LBL_DISALLOW)
 
-    def on_swtch_cd_dvd_button_release_event(self, obj, e):
+    def on_swtch_cd_dvd_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CD_DVD)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CD_DVD)).set_text(LBL_DISALLOW)
 
-    def on_swtch_camera_button_release_event(self, obj, e):
+    def on_swtch_camera_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CAMERA)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CAMERA)).set_text(LBL_DISALLOW)
 
-    def on_swtch_sound_button_release_event(self, obj, e):
+    def on_swtch_sound_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SOUND)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SOUND)).set_text(LBL_DISALLOW)
 
-    def on_swtch_microphone_button_release_event(self, obj, e):
+    def on_swtch_microphone_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MICROPHONE)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MICROPHONE)).set_text(LBL_DISALLOW)
 
-    def on_swtch_wireless_button_release_event(self, obj, e):
+    def on_swtch_wireless_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_WIRELESS)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_WIRELESS)).set_text(LBL_DISALLOW)
 
-    def on_swtch_bluetooth_button_release_event(self, obj, e):
+    def on_swtch_bluetooth_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_BLUETOOTH)).set_text(LBL_ALLOW)
             self.builder.get_object('txtvw_bluetooth_whitelist').set_sensitive(False)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_BLUETOOTH)).set_text(LBL_DISALLOW)
             self.builder.get_object('txtvw_bluetooth_whitelist').set_sensitive(True)
 
-    def on_swtch_keyboard_button_release_event(self, obj, e):
+    def on_swtch_keyboard_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_KEYBOARD)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_KEYBOARD)).set_text(LBL_DISALLOW)
 
-    def on_swtch_mouse_button_release_event(self, obj, e):
+    def on_swtch_mouse_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MOUSE)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_MOUSE)).set_text(LBL_DISALLOW)
 
-    def on_swtch_screen_capture_button_release_event(self, obj, e):
+    def on_swtch_screen_capture_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SCREEN_CAPTURE)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_SCREEN_CAPTURE)).set_text(LBL_DISALLOW)
 
-    def on_swtch_clipboard_button_release_event(self, obj, e):
+    def on_swtch_clipboard_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CLIPBOARD)).set_text(LBL_ALLOW)
         else:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_CLIPBOARD)).set_text(LBL_DISALLOW)
 
-    def on_swtch_usb_network_button_release_event(self, obj, e):
+    def on_swtch_usb_network_active_notify(self, switch, state):
         """
         """
 
-        if not obj.get_active():
+        if switch.get_active():
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_NETWORK)).set_text(LBL_ALLOW)
             self.builder.get_object('ent_usb_network_whitelist').set_sensitive(False)
         else:

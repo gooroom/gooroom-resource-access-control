@@ -4,7 +4,7 @@
 
 #path
 DEFAULT_RULES_PATH = '/etc/gooroom/grac.d/default.rules'
-GLADE_PATH = '/usr/lib/grac-editor/grac_editor.glade'
+GLADE_PATH = '/usr/lib/grac-editor/grac_editor.ui'
 
 #rule items
 JSON_RULE_ALLOW = 'allow'
