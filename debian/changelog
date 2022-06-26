@@ -1,3 +1,16 @@
+gooroom-resource-access-control (1.4.6+grm3u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [8f0eba19] fix #5100, #5101 : readonly fail issues
+
+  [ boyeon.choi ]
+  * [b19b74c2] Changed help function key: Ctrl+Shift+h -> F1
+
+  [ seolhee.sun ]
+  * [9b7143d3] Changed switch button active notify handler
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Mon, 27 Jun 2022 08:01:21 +0900
+
 gooroom-resource-access-control (1.4.5+grm3u1) unstable; urgency=medium
 
   [ hmkim ]
