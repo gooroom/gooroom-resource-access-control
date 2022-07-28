@@ -151,7 +151,7 @@ msgstr "_종료(Q)"
 
 #: grac_editor.py:588
 msgid "_Help"
-msgstr "_도움말(H)"
+msgstr "_도움말(F1)"
 
 #: grac_editor.py:589
 msgid "_Remove User Rule(U)"
