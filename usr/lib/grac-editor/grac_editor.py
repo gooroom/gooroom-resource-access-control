@@ -535,7 +535,8 @@ class GracEditor:
         """
         menu > Help > Help
         """
-        os.system("yelp help:grac-editors")
+        import subprocess
+        subprocess.Popen(["/usr/bin/yelp", "help:grac-editors"])
 
     def on_menu_load_activate(self, obj):
         """
