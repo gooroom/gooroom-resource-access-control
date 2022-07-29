@@ -152,7 +152,7 @@
                           <object class="GtkSwitch" id="swtch+usb_memory">
                             <property name="name">wdn_swch_usb_memory</property>
                             <property name="visible">True</property>
-                            <property name="can-focus">True</property>
+                            <property name="can-focus">False</property>
                             <property name="active">True</property>
                             <signal name="notify::active" handler="on_swtch_usb_memory_active_notify" swapped="no"/>
                             <style>
