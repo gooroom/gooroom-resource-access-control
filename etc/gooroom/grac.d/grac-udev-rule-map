@@ -13,7 +13,7 @@
 
     [[disallow]]
     FILTER="""
-    ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", MODULE="usb_memory disallow $devpath $attrs{serial} $$attrs{idProduct} $attrs{manufacturer} $attrs{product}"
+    ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", ATTR{bInterfaceSubClass}!="02", MODULE="usb_memory disallow $devpath $attrs{serial} $$attrs{idProduct} $attrs{manufacturer} $attrs{product}"
     ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory disallow $devpath $attrs{serial} $$attrs{idProduct} $attrs{manufacturer} $attrs{product}"
     """
 
