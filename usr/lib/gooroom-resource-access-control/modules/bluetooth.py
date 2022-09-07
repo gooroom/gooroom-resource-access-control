@@ -4,6 +4,7 @@
 import subprocess
 import datetime
 
+from grac_synchronizer import GracSynchronizer
 from grac_util import GracConfig,GracLog,grac_format_exc,search_file_reversely
 from grac_util import make_media_msg,red_alert2,write_event_log
 from grac_util import bluetooth_exists
@@ -37,11 +38,19 @@ def do_task(param, data_center):
         pre1.stdout.close()
 
         mac = ''
-        oo = pre2.communicate()[0].decode('utf8')
-        for o in oo.split('\n'):
-            logger.info('{} {} {}'.format(o, type(o), len(o)))
-            if o.startswith('Device'):
-                mac = o.split(' ')[1]
+        if unique:
+            mac = unique
+        elif name:
+            oo = pre2.communicate()[0].decode('utf8')
+            for o in oo.split('\n'):
+                logger.info('{} {} {}'.format(o, type(o), len(o)))
+                if o.startswith('Device'):
+                    if len(o) > 25 and o[25:] in name:
+                        mac = o.split(' ')[1]
+                        if GracSynchronizer.bluetooth_dev_is_connected(mac):
+                            break
+            else:
+                mac = ''
 
         '''
         mac = ''
