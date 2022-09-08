@@ -1,3 +1,14 @@
+gooroom-resource-access-control (1.4.7+grm3u1) unstable; urgency=medium
+
+  [ seolhee.sun ]
+  * [45fec91f] Changing grac function key
+  * [a4def1a9] Change grac help window open function
+  * [21c4e583] usb memory switch button input focus disable
+  * [77fcf19c] [Bug:5309] Add usb memory interface sub class udev rules
+  * [b7bfdccd] Fix multiple paired bluetooth mac parsing incorrectly
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Thu, 08 Sep 2022 15:08:08 +0900
+
 gooroom-resource-access-control (1.4.6+grm3u1) unstable; urgency=medium
 
   [ hmkim ]
