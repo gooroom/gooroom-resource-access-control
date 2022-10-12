@@ -369,6 +369,8 @@ class Grac(dbus.service.Object):
                 state = v
                 if isinstance(state, dict):
                     state = state[JSON_RULE_STATE]
+                elif isinstance(state, list):
+                    state = 'NA'
 
                 if media_type != MC_TYPE_ALLOWSYNC and state == JSON_RULE_ALLOW:
                     if media_type == MC_TYPE_BCONFIG:

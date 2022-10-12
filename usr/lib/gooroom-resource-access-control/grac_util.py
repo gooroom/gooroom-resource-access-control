@@ -120,7 +120,7 @@ class GracLog:
             filename = sys.argv[0].split('/')[-1].split('.')[0]
 
         #log fullpath
-        log_fullpath = '%s%s_%s.log' % (log_path, filename, today)
+        log_fullpath = '%s%s.log' % (log_path, filename)
 
         #max_bytes, backup_count 
         max_bytes = int(conf.get('LOG', 'MAX_BYTES'))
@@ -220,7 +220,7 @@ def make_media_msg(item, state):
     except:
         pass
 
-    if state == 'disallow':
+    if state == 'disallow' or state == 'NA':
         logmsg = '$({}) is blocked by detecting unauthorized media'.format(item)
         #notimsg = '{} 가(이) 차단되었습니다'.format(item)
         notimsg = '비인가된 행위({})가 탐지되어 차단하였습니다'.format(item)

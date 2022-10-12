@@ -47,6 +47,7 @@ JSON_RULE_BLUETOOTH = 'bluetooth'
 JSON_RULE_MOUSE = 'mouse'
 JSON_RULE_KEYBOARD = 'keyboard'
 JSON_RULE_USB_NETWORK ='usb_network'
+JSON_RULE_USB_ETC = 'usb_etc'
 
 #network
 NETWORK_ACCEPT = 'accept'

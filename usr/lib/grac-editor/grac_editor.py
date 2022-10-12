@@ -105,6 +105,21 @@ class GracEditor:
             #SWITCH
             swtch = self.builder.get_object('swtch+{}'.format(k))
             if swtch:
+                if isinstance (v, list):
+                    etc_v = None
+                    for tk, tv in v[0].items():
+                        etc_v = tv
+                        break
+                    if not etc_v:
+                        continue
+                    vid = etc_v['items'][0]['vid']
+                    pid = etc_v['items'][0]['pid']
+                    if vid:
+                        self.builder.get_object('ent_usb_etc_vid').set_text(vid)
+                    if pid:
+                        self.builder.get_object('ent_usb_etc_pid').set_text(pid)
+                    v = etc_v
+
                 if v[JSON_RULE_STATE] == JSON_RULE_ALLOW:
                     swtch.set_state(True)
                 elif v[JSON_RULE_STATE] == JSON_RULE_READONLY:
@@ -167,16 +182,16 @@ class GracEditor:
                     txt += rr[1] + '\n'
                 if txt:
                     self.write_txtvw('txtvw_iptables', txt)
-                    
+
             #TEMPORARY
             #self.builder.get_object('swtch+clipboard').set_sensitive(False)
             #self.builder.get_object('swtch+screen_capture').set_sensitive(False)
-                
+
     def load_rules(self, rule_path):
         """
         load rules file
         """
-        
+
         with open(rule_path) as f:
             json_rules = json.loads(f.read())
 
@@ -187,6 +202,8 @@ class GracEditor:
             if isinstance(v, str):
                 new_json_rules[k] = {}
                 new_json_rules[k][JSON_RULE_STATE] = v
+            elif isinstance(v, list):
+                new_json_rules[k] = v
             else:
                 new_json_rules[k] = {}
                 for k2, v2 in v.items():
@@ -318,6 +335,18 @@ class GracEditor:
             self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_NETWORK)).set_text(LBL_DISALLOW)
             self.builder.get_object('ent_usb_network_whitelist').set_sensitive(True)
 
+    def on_swtch_usb_etc_active_notify(self, switch, state):
+        """
+        """
+        if switch.get_active():
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_ETC)).set_text(LBL_ALLOW)
+            self.builder.get_object('ent_usb_etc_vid').set_sensitive(False)
+            self.builder.get_object('ent_usb_etc_pid').set_sensitive(False)
+        else:
+            self.builder.get_object('lbl+{}+state'.format(JSON_RULE_USB_ETC)).set_text(LBL_DISALLOW)
+            self.builder.get_object('ent_usb_etc_vid').set_sensitive(True)
+            self.builder.get_object('ent_usb_etc_pid').set_sensitive(True)
+
     def on_window_main_destroy(self, obj):
         """
         destroy window main
@@ -421,7 +450,7 @@ class GracEditor:
                             return err_msg #+ ':item<1 or item>65536'
             except:
                 return err_msg #+ ':maybe items not digit or wrong ranged format'
-                
+
         return VALIDATE_OK
 
     def on_menu_remove_user_rule_activate(self, obj):
@@ -465,7 +494,20 @@ class GracEditor:
                             continue
 
                     state = JSON_RULE_ALLOW if swtch.get_active() else JSON_RULE_DISALLOW
-                    self.media_rules[mediaid][JSON_RULE_STATE] = state
+                    if isinstance(self.media_rules[mediaid], list):
+                        etc_v = None
+                        for tk, tv in self.media_rules[mediaid][0].items():
+                            etc_v = tv
+                            break
+                        if not etc_v:
+                            continue
+                        etc_v['state'] = state
+                        vid = self.builder.get_object('ent_usb_etc_vid').get_text()
+                        pid = self.builder.get_object('ent_usb_etc_pid').get_text()
+                        etc_v['items'][0]['vid'] = vid
+                        etc_v['items'][0]['pid'] = pid
+                    else:
+                        self.media_rules[mediaid][JSON_RULE_STATE] = state
 
             #WHITE LIST
             usb_wl = self.read_txtvw('txtvw_usb_whitelist')
@@ -492,15 +534,16 @@ class GracEditor:
             #SAVE TO MEMORY
             org_form = {}
             for k, v in self.media_rules.items():
-                if len(v) == 1:
+#                if len(v) == 1:
+                if isinstance(v, tuple):
                     org_form[k] = v[JSON_RULE_STATE]
                 else:
                     org_form[k] = v
-            
+
             #SAVE TO FILE
             TMP_MEDIA_DEFAULT = '/var/tmp/TMP-MEDIA-DEFAULT'
             with open(TMP_MEDIA_DEFAULT, 'w') as f:
-                f.write(json.dumps(org_form, indent=4))
+                f.write(json.dumps(org_form, indent=4, ensure_ascii=False))
             shutil.copy(TMP_MEDIA_DEFAULT, DEFAULT_RULES_PATH)
 
             self.logging(_('save success'))
@@ -550,7 +593,7 @@ class GracEditor:
         except:
             self.logging(traceback.format_exc())
             self.logging(_('reset fail'))
-        
+
     def lang(self):
         """
         under international flag
@@ -579,6 +622,9 @@ class GracEditor:
         self.builder.get_object('lbl_first_subtitle').set_label(_('Media Control'))
         self.builder.get_object('lbl_second_subtitle').set_label(_('Device'))
         self.builder.get_object('lbl_usb_network').set_label(_('USB Network'))
+        self.builder.get_object('lbl_usb_etc').set_label(_('USB Etc'))
+        self.builder.get_object('lbl_input_vid').set_label(_('Input vid'))
+        self.builder.get_object('lbl_input_pid').set_label(_('Input pid'))
 
         #menu
         self.builder.get_object('menu_load').set_label(_('_Reset(R)'))

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: grac-editor 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-16 17:32+0900\n"
+"POT-Creation-Date: 2022-10-12 17:59+0900\n"
 "PO-Revision-Date: 2018-09-28 16:24+0900\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -17,146 +17,162 @@ msgstr "허용"
 msgid "disallow"
 msgstr "비허용"
 
-#: grac_editor.py:338
+#: grac_editor.py:365
 msgid "invalid mac format(ex 01:23:45:ab:cd:ef)"
 msgstr "잘못된 맥주소 형식(예 01:23:45:ab:cd:ef)"
 
-#: grac_editor.py:377
+#: grac_editor.py:404
 msgid "need address or port"
 msgstr "주소 혹은 포트 필요"
 
-#: grac_editor.py:437
+#: grac_editor.py:464
 msgid "removing success"
 msgstr "삭제 성공"
 
-#: grac_editor.py:444 grac_editor.py:524
+#: grac_editor.py:471 grac_editor.py:565
 msgid "apply success"
 msgstr "적용 성공"
 
-#: grac_editor.py:447
+#: grac_editor.py:474
 msgid "apply fail"
 msgstr "적용 실패"
 
-#: grac_editor.py:508
+#: grac_editor.py:549
 msgid "save success"
 msgstr "저장 성공"
 
-#: grac_editor.py:527
+#: grac_editor.py:568
 msgid "save fail"
 msgstr "저장 실패"
 
-#: grac_editor.py:550
+#: grac_editor.py:592
 msgid "reset success"
 msgstr "다시읽기 성공"
 
-#: grac_editor.py:553
+#: grac_editor.py:595
 msgid "reset fail"
 msgstr "다시읽기 실패"
 
-#: grac_editor.py:561
+#: grac_editor.py:603
 msgid "GRAC Editor"
 msgstr "매체제어 편집기"
 
-#: grac_editor.py:563
+#: grac_editor.py:605
 msgid "USB Memory"
 msgstr "USB 메모리"
 
-#: grac_editor.py:564
+#: grac_editor.py:606
 msgid "Printer"
 msgstr "프린터"
 
-#: grac_editor.py:565
+#: grac_editor.py:607
 msgid "CD/DVD"
 msgstr "CD/DVD"
 
-#: grac_editor.py:566
+#: grac_editor.py:608
 msgid "Camera"
 msgstr "카메라"
 
-#: grac_editor.py:567
+#: grac_editor.py:609
 msgid "Sound"
 msgstr "사운드"
 
-#: grac_editor.py:568
+#: grac_editor.py:610
 msgid "Microphone"
 msgstr "녹음"
 
-#: grac_editor.py:569
+#: grac_editor.py:611
 msgid "Wireless"
 msgstr "무선인터넷"
 
-#: grac_editor.py:570
+#: grac_editor.py:612
 msgid "Bluetooth"
 msgstr "블루투스"
 
-#: grac_editor.py:571
+#: grac_editor.py:613
 msgid "USB Keyboard"
 msgstr "USB 키보드"
 
-#: grac_editor.py:572
+#: grac_editor.py:614
 msgid "USB Mouse"
 msgstr "USB 마우스"
 
-#: grac_editor.py:573
+#: grac_editor.py:615
 msgid "ScreenCapture"
 msgstr "스크린캡쳐"
 
-#: grac_editor.py:574
+#: grac_editor.py:616
 msgid "Clipboard"
 msgstr "클립보드"
 
-#: grac_editor.py:575
+#: grac_editor.py:617
 msgid "readonly"
 msgstr "읽기전용"
 
-#: grac_editor.py:576
+#: grac_editor.py:618
 msgid "Input serial"
 msgstr "USB 시리얼번호를 입력하세요"
 
-#: grac_editor.py:577
+#: grac_editor.py:619
 msgid "Input mac"
 msgstr "블루투스 MAC주소를 입력하세요"
 
-#: grac_editor.py:578
+#: grac_editor.py:620
 msgid "Input busno"
 msgstr "USB 버스 번호를 입력하세요"
 
-#: grac_editor.py:579
+#: grac_editor.py:621
 msgid "Firewall"
 msgstr "방화벽"
 
-#: grac_editor.py:580
+#: grac_editor.py:622
 msgid "Media Control"
 msgstr "매체제어"
 
-#: grac_editor.py:581
+#: grac_editor.py:623
 msgid "Device"
 msgstr "장치"
 
-#: grac_editor.py:582
+#: grac_editor.py:624
 msgid "USB Network"
 msgstr "USB 네트워크"
 
-#: grac_editor.py:585
+#: grac_editor.py:625
+msgid "USB Etc"
+msgstr "기타 USB"
+
+#: grac_editor.py:626
+msgid "Input vid"
+msgstr "제조사 아이디를 입력하세요"
+
+#: grac_editor.py:627
+msgid "Input pid"
+msgstr "제품 아이디를 입력하세요"
+
+#: grac_editor.py:630
 msgid "_Reset(R)"
 msgstr "_다시읽기(R)"
 
-#: grac_editor.py:586
+#: grac_editor.py:631
 msgid "_Save(S)"
 msgstr "_저장(S)"
 
-#: grac_editor.py:587
+#: grac_editor.py:632
 msgid "_Quit(Q)"
 msgstr "_종료(Q)"
 
-#: grac_editor.py:588
+#: grac_editor.py:633
 msgid "_Help"
 msgstr "_도움말(F1)"
 
-#: grac_editor.py:589
+#: grac_editor.py:634
 msgid "_Remove User Rule(U)"
 msgstr "서버정책삭제(U)"
 
-#: grac_editor.py:625
+#: grac_editor.py:670
 msgid "online-account can not use editor."
 msgstr "원격계정은 에디터를 사용할 수 없습니다."
+
+msgid "iptables"
+msgstr "iptables"
+

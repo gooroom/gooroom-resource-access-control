@@ -61,6 +61,7 @@ JSON_RULE_NETWORK_ACCEPT = 'accept'
 JSON_RULE_NETWORK_VERSION = 'version'
 JSON_RULE_USB_NETWORK ='usb_network'
 JSON_RULE_USB_NETWORK_WHITELIST = 'whitelist'
+JSON_RULE_USB_ETC = 'usb_etc'
 
 #delimeter
 GRAC_PRINTER_DELIM = ' +GRAC-PRINTER-DELIM+ ' #watch out spaces

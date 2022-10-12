@@ -34,9 +34,52 @@ class GracSynchronizer:
                         (JSON_RULE_BLUETOOTH, MC_TYPE_NA),
                         (JSON_RULE_CLIPBOARD, MC_TYPE_NOSYNC),
                         (JSON_RULE_SCREEN_CAPTURE, MC_TYPE_ALLOWSYNC),
-                        (JSON_RULE_USB_NETWORK, MC_TYPE_AUTH))
+                        (JSON_RULE_USB_NETWORK, MC_TYPE_AUTH),
+                        (JSON_RULE_USB_ETC, MC_TYPE_AUTH)
+			)
 
     _logger = GracLog.get_logger()
+
+    @classmethod
+    def sync_usb_etc(cls, state, data_center):
+        """
+        synchronize usb-etc
+        """
+
+        cls._logger.debug('sync_usb_etc call:{}'.format(state))
+        for dn in glob.glob('/sys/bus/usb/devices/*'):
+            real_dn = os.path.realpath(dn)
+            vid = None
+            pid = None
+            for fn in glob.glob(real_dn + '/*'):
+                if fn.endswith('idVendor'):
+                    with open(fn, 'r') as f:
+                        vid = f.read().strip()
+                if fn.endswith('idProduct'):
+                    with open(fn, 'r') as f2:
+                        pid = f2.read().strip()
+                    
+            if not vid or not pid:
+                continue
+
+            for devs in data_center.get_usb_etc():
+                for dev_name, dev_items in devs.items():
+                    if dev_items['state'] == JSON_RULE_ALLOW:
+                        continue
+                    for item in dev_items['items']:
+                        if vid == item['vid'] and pid == item['pid']:
+                            with open(real_dn+'/authorized', 'r') as f:
+                                if f.read().strip() == '1':
+                                    with open(real_dn+'/authorized', 'w') as f2:
+                                        f2.write('0')
+                                    logmsg, notimsg, grmcode = \
+                                        make_media_msg(dev_name, state)
+                                    red_alert2(logmsg, 
+                                               notimsg, 
+                                               JLEVEL_DEFAULT_NOTI, 
+                                               grmcode, 
+                                               data_center)
+                                    return
 
     @classmethod
     def sync_usb_network(cls, state, data_center):

@@ -69,6 +69,7 @@ class GracDataCenter:
             self._bluetooth_whitelist = self.pick_bluetooth_whitelist(self._json_rules)
             self._usb_memory_whitelist = self.pick_usb_memory_whitelist(self._json_rules)
             self._usb_network_whitelist = self.pick_usb_network_whitelist(self._json_rules)
+            self._usb_etc = self.pick_usb_etc(self._json_rules)
 
             self.logger.info('END SHOW()')
 
@@ -317,6 +318,8 @@ class GracDataCenter:
                 mode = None
                 if isinstance(mod_or_dict, str):
                     mode = mod_or_dict
+                elif isinstance(mod_or_dict, list):
+                    mode = 'NA'
                 else:
                     mode = mod_or_dict[JSON_RULE_STATE]
 
@@ -347,6 +350,16 @@ class GracDataCenter:
 
         return json_rules[JSON_RULE_USB_MEMORY][JSON_RULE_USB_MEMORY_WHITELIST]
 
+    def pick_usb_etc(self, json_rules):
+        """
+        pick usb-etc in json rules
+        """
+
+        if not JSON_RULE_USB_ETC in json_rules:
+            return []
+
+        return json_rules[JSON_RULE_USB_ETC]
+
     def pick_usb_network_whitelist(self, json_rules):
         """
         pick usb-network whitelist in json rules
@@ -357,6 +370,23 @@ class GracDataCenter:
             return {}
 
         return json_rules[JSON_RULE_USB_NETWORK][JSON_RULE_USB_NETWORK_WHITELIST]
+
+    def get_usb_etc(self):
+        """
+        get usb etc
+        """
+
+        self._center_lock.acquire()
+
+        try:
+            return self._usb_etc
+
+        except:
+            raise
+
+        finally:
+            self._center_lock.release()
+
 
     def get_bluetooth_whitelist(self):
         """
