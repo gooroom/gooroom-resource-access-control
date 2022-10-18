@@ -3,11 +3,10 @@
 #-------------------------------------------------------------------------------
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, Gio
 
 import simplejson as json
 import traceback
-import gettext
 import shutil
 import signal
 import dbus
@@ -16,7 +15,11 @@ import os
 
 from ge_define import *
 
-gettext.install('grac-editor', '/usr/share/gooroom/locale')
+import locale
+from locale import gettext as _
+locale.bindtextdomain('grac-editor', '/usr/share/gooroom/locale')
+locale.textdomain('grac-editor')
+locale.setlocale(locale.LC_ALL, "")
 
 #-------------------------------------------------------------------------------
 cssProvider = Gtk.CssProvider()
@@ -46,9 +49,19 @@ class GracEditor:
         self.builder = Gtk.Builder()
         self.builder.add_from_file(GLADE_PATH)
         self.builder.connect_signals(self)
+        self.builder.set_translation_domain('grac-editor')
 
-        #WINDOW MAIN
         self.window_main = self.builder.get_object('window_main')
+
+        agr = Gtk.AccelGroup()
+        self.window_main.add_accel_group(agr)
+        agr.connect(Gdk.keyval_from_name('l'), Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK, Gtk.AccelFlags.VISIBLE, self.on_accel_load_handler)
+        agr.connect(Gdk.keyval_from_name('s'), Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK, Gtk.AccelFlags.VISIBLE, self.on_accel_save_handler)
+        agr.connect(Gdk.keyval_from_name('u'), Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK, Gtk.AccelFlags.VISIBLE, self.on_accel_remove_user_rule_handler)
+
+        key, modifier = Gtk.accelerator_parse('F1')
+        agr.connect(key, modifier, Gtk.AccelFlags.VISIBLE, self.on_accel_help_handler)
+        agr.connect(Gdk.keyval_from_name('q'), Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK, Gtk.AccelFlags.VISIBLE, self.on_accel_quit_handler)
 
         #SHOW
         self.window_main.show_all()
@@ -58,6 +71,27 @@ class GracEditor:
 
         #LANG
         self.lang()
+
+    def on_accel_load_handler(self, widget, event, arg1=None, arg2=None, arg3=None):
+        self.on_menu_load_activate(None)
+        return True
+
+    def on_accel_save_handler(self, widget, event, arg1=None, arg2=None, arg3=None):
+        self.on_menu_apply_activate(None)
+        return True
+
+    def on_accel_remove_user_rule_handler(self, widget, event, arg1=None, arg2=None, arg3=None):
+        self.on_menu_remove_user_rule_activate(None)
+        return True
+
+    def on_accel_help_handler(self, widget, event, arg1=None, arg2=None, arg3=None):
+        self.on_menu_help_activate(None)
+        return True
+
+    def on_accel_quit_handler(self, widget, event, arg1=None, arg2=None, arg3=None):
+        self.on_menu_quit_activate(None)
+        return True
+
 
     def logging(self, txt):
         """
@@ -76,6 +110,7 @@ class GracEditor:
                                                         0.0,0.0)
 
     def write_txtvw(self, vw_id, txt):
+
         """
         """
 
@@ -555,6 +590,7 @@ class GracEditor:
         menu > File > apply
         """
 
+        print('apply')
         self.on_menu_save_activate(obj)
 
         try:
@@ -580,6 +616,28 @@ class GracEditor:
         """
         import subprocess
         subprocess.Popen(["/usr/bin/yelp", "help:grac-editors"])
+
+    def on_menu_shortcuts_activate(self, obj):
+        shortcuts_window = Gtk.ShortcutsWindow()
+
+        shortcuts_section = Gtk.ShortcutsSection(section_name=_('Shortcuts'), visible=True)
+        shortcuts_group = Gtk.ShortcutsGroup(title=_('Interface')) 
+        load = Gtk.ShortcutsShortcut(title=_('Reset'), accelerator='<Ctrl><Shift>l') 
+        save = Gtk.ShortcutsShortcut(title=_('Save'), accelerator='<Ctrl><Shift>s') 
+        remove = Gtk.ShortcutsShortcut(title=_('Remove User Rule'), accelerator='<Ctrl><Shift>u') 
+        helps = Gtk.ShortcutsShortcut(title=_('Help'), accelerator='F1') 
+        quit = Gtk.ShortcutsShortcut(title=_('Quit'), accelerator='<Ctrl><Shift>q') 
+
+        shortcuts_group.add(load)
+        shortcuts_group.add(save)
+        shortcuts_group.add(remove)
+        shortcuts_group.add(helps)
+        shortcuts_group.add(quit)
+
+        shortcuts_section.add(shortcuts_group)
+        shortcuts_window.add(shortcuts_section)
+
+        shortcuts_window.show_all()
 
     def on_menu_load_activate(self, obj):
         """
@@ -626,12 +684,6 @@ class GracEditor:
         self.builder.get_object('lbl_input_vid').set_label(_('Input vid'))
         self.builder.get_object('lbl_input_pid').set_label(_('Input pid'))
 
-        #menu
-        self.builder.get_object('menu_load').set_label(_('_Reset(R)'))
-        self.builder.get_object('menu_apply').set_label(_('_Save(S)'))
-        self.builder.get_object('menu_quit').set_label(_('_Quit(Q)'))
-        self.builder.get_object('menu_help').set_label(_('_Help'))
-        self.builder.get_object('menu_remove_user_rule').set_label(_('_Remove User Rule(U)'))
 
 #-----------------------------------------------------------------------
 def check_online_account():
