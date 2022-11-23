@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 #-----------------------------------------------------------------------
-import datetime
+import datetime,time
 import os
 
 from grac_util import GracConfig,GracLog,grac_format_exc,search_file_reversely
@@ -28,6 +28,8 @@ def do_task(param, data_center):
 
         with open(remove_path, 'w') as f:
             f.write('1')
+
+        time.sleep(0.5)
 
         if os.path.exists(remove_path):
             remove_second = '/'.join(remove_path.split('/')[:-2]) + '/remove'

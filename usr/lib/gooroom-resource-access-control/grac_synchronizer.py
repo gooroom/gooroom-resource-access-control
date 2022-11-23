@@ -2,7 +2,7 @@
 
 #-----------------------------------------------------------------------
 import subprocess
-import datetime
+import datetime,time
 import glob
 import re
 import os
@@ -557,6 +557,8 @@ class GracSynchronizer:
 
                     with open(remove, 'w') as f:
                         f.write('1')
+
+                    time.sleep(0.5)
 
                     if os.path.exists(remove):
                         remove_second = '/'.join(remove.split('/')[:-2]) + '/remove'
