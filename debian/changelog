@@ -1,3 +1,17 @@
+gooroom-resource-access-control (1.4.8+grm3u1) unstable; urgency=medium
+
+  [ seolhee.sun ]
+  * [2c3a7591] add usb-etc rebase
+  * [ecebcdd3] prevent user processes from stopping|reloading GRAC
+  * [d4f5262e] Update mnemonic key and accelerator key
+  * [57da3e24] Add wait to wireless disable working
+  * [67a55155] Editor policy writing format changed
+
+  [ boyeon.choi ]
+  * [73e7b360] Added Comment on desktop
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 03 Feb 2023 16:56:29 +0900
+
 gooroom-resource-access-control (1.4.7+grm3u1) unstable; urgency=medium
 
   [ seolhee.sun ]
