@@ -613,8 +613,17 @@ class GracEditor:
         """
         menu > Help > Help
         """
+
         import subprocess
-        subprocess.Popen(["/usr/bin/yelp", "help:grac-editors"])
+        user, display = catch_user_id ()
+
+        if user == '-':
+            subprocess.Popen(["/usr/bin/yelp", "help:grac-editors"])
+        else:
+            if user[0] == '+':
+                subprocess.Popen(["sudo", "-u", user[1:], "/usr/bin/yelp", "help:grac-editors"])
+            else:
+                subprocess.Popen(["sudo", "-u", user, "/usr/bin/yelp", "help:grac-editors"])
 
     def on_menu_shortcuts_activate(self, obj):
         shortcuts_window = Gtk.ShortcutsWindow()
@@ -683,6 +692,89 @@ class GracEditor:
         self.builder.get_object('lbl_input_vid').set_label(_('Input vid'))
         self.builder.get_object('lbl_input_pid').set_label(_('Input pid'))
 
+
+#-----------------------------------------------------------------------
+def catch_user_id():
+    """
+    get session login id
+    (-) not login
+    (+user) local user
+    (user) remote user
+    """
+
+    import subprocess
+    from pwd import getpwnam
+
+    pp = subprocess.Popen(
+        ['loginctl', 'list-sessions'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+
+    pp_out, pp_err = pp.communicate()
+    pp_out = pp_out.decode('utf8').split('\n')
+
+    for l in pp_out:
+        l = l.split()
+        if len(l) < 3:
+            continue
+        try:
+            sn = l[0].strip()
+            if not sn.isdigit():
+                continue
+            uid = l[1].strip()
+            if not uid.isdigit():
+                continue
+            user = l[2].strip()
+            pp2 = subprocess.Popen(
+                ['loginctl', 'show-session', sn],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+
+            pp2_out, pp2_err = pp2.communicate()
+            pp2_out = pp2_out.decode('utf8').split('\n')
+            service_lightdm = False
+            state_active = False
+            active_yes = False
+            display = ''
+            for l2 in pp2_out:
+                l2 = l2.split('=')
+                if len(l2) != 2:
+                    continue
+                k, v = l2
+                k = k.strip()
+                v = v.strip()
+                if k == 'Id'and v != sn:
+                    break
+                elif k == 'User'and v != uid:
+                    break
+                elif k == 'Name' and v != user:
+                    break
+                elif k == 'Service':
+                    if 'lightdm' in v:
+                        service_lightdm = True
+                    else:
+                        break
+                elif k == 'State':
+                    if v == 'active':
+                        state_active = True
+                    else:
+                        break
+                elif k == 'Active':
+                    if v == 'yes':
+                        active_yes = True
+                elif k == 'Display':
+                    display = v
+
+                if service_lightdm and state_active and active_yes:
+                    gecos = getpwnam(user).pw_gecos.split(',')
+                    if len(gecos) >= 5 and gecos[4] == 'gooroom-account':
+                        return user, display
+                    else:
+                        return '+{}'.format(user), display
+        except:
+            GracLog.get_logger().debug(grac_format_exc())
+
+    return '-', ''
 
 #-----------------------------------------------------------------------
 def check_online_account():
