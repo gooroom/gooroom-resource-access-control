@@ -13,7 +13,7 @@
 [usb_memory]
     [[allow]]
     FILTER="""
-    ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", MODULE="usb_memory allow $devpath $attrs{serial} $$attrs{idProduct} $attrs{manufacturer} $attrs{product}"
+    ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb-storage", ATTR{authorized}=="1", ATTR{bInterfaceSubClass}!="02", MODULE="usb_memory allow $devpath $attrs{serial} $$attrs{idProduct} $attrs{manufacturer} $attrs{product}"
     ACTION=="add", SUBSYSTEM=="block", ENV{ID_BUS}=="ata", ENV{DEVTYPE}=="partition", ENV{ID_FS_USAGE}=="filesystem", MODULE="usb_memory allow $devpath $attrs{serial} $$attrs{idProduct} $attrs{manufacturer} $attrs{product}"
     """
 
@@ -51,7 +51,8 @@
 [cd_dvd]
     [[disallow]]
     FILTER="""
-    ACTION=="add", DEVNODE=="sr[0-9]*", ENV{ID_CDROM}=="1", MODULE="cd_dvd disallow $devpath"
+    ACTION=="add", SUBSYSTEM=="usb", ENV{DRIVER}=="usb", ATTR{authorized}=="1", ATTR{bInterfaceSubClass}=="02", MODULE="cd_dvd disallow $devpath"
+    #ACTION=="add", DEVNODE=="sr[0-9]*", ENV{ID_CDROM}=="1", MODULE="cd_dvd disallow $devpath"
     #ACTION=="change", SUBSYSTEM=="block", DEVNODE=="sr[0-9]*", ENV{DEVTYPE}=="disk", MODULE="cd_dvd disallow $devpath"
     """
 
