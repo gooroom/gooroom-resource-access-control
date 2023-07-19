@@ -1,3 +1,11 @@
+gooroom-resource-access-control (1.4.9+grm3u1) unstable; urgency=medium
+
+  [ seolhee.sun ]
+  * [d27a91c0] Change to Yelp runned as user process
+  * [d958c937] Change rule map for cd_dvd media disallow
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Wed, 19 Jul 2023 17:57:41 +0900
+
 gooroom-resource-access-control (1.4.8+grm3u1) unstable; urgency=medium
 
   [ seolhee.sun ]
