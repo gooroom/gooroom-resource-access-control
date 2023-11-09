@@ -949,8 +949,7 @@ class GracEditor:
             ###transform editor structure to orginal's
             org_form = {}
             for k, v in self.media_rules.items():
-                #if len(v) == 1:
-                if isinstance(v, tuple):
+                if len(v) == 1 and not isinstance(v, list):
                     org_form[k] = v[JSON_RULE_STATE]
                 else:
                     org_form[k] = v
@@ -958,7 +957,7 @@ class GracEditor:
             ###save to file
             TMP_MEDIA_DEFAULT = '/var/tmp/TMP-MEDIA-DEFAULT'
             with open(TMP_MEDIA_DEFAULT, 'w') as f:
-                f.write(json.dumps(org_form, indent=4))
+                f.write(json.dumps(org_form, indent=4, ensure_ascii=False))
 
             shutil.copy(TMP_MEDIA_DEFAULT, DEFAULT_RULES_PATH)
 
