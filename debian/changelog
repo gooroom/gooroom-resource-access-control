@@ -1,3 +1,15 @@
+gooroom-resource-access-control (1.4.3+grm2u1) unstable; urgency=medium
+
+  [ hmkim ]
+  * [1d315e02] change iptables -> iptables-legacy AGAIN
+  * [6c7d63cf] add usb-etc
+  * [1e4b0092] prevent user processes from stopping|reloading GRAC
+
+  [ seolhee.sun ]
+  * [abffd75d] [Bug:5589,5590]Editor policy writing format changed
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 10 Nov 2023 09:14:21 +0900
+
 gooroom-resource-access-control (1.4.2+grm2u1) unstable; urgency=medium
 
   [ boyeon.choi ]
