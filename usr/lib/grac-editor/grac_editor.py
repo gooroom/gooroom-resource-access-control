@@ -12,6 +12,7 @@ import signal
 import dbus
 import sys
 import os
+import apt_pkg
 
 from ge_define import *
 
@@ -71,6 +72,28 @@ class GracEditor:
 
         #LANG
         self.lang()
+
+        apt_pkg.init_config()
+        apt_pkg.init_system()
+        cache = apt_pkg.Cache()
+
+        pkg_yelp = None
+        pkg_gooroom_yelp = None
+        is_yelp_installed = False
+        is_gooroom_yelp_installed = False
+
+        if 'yelp' in cache:
+            pkg_yelp = cache['yelp']
+        if 'gooroom-yelp-adjustments' in cache:
+            pkg_gooroom_yelp = cache['gooroom-yelp-adjustments']
+
+        if pkg_yelp and pkg_yelp.current_state == apt_pkg.CURSTATE_INSTALLED:
+            is_yelp_installed = True
+        if pkg_gooroom_yelp and pkg_gooroom_yelp.current_state == apt_pkg.CURSTATE_INSTALLED:
+            is_gooroom_yelp_installed = True
+
+        if is_yelp_installed == False or is_gooroom_yelp_installed == False:
+            self.builder.get_object('menu_help').set_sensitive(False)
 
     def on_accel_load_handler(self, widget, event, arg1=None, arg2=None, arg3=None):
         self.on_menu_load_activate(None)
