@@ -1,3 +1,10 @@
+gooroom-resource-access-control (4.0.0+grm4u1) unstable; urgency=medium
+
+  [ seolhee.sun ]
+  * [43985ee0] Remove grac-editor help resources and disabled help button when not installed yelp packages
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Mon, 11 Mar 2024 08:45:29 +0900
+
 gooroom-resource-access-control (1.4.9+grm3u1) unstable; urgency=medium
 
   [ seolhee.sun ]
