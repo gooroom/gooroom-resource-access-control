@@ -142,15 +142,15 @@ msgstr "읽기전용"
 
 #: grac_editor.py:676 grac_editor.ui:296
 msgid "Input serial"
-msgstr "USB 시리얼번호를 입력하세요"
+msgstr "화이트리스트를 위한 USB 시리얼번호를 입력하세요"
 
 #: grac_editor.py:677 grac_editor.ui:782
 msgid "Input mac"
-msgstr "블루투스 MAC주소를 입력하세요"
+msgstr "화이트리스트를 위한 블루투스 MAC주소를 입력하세요"
 
 #: grac_editor.py:678 grac_editor.ui:1146
 msgid "Input busno"
-msgstr "USB 버스 번호를 입력하세요"
+msgstr "화이트리스트를 위한 USB 버스 번호를 입력하세요"
 
 #: grac_editor.py:679 grac_editor.ui:1214
 msgid "Firewall"
@@ -174,11 +174,11 @@ msgstr "기타 USB"
 
 #: grac_editor.py:684 grac_editor.ui:1377
 msgid "Input vid"
-msgstr "제조사 아이디를 입력하세요"
+msgstr "차단할 장치의 제조사 아이디를 입력하세요"
 
 #: grac_editor.py:685 grac_editor.ui:1417
 msgid "Input pid"
-msgstr "제품 아이디를 입력하세요"
+msgstr "차단할 장치의 제품 아이디를 입력하세요"
 
 #: grac_editor.py:722
 msgid "online-account can not use editor."
