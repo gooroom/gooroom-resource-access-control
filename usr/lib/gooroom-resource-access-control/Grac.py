@@ -215,7 +215,7 @@ class Grac(dbus.service.Object):
         file_list = os.listdir(dev_snd_path)
 
         for control_file in file_list:
-            if control_file.find("control") is not -1:
+            if control_file.find("control") != -1:
                 idx = control_file.split("controlC")
                 wm.add_watch(
                     dev_snd_path + control_file, 
@@ -433,7 +433,7 @@ class Grac(dbus.service.Object):
         file_list = os.listdir(dev_snd_path)
 
         for control_file in file_list:
-            if control_file.find("control") is not -1:
+            if control_file.find("control") != -1:
                 idx = control_file.split("controlC")
                 wm.add_watch(
                     dev_snd_path + control_file, 

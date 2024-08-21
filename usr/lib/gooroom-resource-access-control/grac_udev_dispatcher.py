@@ -117,6 +117,18 @@ class GracUdevDispatcher():
                             if not self.match_item(regex, op, v):
                                 break
 
+                        elif tp == RULES_MAP_TYPE_PARENT:
+                            find_parent = False
+                            if lhs == 'driver':
+                                for parent in device.traverse():
+                                    v = getattr(parent, 'driver')
+                                    self.logger.debug('(parent) lhs={} rhs={} op={} v={}'.format (lhs, rhs, op, v))
+                                    if self.match_item(regex, op, v):
+                                        find_parent = True
+                                        break
+                            if not find_parent:
+                                break
+
                         elif tp == RULES_MAP_TYPE_PROP:
                             lhs = lhs.lower()
                             if lhs == 'devnode':
@@ -220,6 +232,14 @@ class GracUdevDispatcher():
                 res = True
         elif op == '!=': 
             if not regex.search(v):
+                res = True
+        elif op == '<' and v.isdigit():
+            rhs = regex.pattern
+            if int(v) < int(rhs):
+                res = True
+        elif op == '>' and v.isdigit():
+            rhs = regex.pattern
+            if int(v) > int(rhs):
                 res = True
         else:
             self.logger.error('invalid operator={}'.format(op))

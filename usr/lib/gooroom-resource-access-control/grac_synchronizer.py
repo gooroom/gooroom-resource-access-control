@@ -342,7 +342,7 @@ class GracSynchronizer:
                 #whitelist
                 serial_path = search_file_reversely(
                                             device_real_path, 
-                                            'serial', 
+                                            'serial',
                                             REVERSE_LOOKUP_LIMIT)
                 if serial_path:
                     with open(serial_path) as f:
@@ -351,6 +351,16 @@ class GracSynchronizer:
                         if s == serial:
                             cls._logger.info(
                                 'SYNC serial({}) is in whitelist'.format(serial))
+                            return
+
+                #size check
+                device_size_path = block_device + '/size'
+                if os.path.exists(device_size_path):
+                    with open(device_size_path, 'r') as file:
+                        size_str = file.read()
+                        size_str = size_str.replace('\n','')
+                        if size_str.isdigit() and int(size_str) <= 0:
+                            cls._logger.debug('device {} size : {}'.format(device_size_path, int(size_str)))
                             return
 
                 #authorized

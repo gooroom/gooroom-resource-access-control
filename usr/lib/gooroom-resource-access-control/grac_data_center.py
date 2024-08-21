@@ -150,6 +150,12 @@ class GracDataCenter:
                         elif '=' in filter_item:
                             lhs, rhs = filter_item.split('=')
                             op = '='
+                        elif '>' in filter_item:
+                            lhs, rhs = filter_item.split('>')
+                            op = '>'
+                        elif '<' in filter_item:
+                            lhs, rhs = filter_item.split('<')
+                            op = '<'
                         else:
                             self.logger.error('!! filter_item operator '\
                                 'is not valid(filter_item={})'.format(filter_item))
@@ -171,6 +177,9 @@ class GracDataCenter:
                         elif lhs.startswith(RULES_MAP_TYPE_MODULE):
                             tp = RULES_MAP_TYPE_MODULE
                             module_mustbe = True
+                        elif lhs.startswith(RULES_MAP_TYPE_PARENT):
+                            tp = RULES_MAP_TYPE_PARENT
+                            lhs = lhs[7:-1]
                         else:
                             tp = RULES_MAP_TYPE_PROP
 
