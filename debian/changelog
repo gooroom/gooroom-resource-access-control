@@ -1,3 +1,10 @@
+gooroom-resource-access-control (4.1.0+grm4u1) unstable; urgency=medium
+
+  [ seolhee.sun ]
+  * [d4abfd0f] Change detail grac editor text wording
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 30 Aug 2024 16:17:41 +0900
+
 gooroom-resource-access-control (4.0.0+grm4u1) unstable; urgency=medium
 
   [ seolhee.sun ]
