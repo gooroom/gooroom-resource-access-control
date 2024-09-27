@@ -1,3 +1,10 @@
+gooroom-resource-access-control (1.5.0+grm3u1) unstable; urgency=medium
+
+  [ seolhee.sun ]
+  * [93fd0fc5] Changed usb memory rules
+
+ -- Gooroom Autobuilder <jenkins@gooroom.kr>  Fri, 27 Sep 2024 12:22:05 +0900
+
 gooroom-resource-access-control (1.4.9+grm3u1) unstable; urgency=medium
 
   [ seolhee.sun ]
